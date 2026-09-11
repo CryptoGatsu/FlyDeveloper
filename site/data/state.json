@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11T20:11:52Z",
+ "generated_at": "2026-09-11T20:15:28Z",
  "fly": {
   "name": "The Fly Dev",
   "symbol": "FLYDEV",
@@ -17,27 +17,27 @@
   "x": ""
  },
  "now": {
-  "at": "2026-09-11T20:10:10+00:00",
-  "mood": "scheming",
+  "at": "2026-09-11T20:15:08+00:00",
+  "mood": "hyped",
   "action": "build",
   "drives": {
-   "curiosity": 0.1963,
-   "craft": 0.7937,
-   "humor": 0.3725,
-   "appetite": 0.4088,
-   "boldness": 0.5982,
+   "curiosity": 0.1866,
+   "craft": 0.5361,
+   "humor": 0.2471,
+   "appetite": 0.4169,
+   "boldness": 0.5702,
    "fatigue": 0.15
   },
   "probs": {
-   "browse": 0.0959,
-   "build": 0.5286,
-   "meme": 0.1587,
-   "launch": 0.1328,
-   "rest": 0.084
+   "browse": 0.1384,
+   "build": 0.3758,
+   "meme": 0.1645,
+   "launch": 0.1966,
+   "rest": 0.1247
   },
   "brain": {
-   "sugar": "sugar: 1411 spikes, 323 active (302 downstream, breadth 0.0022), mean 43.7 Hz, ISI-CV 0.37, burstiness 0.39, persistence 1.06, 0.4s wall",
-   "walk": "walk: 41 spikes, 22 active (20 downstream, breadth 0.0001), mean 18.6 Hz, ISI-CV 0.81, burstiness 1.92, persistence 1.56, 0.2s wall"
+   "sugar": "sugar: 1596 spikes, 330 active (309 downstream, breadth 0.0022), mean 48.4 Hz, ISI-CV 0.33, burstiness 0.39, persistence 1.24, 0.4s wall",
+   "walk": "walk: 49 spikes, 20 active (18 downstream, breadth 0.0001), mean 24.5 Hz, ISI-CV 0.42, burstiness 1.84, persistence 4.44, 0.2s wall"
   }
  },
  "counts": {
@@ -332,6 +332,18 @@
     "humor": 0.3725,
     "appetite": 0.4088,
     "boldness": 0.5982,
+    "fatigue": 0.15
+   }
+  },
+  {
+   "at": "2026-09-11T20:15:08+00:00",
+   "action": "build",
+   "drives": {
+    "curiosity": 0.1866,
+    "craft": 0.5361,
+    "humor": 0.2471,
+    "appetite": 0.4169,
+    "boldness": 0.5702,
     "fatigue": 0.15
    }
   }
