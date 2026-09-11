@@ -1,0 +1,45 @@
+import numpy as np
+
+from fly.brain import Connectome, FlyBrain
+from fly.drives import ACTIONS, WorldSignals, choose_action, compute_drives
+
+
+def _reports():
+    c = Connectome.synthetic(1000, seed=1)
+    b = FlyBrain(c)
+    return {
+        "sugar": b.run("sugar", np.arange(20), 200.0, 0.03, seed=1),
+        "walk": b.run("walk", np.arange(50, 52), 100.0, 0.03, seed=2),
+    }, c.calibration
+
+
+def test_drives_in_unit_range():
+    reports, cal = _reports()
+    d = compute_drives(reports, WorldSignals(), cal)
+    for v in d.as_dict().values():
+        assert 0.0 <= v <= 1.0
+
+
+def test_world_pressure_raises_craft():
+    reports, cal = _reports()
+    fresh = compute_drives(reports, WorldSignals(hours_since_build=0.0), cal)
+    stale = compute_drives(reports, WorldSignals(hours_since_build=100.0, unread_notes=5), cal)
+    assert stale.craft > fresh.craft
+
+
+def test_launch_cap_blocks_launch():
+    reports, cal = _reports()
+    world = WorldSignals(launches_today=1, max_launches_per_day=1, unlaunched_memes=3)
+    d = compute_drives(reports, world, cal)
+    action, probs = choose_action(d, world, "abc")
+    assert probs["launch"] == 0.0
+    assert action in ACTIONS and action != "launch"
+
+
+def test_choice_is_deterministic_per_fingerprint():
+    reports, cal = _reports()
+    world = WorldSignals(unlaunched_memes=1)
+    d = compute_drives(reports, world, cal)
+    a1, _ = choose_action(d, world, "deadbeef")
+    a2, _ = choose_action(d, world, "deadbeef")
+    assert a1 == a2

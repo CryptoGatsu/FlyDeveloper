@@ -1,0 +1,418 @@
+"""Pons V2 launchpad client for Robinhood Chain.
+
+Pons (github.com/ponsdotdev/ponsfamily) is a non-custodial launchpad: the
+`PonsV2LaunchFactory` mints a fixed-supply ERC-20 straight onto a
+constant-product bonding curve that later graduates into a locked Uniswap V4
+pool. Launching is one `launchToken` call carrying the factory's `launchFee`
+as `msg.value`.
+
+Safety model
+------------
+* Everything is a dry run unless BOTH `FLY_LIVE_LAUNCH=1` is set and the
+  caller passes `live=True`. Dry runs encode the exact calldata and value so
+  they can be inspected.
+* A launch needs a hosted logo URL, a name/symbol within the deployer's
+  byte limits, a daily launch cap and a fee cap. `LaunchGuard` enforces it.
+* The fly never sells. There is no `sell` here on purpose.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import time
+from dataclasses import asdict, dataclass, field
+from typing import Any
+
+from .config import LaunchpadConfig
+
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+MAX_NAME_BYTES, MAX_SYMBOL_BYTES, MAX_LOGO_BYTES, MAX_DESCRIPTION_BYTES, MAX_SOCIAL_BYTES = 64, 16, 512, 2048, 256
+
+SOCIALS_TUPLE = "(string,string,string,string,string)"
+TOKEN_PARAMS_TUPLE = f"(string,string,string,string,{SOCIALS_TUPLE},address,uint16,bool,bytes32,bytes32)"
+
+FACTORY_ABI: list[dict[str, Any]] = [
+    {
+        "type": "function", "name": "launchToken", "stateMutability": "payable",
+        "inputs": [
+            {"name": "params", "type": "tuple", "components": [
+                {"name": "name", "type": "string"},
+                {"name": "symbol", "type": "string"},
+                {"name": "logo", "type": "string"},
+                {"name": "description", "type": "string"},
+                {"name": "socials", "type": "tuple", "components": [
+                    {"name": "twitter", "type": "string"},
+                    {"name": "telegram", "type": "string"},
+                    {"name": "discord", "type": "string"},
+                    {"name": "website", "type": "string"},
+                    {"name": "farcaster", "type": "string"},
+                ]},
+                {"name": "creatorFeeRecipient", "type": "address"},
+                {"name": "creatorTaxBps", "type": "uint16"},
+                {"name": "buybackEnabled", "type": "bool"},
+                {"name": "expectedEconomics", "type": "bytes32"},
+                {"name": "salt", "type": "bytes32"},
+            ]},
+            {"name": "launchConfigId", "type": "uint256"},
+            {"name": "pairToken", "type": "address"},
+        ],
+        "outputs": [{"name": "token", "type": "address"}, {"name": "curve", "type": "address"}],
+    },
+    {"type": "function", "name": "launchFee", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "launchEnabled", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
+    {"type": "function", "name": "maxCreatorTaxBps", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "canLaunch", "stateMutability": "view", "inputs": [{"name": "launcher", "type": "address"}], "outputs": [{"type": "bool"}]},
+    {"type": "function", "name": "launchConfigCount", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {
+        "type": "function", "name": "getLaunchConfig", "stateMutability": "view",
+        "inputs": [{"name": "id", "type": "uint256"}],
+        "outputs": [{"type": "tuple", "components": [
+            {"name": "supply", "type": "uint256"},
+            {"name": "curveFeeBps", "type": "uint256"},
+            {"name": "phantomQuote", "type": "uint256"},
+            {"name": "graduationThreshold", "type": "uint256"},
+            {"name": "poolFee", "type": "uint24"},
+            {"name": "tickSpacing", "type": "int24"},
+            {"name": "enabled", "type": "bool"},
+        ]}],
+    },
+    {
+        "type": "function", "name": "previewLaunchEconomics", "stateMutability": "view",
+        "inputs": [{"name": "launchConfigId", "type": "uint256"}, {"name": "pairToken", "type": "address"}],
+        "outputs": [{"type": "bytes32"}],
+    },
+    {
+        "type": "event", "name": "TokenLaunched", "anonymous": False,
+        "inputs": [
+            {"name": "token", "type": "address", "indexed": True},
+            {"name": "curve", "type": "address", "indexed": True},
+            {"name": "deployer", "type": "address", "indexed": True},
+            {"name": "pairToken", "type": "address", "indexed": False},
+            {"name": "launchConfigId", "type": "uint256", "indexed": False},
+            {"name": "graduationThreshold", "type": "uint256", "indexed": False},
+        ],
+    },
+]
+
+CURVE_ABI: list[dict[str, Any]] = [
+    {
+        "type": "function", "name": "buy", "stateMutability": "payable",
+        "inputs": [
+            {"name": "quoteIn", "type": "uint256"},
+            {"name": "minTokensOut", "type": "uint256"},
+            {"name": "recipient", "type": "address"},
+        ],
+        "outputs": [{"name": "tokensOut", "type": "uint256"}],
+    },
+    {"type": "function", "name": "getReserves", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}, {"type": "uint256"}]},
+    {"type": "function", "name": "readyToGraduate", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
+    {"type": "function", "name": "graduated", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
+]
+
+
+class LaunchError(RuntimeError):
+    pass
+
+
+@dataclass
+class TokenParams:
+    name: str
+    symbol: str
+    logo: str
+    description: str
+    website: str = ""
+    twitter: str = ""
+    telegram: str = ""
+    discord: str = ""
+    farcaster: str = ""
+    creator_fee_recipient: str = ZERO_ADDRESS
+    creator_tax_bps: int = 0
+    buyback_enabled: bool = True
+    expected_economics: bytes = b"\x00" * 32
+    salt: bytes = b"\x00" * 32
+
+    def problems(self) -> list[str]:
+        out = []
+        b = lambda s: len(s.encode("utf-8"))
+        if not self.name or b(self.name) > MAX_NAME_BYTES:
+            out.append(f"name must be 1..{MAX_NAME_BYTES} bytes")
+        if not self.symbol or b(self.symbol) > MAX_SYMBOL_BYTES:
+            out.append(f"symbol must be 1..{MAX_SYMBOL_BYTES} bytes")
+        if b(self.logo) > MAX_LOGO_BYTES:
+            out.append(f"logo must be <= {MAX_LOGO_BYTES} bytes")
+        if b(self.description) > MAX_DESCRIPTION_BYTES:
+            out.append(f"description must be <= {MAX_DESCRIPTION_BYTES} bytes")
+        for label in ("website", "twitter", "telegram", "discord", "farcaster"):
+            if b(getattr(self, label)) > MAX_SOCIAL_BYTES:
+                out.append(f"{label} must be <= {MAX_SOCIAL_BYTES} bytes")
+        if not (0 <= self.creator_tax_bps <= 1000):
+            out.append("creatorTaxBps must be within 0..1000 (protocol cap is 10%)")
+        if len(self.expected_economics) != 32 or len(self.salt) != 32:
+            out.append("expectedEconomics and salt must be 32 bytes")
+        return out
+
+    def as_abi_tuple(self) -> tuple:
+        return (
+            self.name, self.symbol, self.logo, self.description,
+            (self.twitter, self.telegram, self.discord, self.website, self.farcaster),
+            self.creator_fee_recipient, int(self.creator_tax_bps), bool(self.buyback_enabled),
+            self.expected_economics, self.salt,
+        )
+
+    def as_json(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["expected_economics"] = "0x" + self.expected_economics.hex()
+        d["salt"] = "0x" + self.salt.hex()
+        return d
+
+
+def make_salt(*parts: str) -> bytes:
+    return hashlib.sha256("|".join([*parts, str(time.time_ns())]).encode()).digest()
+
+
+@dataclass
+class LaunchPlan:
+    params: TokenParams
+    launch_config_id: int
+    pair_token: str
+    chain_id: int
+    factory: str
+    calldata: str = ""
+    fee_wei: int | None = None
+    initial_buy_wei: int = 0
+    live: bool = False
+    sender: str = ""
+    tx_hash: str = ""
+    token: str = ""
+    curve: str = ""
+    buy_tx_hash: str = ""
+    status: str = "planned"        # planned | blocked | sent | confirmed | failed
+    problems: list[str] = field(default_factory=list)
+    chain_status: dict[str, Any] = field(default_factory=dict)
+
+    def as_json(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["params"] = self.params.as_json()
+        return d
+
+    def describe(self) -> str:
+        fee = f"{self.fee_wei / 1e18:.6f} ETH" if self.fee_wei is not None else "unknown (rpc unreachable)"
+        lines = [
+            f"{'LIVE' if self.live else 'DRY RUN'} launch of {self.params.name} ({self.params.symbol}) on chain {self.chain_id}",
+            f"  factory {self.factory}, launchConfigId {self.launch_config_id}, pairToken {self.pair_token}",
+            f"  launch fee {fee}, initial buy {self.initial_buy_wei / 1e18:.6f} ETH",
+            f"  logo {self.params.logo or '(none)'}",
+            f"  status {self.status}",
+        ]
+        if self.problems:
+            lines.append("  problems: " + "; ".join(self.problems))
+        if self.tx_hash:
+            lines.append(f"  tx {self.tx_hash} token {self.token} curve {self.curve}")
+        return "\n".join(lines)
+
+
+class PonsLaunchpad:
+    def __init__(self, cfg: LaunchpadConfig):
+        from web3 import Web3
+
+        self.cfg = cfg
+        self.w3 = Web3(Web3.HTTPProvider(cfg.rpc_url, request_kwargs={"timeout": 30}))
+        self.factory = self.w3.eth.contract(address=Web3.to_checksum_address(cfg.factory), abi=FACTORY_ABI)
+        self._account = None
+        if cfg.private_key:
+            from eth_account import Account
+
+            self._account = Account.from_key(cfg.private_key)
+
+    # -- read side -----------------------------------------------------------
+    @property
+    def address(self) -> str:
+        return self._account.address if self._account else ""
+
+    def connected(self) -> bool:
+        try:
+            return int(self.w3.eth.chain_id) == int(self.cfg.chain_id)
+        except Exception:
+            return False
+
+    def status(self) -> dict[str, Any]:
+        out: dict[str, Any] = {"rpc": self.cfg.rpc_url, "factory": self.cfg.factory, "wallet": self.address or None}
+        if not self.connected():
+            out["connected"] = False
+            return out
+        out["connected"] = True
+        f = self.factory.functions
+        for name, call in (
+            ("launchEnabled", f.launchEnabled()),
+            ("launchFee", f.launchFee()),
+            ("maxCreatorTaxBps", f.maxCreatorTaxBps()),
+            ("launchConfigCount", f.launchConfigCount()),
+        ):
+            try:
+                out[name] = call.call()
+            except Exception as exc:
+                out[name] = f"error: {exc}"
+        if self.address:
+            try:
+                out["canLaunch"] = f.canLaunch(self.address).call()
+                out["balanceEth"] = float(self.w3.from_wei(self.w3.eth.get_balance(self.address), "ether"))
+            except Exception as exc:
+                out["canLaunch"] = f"error: {exc}"
+        try:
+            cfg_raw = f.getLaunchConfig(self.cfg.launch_config_id).call()
+            out["launchConfig"] = dict(zip(
+                ("supply", "curveFeeBps", "phantomQuote", "graduationThreshold", "poolFee", "tickSpacing", "enabled"),
+                cfg_raw,
+            ))
+        except Exception as exc:
+            out["launchConfig"] = f"error: {exc}"
+        return out
+
+    # -- planning ------------------------------------------------------------
+    def plan(self, params: TokenParams, initial_buy_eth: float = 0.0, live: bool = False) -> LaunchPlan:
+        from web3 import Web3
+
+        pair = Web3.to_checksum_address(self.cfg.pair_token)
+        if params.creator_fee_recipient == ZERO_ADDRESS and self.cfg.creator_fee_recipient:
+            params.creator_fee_recipient = Web3.to_checksum_address(self.cfg.creator_fee_recipient)
+        plan = LaunchPlan(
+            params=params, launch_config_id=self.cfg.launch_config_id, pair_token=pair,
+            chain_id=self.cfg.chain_id, factory=self.cfg.factory,
+            initial_buy_wei=int(initial_buy_eth * 1e18), live=bool(live and self.cfg.live), sender=self.address,
+        )
+        plan.problems.extend(params.problems())
+        if self.connected():
+            plan.chain_status = self.status()
+            fee = plan.chain_status.get("launchFee")
+            if isinstance(fee, int):
+                plan.fee_wei = fee
+            try:
+                params.expected_economics = bytes(self.factory.functions.previewLaunchEconomics(plan.launch_config_id, pair).call())
+            except Exception as exc:
+                plan.problems.append(f"previewLaunchEconomics failed: {exc}")
+        try:
+            plan.calldata = self.factory.encode_abi("launchToken", args=[params.as_abi_tuple(), plan.launch_config_id, pair])
+        except Exception as exc:
+            plan.problems.append(f"abi encoding failed: {exc}")
+        return plan
+
+    # -- execution -----------------------------------------------------------
+    def execute(self, plan: LaunchPlan, guard: "LaunchGuard | None" = None, memory=None) -> LaunchPlan:
+        guard = guard or LaunchGuard(self.cfg)
+        plan.problems = list(dict.fromkeys(plan.problems + guard.check(plan, memory)))
+        if not plan.live:
+            plan.status = "planned"
+            return plan
+        if plan.problems:
+            plan.status = "blocked"
+            return plan
+        if not self._account:
+            plan.problems.append("no wallet key")
+            plan.status = "blocked"
+            return plan
+
+        w3 = self.w3
+        try:
+            tx = self.factory.functions.launchToken(
+                plan.params.as_abi_tuple(), plan.launch_config_id, plan.pair_token
+            ).build_transaction({
+                "from": self.address,
+                "value": int(plan.fee_wei or 0),
+                "nonce": w3.eth.get_transaction_count(self.address),
+                "chainId": self.cfg.chain_id,
+            })
+            signed = self._account.sign_transaction(tx)
+            plan.tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+            plan.status = "sent"
+            receipt = w3.eth.wait_for_transaction_receipt(plan.tx_hash, timeout=240)
+            if receipt.get("status") != 1:
+                plan.status = "failed"
+                plan.problems.append("launch transaction reverted")
+                return plan
+            for ev in self.factory.events.TokenLaunched().process_receipt(receipt):
+                plan.token = ev["args"]["token"]
+                plan.curve = ev["args"]["curve"]
+            plan.status = "confirmed"
+        except Exception as exc:
+            plan.status = "failed"
+            plan.problems.append(f"launch failed: {exc}")
+            return plan
+
+        if plan.initial_buy_wei > 0 and plan.curve:
+            try:
+                plan.buy_tx_hash = self.buy(plan.curve, plan.initial_buy_wei / 1e18, live=True)
+            except Exception as exc:
+                plan.problems.append(f"initial buy failed: {exc}")
+        return plan
+
+    def buy(self, curve_address: str, eth_amount: float, live: bool = False, min_tokens_out: int = 0) -> str:
+        """Buy from a launch's bonding curve with native ETH. Returns tx hash
+        (or the encoded calldata when not live)."""
+        from web3 import Web3
+
+        if eth_amount <= 0 or eth_amount > self.cfg.max_initial_buy_eth:
+            raise LaunchError(f"buy amount must be within (0, {self.cfg.max_initial_buy_eth}] ETH")
+        curve = self.w3.eth.contract(address=Web3.to_checksum_address(curve_address), abi=CURVE_ABI)
+        wei = int(eth_amount * 1e18)
+        recipient = self.address or ZERO_ADDRESS
+        if not (live and self.cfg.live and self._account):
+            return curve.encode_abi("buy", args=[wei, min_tokens_out, recipient])
+        tx = curve.functions.buy(wei, min_tokens_out, recipient).build_transaction({
+            "from": self.address, "value": wei,
+            "nonce": self.w3.eth.get_transaction_count(self.address), "chainId": self.cfg.chain_id,
+        })
+        signed = self._account.sign_transaction(tx)
+        tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
+        return tx_hash
+
+
+class LaunchGuard:
+    """Refuses launches that are unsafe, unfunded, over budget or unhosted."""
+
+    def __init__(self, cfg: LaunchpadConfig):
+        self.cfg = cfg
+
+    def check(self, plan: LaunchPlan, memory=None) -> list[str]:
+        problems: list[str] = []
+        p = plan.params
+        if not p.logo.startswith(("https://", "ipfs://", "http://")):
+            problems.append("logo must be a hosted URL (set FLY_IMAGE_HOST)")
+        if plan.live:
+            if not self.cfg.live:
+                problems.append("FLY_LIVE_LAUNCH is not set")
+            if not plan.sender:
+                problems.append("FLY_WALLET_PRIVATE_KEY is not set")
+            if plan.fee_wei is None:
+                problems.append("launch fee unknown: rpc unreachable")
+            elif plan.fee_wei > int(self.cfg.max_launch_fee_eth * 1e18):
+                problems.append(f"launch fee exceeds FLY_MAX_LAUNCH_FEE_ETH={self.cfg.max_launch_fee_eth}")
+            cs = plan.chain_status
+            if cs.get("launchEnabled") is False:
+                problems.append("factory reports launching disabled")
+            if cs.get("canLaunch") is False:
+                problems.append("factory reports this wallet cannot launch")
+            lc = cs.get("launchConfig")
+            if isinstance(lc, dict) and not lc.get("enabled", True):
+                problems.append("selected launch config is disabled")
+            need = int(plan.fee_wei or 0) + plan.initial_buy_wei
+            bal = cs.get("balanceEth")
+            if isinstance(bal, float) and bal * 1e18 < need * 1.05:
+                problems.append("wallet balance too low for fee + buy + gas")
+        if plan.initial_buy_wei > int(self.cfg.max_initial_buy_eth * 1e18):
+            problems.append(f"initial buy exceeds FLY_MAX_INITIAL_BUY_ETH={self.cfg.max_initial_buy_eth}")
+        if memory is not None:
+            today = memory.count_since("launches", 24.0, live=True)
+            if today >= self.cfg.max_launches_per_day:
+                problems.append(f"daily launch cap reached ({today}/{self.cfg.max_launches_per_day})")
+        forbidden = ("guaranteed", "risk-free", "investment", "will moon", "100x")
+        low = (p.description + " " + p.name).lower()
+        for word in forbidden:
+            if word in low:
+                problems.append(f"description contains a financial promise: '{word}'")
+        return problems
+
+
+def plan_to_json(plan: LaunchPlan) -> str:
+    return json.dumps(plan.as_json(), indent=2, default=str)

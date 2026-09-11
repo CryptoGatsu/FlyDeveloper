@@ -16,3 +16,13 @@ data/results/nature_2026_07/archive*
 # PyTorch cached weight matrices (generated from connectivity data)
 data/weight_coo.pkl
 data/weight_csr.pkl
+
+# FlyDeveloper agent state
+.env
+data/fly_memory.json
+data/fly_memory.tmp
+data/fly_connectome_cache.npz
+memes/*.png
+workshop/*/__pycache__
+workshop/*/.pytest_cache
+.pytest_cache

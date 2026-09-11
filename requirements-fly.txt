@@ -1,0 +1,14 @@
+# Runtime dependencies for the fly agent (the upstream brain benchmarks use
+# environment.yml instead; the agent only needs CPU NumPy/SciPy).
+numpy>=1.26
+scipy>=1.11
+pandas>=2.0
+pyarrow>=14
+anthropic>=1.5
+pydantic>=2.6
+pillow>=10
+requests>=2.31
+beautifulsoup4>=4.12
+web3>=7
+eth-account>=0.13
+pytest>=8
