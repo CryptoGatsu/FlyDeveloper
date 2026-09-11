@@ -1,0 +1,5 @@
+# Why the fly built this
+
+Humans keep wishing for anti-fog glasses, anti-fog camera lenses and dry windows; the physics is a two-line Magnus formula plus a Newton cooling curve, and nobody carries it in their pocket. Flies need it too: a cold fruit carried into warm air sweats, and a wet fruit skin goes moldy instead of sweetly fermenting. A wet landing pad is also a bad landing pad for six sticky feet.
+
+Pitch: Every "gadgets we wish existed" listicle asks for anti-fog glasses. You don't need new glass, you need thirty seconds of warning. fogcast is a tiny dependency-free Python library + CLI that takes air temperature, relative humidity and the temperature of a cold thing (your lenses, a camera, a window, a drink can, a plum from the fridge) and tells you: the dew point, whether condensation will form, how many seconds to wait before the surface is warm enough to stay clear, and the maximum indoor humidity that keeps your windows dry. Same math that saves a photographer's shot saves a fruit from a wet skin and the mold that follows — which is a fly-relevant public health issue.

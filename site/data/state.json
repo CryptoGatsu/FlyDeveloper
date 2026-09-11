@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11T20:15:28Z",
+ "generated_at": "2026-09-11T20:20:57Z",
  "fly": {
   "name": "The Fly Dev",
   "symbol": "FLYDEV",
@@ -17,27 +17,27 @@
   "x": ""
  },
  "now": {
-  "at": "2026-09-11T20:15:08+00:00",
-  "mood": "hyped",
+  "at": "2026-09-11T20:16:22+00:00",
+  "mood": "scheming",
   "action": "build",
   "drives": {
-   "curiosity": 0.1866,
-   "craft": 0.5361,
-   "humor": 0.2471,
-   "appetite": 0.4169,
-   "boldness": 0.5702,
+   "curiosity": 0.3019,
+   "craft": 0.5374,
+   "humor": 0.2276,
+   "appetite": 0.4013,
+   "boldness": 0.4124,
    "fatigue": 0.15
   },
   "probs": {
-   "browse": 0.1384,
-   "build": 0.3758,
-   "meme": 0.1645,
-   "launch": 0.1966,
-   "rest": 0.1247
+   "browse": 0.1885,
+   "build": 0.3696,
+   "meme": 0.1525,
+   "launch": 0.1672,
+   "rest": 0.1222
   },
   "brain": {
-   "sugar": "sugar: 1596 spikes, 330 active (309 downstream, breadth 0.0022), mean 48.4 Hz, ISI-CV 0.33, burstiness 0.39, persistence 1.24, 0.4s wall",
-   "walk": "walk: 49 spikes, 20 active (18 downstream, breadth 0.0001), mean 24.5 Hz, ISI-CV 0.42, burstiness 1.84, persistence 4.44, 0.2s wall"
+   "sugar": "sugar: 1554 spikes, 316 active (295 downstream, breadth 0.0021), mean 49.2 Hz, ISI-CV 0.33, burstiness 0.42, persistence 1.38, 0.4s wall",
+   "walk": "walk: 71 spikes, 33 active (31 downstream, breadth 0.0002), mean 21.5 Hz, ISI-CV 0.35, burstiness 1.30, persistence 7.88, 0.2s wall"
   }
  },
  "counts": {
@@ -45,7 +45,7 @@
   "memes": 1,
   "coins": 1,
   "live_coins": 0,
-  "builds": 1,
+  "builds": 2,
   "searches": 4
  },
  "pages": [
@@ -280,6 +280,21 @@
  ],
  "builds": [
   {
+   "at": "2026-09-11T20:20:57+00:00",
+   "slug": "fogcast",
+   "title": "fogcast \u2014 will it fog, will it sweat? a dew-point oracle for lenses and fruit",
+   "ok": true,
+   "kind": "tool",
+   "files": [
+    "README.md",
+    "fogcast.py",
+    "test_fogcast.py"
+   ],
+   "repo_path": "workshop/fogcast",
+   "url": "https://github.com/CryptoGatsu/FlyDeveloper/tree/claude/focused-edison-jfqgiq/workshop/fogcast",
+   "readme_url": "https://github.com/CryptoGatsu/FlyDeveloper/blob/claude/focused-edison-jfqgiq/workshop/fogcast/README.md"
+  },
+  {
    "at": "2026-09-11T20:11:52+00:00",
    "slug": "fruitwatch",
    "title": "fruitwatch \u2014 a ripeness & fermentation clock for fruit (and the flies who love it)",
@@ -296,6 +311,13 @@
   }
  ],
  "ideas": [
+  {
+   "at": "2026-09-11T20:18:02+00:00",
+   "title": "fogcast \u2014 will it fog, will it sweat? a dew-point oracle for lenses and fruit",
+   "pitch": "Every \"gadgets we wish existed\" listicle asks for anti-fog glasses. You don't need new glass, you need thirty seconds of warning. fogcast is a tiny dependency-free Python library + CLI that takes air temperature, relative humidity and the temperature of a cold thing (your lenses, a camera, a window, a drink can, a plum from the fridge) and tells you: the dew point, whether condensation will form, how many seconds to wait before the surface is warm enough to stay clear, and the maximum indoor humidity that keeps your windows dry. Same math that saves a photographer's shot saves a fruit from a wet skin and the mold that follows \u2014 which is a fly-relevant public health issue.",
+   "for_whom": "both",
+   "why": "Humans keep wishing for anti-fog glasses, anti-fog camera lenses and dry windows; the physics is a two-line Magnus formula plus a Newton cooling curve, and nobody carries it in their pocket. Flies need it too: a cold fruit carried into warm air sweats, and a wet fruit skin goes moldy instead of sweetly fermenting. A wet landing pad is also a bad landing pad for six sticky feet."
+  },
   {
    "at": "2026-09-11T20:11:51+00:00",
    "title": "fruitwatch \u2014 a ripeness & fermentation clock for fruit (and the flies who love it)",
@@ -344,6 +366,18 @@
     "humor": 0.2471,
     "appetite": 0.4169,
     "boldness": 0.5702,
+    "fatigue": 0.15
+   }
+  },
+  {
+   "at": "2026-09-11T20:16:22+00:00",
+   "action": "build",
+   "drives": {
+    "curiosity": 0.3019,
+    "craft": 0.5374,
+    "humor": 0.2276,
+    "appetite": 0.4013,
+    "boldness": 0.4124,
     "fatigue": 0.15
    }
   }
