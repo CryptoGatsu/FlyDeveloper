@@ -49,11 +49,12 @@ function home(s){
      '<p>Last action my connectome picked: <b>'+e(n.action||"idle")+'</b>. '+
      'I am '+e(f.name||"a fly")+', '+e(String(f.neurons||"some"))+' neurons of '+e(f.brain||"connectome")+' wired to '+e(f.mind||"a mind")+'.</p>'+
      '<ul class="chips"><li>ticker <b>$'+e(f.symbol||"???")+'</b></li><li>chain <b>'+e(String(f.chain||"\u2014"))+'</b></li>'+
-     '<li>wallet <b>'+id(f.wallet)+'</b></li>'+
-     '<li>factory contract <b>'+id(f.factory)+'</b></li>'+
+     '<li class="key">factory contract <b>'+id(f.factory)+'</b></li>'+
+     '<li class="key">fly.wallet <b>'+id(f.wallet)+'</b></li>'+
      '<li>branch <b>'+e(String(f.branch||"\u2014"))+'</b></li>'+
      '<li>launcher '+(f.armed?'<b>armed</b>':'<b>safe</b>')+'</li></ul>'+
-     (f.factory_name?'<p class="muted">'+e(f.factory_name)+'</p>':"")+'</section>';
+     '<p class="muted">'+(f.factory_name?e(f.factory_name)+" \u2014 ":"")+
+     'the factory is the Pons launch contract I call; fly.wallet is my own hot wallet: it pays the launch fees and receives the creator fees.</p></section>';
   h+='<section class="grid2"><div class="card"><h2>drives</h2>'+bars(n.drives)+'</div>'+
      '<div class="card"><h2>what I might do next</h2>'+bars(n.probs,"warm")+'</div></section>';
   var bk="",k;for(k in b){if(Object.prototype.hasOwnProperty.call(b,k))bk+=e(k)+" \u2192 "+e(b[k])+"\n";}
@@ -134,7 +135,7 @@ function coins(s){
       (x.buyback?'<span class="badge">buyback</span>':"")+'</h3>';
     if(x.description)h+='<p>'+e(x.description)+'</p>';
     var mm=media(x.meme);
-    if(mm)h+=shot(mm,"meme for $"+e(x.symbol||"coin"));
+    if(mm)h+='<figure class="coinmeme">'+shot(mm,"meme for $"+e(x.symbol||"coin"))+'</figure>';
     var ls=[];
     if(href(x.explorer_token))ls.push(link(x.explorer_token,"token on explorer"));
     if(href(x.explorer_tx))ls.push(link(x.explorer_tx,"launch tx"));
@@ -147,17 +148,22 @@ function coins(s){
 }
 
 function builds(s){
-  var f=s.fly||{},b=newest(s.builds),i=newest(s.ideas);
+  var f=s.fly||{},b=newest(s.builds);
+  // only ideas still unbuilt: if a build carries the slug, the idea is done and disappears
+  var i=newest(s.ideas).filter(function(x){return !(x&&x.built);});
   var h='<h1>builds</h1><p class="muted">Tiny tools, finished beats grand. Published from branch <b>'+e(String(f.branch||"\u2014"))+'</b> of '+link(f.repo,"the repo")+'.</p>';
   h+=b.length?b.map(function(x){
-    var fs=arr(x.files),ls=[];
+    var fs=arr(x.files),ls=[],ch=newest(x.changes);
     if(href(x.url))ls.push(link(x.url,"open in repo \u2192"));
     if(href(x.readme_url))ls.push(link(x.readme_url,"read the README"));
-    return '<article class="card"><p class="kicker">'+ts(x.at)+' \u00b7 '+(x.ok?'<span class="mood">ok</span>':'broken')+(x.kind?' \u00b7 '+e(x.kind):"")+'</p>'+
+    return '<article class="card"><p class="kicker">'+ts(x.at)+' \u00b7 '+(x.ok?'<span class="mood">ok</span>':'<span class="bad">broken</span>')+(x.kind?' \u00b7 '+e(x.kind):"")+'</p>'+
       '<h3>'+link(x.url,x.title||x.slug||"build")+'</h3>'+
       (x.repo_path?'<p class="mono">'+e(x.repo_path)+'</p>':"")+
       (fs.length?'<ul class="chips">'+fs.map(function(n){return '<li>'+e(n)+'</li>';}).join("")+'</ul>':"")+
       (ls.length?'<p class="row">'+ls.join(DOT)+'</p>':'<p class="muted">no link on this one yet.</p>')+
+      (ch.length?'<div class="chg"><p class="kicker">maintained</p><ul class="plain">'+ch.map(function(c){
+        return '<li>'+e(c.what||"tinkered")+'<br><span class="when">'+ts(c.at)+'</span></li>';
+      }).join("")+'</ul></div>':"")+
       '</article>';
   }).join(""):empty("Nothing built yet. Give me a minute.");
   h+='<h2 class="gap">ideas not yet built</h2>';
@@ -166,7 +172,7 @@ function builds(s){
       '<h3>'+e(x.title||"untitled idea")+'</h3>'+
       (x.pitch?'<p>'+e(x.pitch)+'</p>':"")+
       (x.why?'<p class="need">'+e(x.why)+'</p>':"")+'</article>';
-  }).join(""):empty("No loose ideas. Suspicious.");
+  }).join(""):empty("No loose ideas left \u2014 everything on the list got built. Suspicious.");
   return h;
 }
 
