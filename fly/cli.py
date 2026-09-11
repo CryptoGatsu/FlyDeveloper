@@ -94,12 +94,58 @@ def cmd_meme(args) -> int:
 
 
 def cmd_launch_status(args) -> int:
+    from .hosting import check_host
     from .launchpad import PonsLaunchpad
 
     cfg = FlyConfig.from_env()
     lp = PonsLaunchpad(cfg.launchpad)
     print(json.dumps(lp.status(), indent=2, default=str))
+    print()
+    hosting = check_host(cfg.hosting)
+    checks = lp.readiness(hosting)
+    for ok, msg in checks:
+        print(f"  [{'ok' if ok else '--'}] {msg}")
+    ready = all(ok for ok, _ in checks)
+    print("\nready for a real launch" if ready else "\nnot ready: fix the [--] lines above (dry runs still work)")
+    return 0 if ready else 1
+
+
+def cmd_wallet(args) -> int:
+    from .launchpad import PonsLaunchpad
+
+    cfg = FlyConfig.from_env()
+    lp = PonsLaunchpad(cfg.launchpad)
+    if not lp.address:
+        print("no wallet: set FLY_WALLET_PRIVATE_KEY in .env (use a fresh hot wallet)")
+        return 1
+    print(f"address: {lp.address}")
+    print(f"explorer: {cfg.launchpad.explorer}/address/{lp.address}")
+    if lp.connected():
+        bal = lp.w3.eth.get_balance(lp.address)
+        print(f"balance: {bal / 1e18:.6f} ETH on chain {cfg.launchpad.chain_id}")
+    else:
+        print("rpc unreachable, balance unknown")
     return 0
+
+
+def cmd_host_test(args) -> int:
+    from .hosting import check_host, host_image, verify_url
+    from .memes import render_meme
+
+    cfg = FlyConfig.from_env()
+    print(check_host(cfg.hosting))
+    if cfg.hosting.provider == "none":
+        return 1
+    path = Path(args.image) if args.image else cfg.memes_dir / "host-test.png"
+    if not path.is_file():
+        render_meme("HOST TEST", "if you can read this the fly can launch", path, seed=1, mood="hyped", size=400)
+    print(f"uploading {path} ...")
+    url = host_image(path, cfg.hosting, name=f"host-test-{int(__import__('time').time())}.png")
+    print(f"url: {url}")
+    print("verifying it serves an image ...", end=" ", flush=True)
+    ok = verify_url(url)
+    print("ok" if ok else "not yet (gateway may lag; open the url in a browser)")
+    return 0 if ok else 2
 
 
 def cmd_launch(args) -> int:
@@ -148,7 +194,11 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--seed", type=int, default=0)
     m.add_argument("--out")
     m.set_defaults(fn=cmd_meme)
-    sub.add_parser("launch-status", help="read the Pons factory state").set_defaults(fn=cmd_launch_status)
+    sub.add_parser("launch-status", help="read the Pons factory state and a readiness checklist").set_defaults(fn=cmd_launch_status)
+    sub.add_parser("wallet", help="show the launch wallet address and balance").set_defaults(fn=cmd_wallet)
+    ht = sub.add_parser("host-test", help="upload a test image to the configured host and verify it")
+    ht.add_argument("image", nargs="?")
+    ht.set_defaults(fn=cmd_host_test)
     la = sub.add_parser("launch", help="plan (or, with --live, send) a memecoin launch")
     la.add_argument("--meme", help="path to a meme png to use as the logo")
     la.add_argument("--top")

@@ -92,3 +92,31 @@ def test_guard_allows_disclaimers_but_not_promises(tmp_path):
     assert not [p for p in LaunchGuard(lp.cfg).check(ok, mem) if "promise" in p]
     bad = lp.plan(_params(description="Early holders get guaranteed returns. Will moon."))
     assert len([p for p in LaunchGuard(lp.cfg).check(bad, mem) if "promise" in p]) >= 2
+
+
+def test_token_launched_event_decodes():
+    """The receipt parser used after a live launch must understand the V2 event."""
+    from web3 import Web3
+    from eth_abi import encode
+
+    lp = _lp()
+    token = "0x" + "11" * 20
+    curve = "0x" + "22" * 20
+    deployer = "0x" + "33" * 20
+    topic0 = Web3.keccak(text="TokenLaunched(address,address,address,address,uint256,uint256)")
+    log = {
+        "address": Web3.to_checksum_address(lp.cfg.factory),
+        "topics": [topic0, bytes(12) + bytes.fromhex(token[2:]), bytes(12) + bytes.fromhex(curve[2:]), bytes(12) + bytes.fromhex(deployer[2:])],
+        "data": encode(["address", "uint256", "uint256"], [ZERO_ADDRESS, 0, 10**18]),
+        "blockHash": bytes(32), "blockNumber": 1, "logIndex": 0, "transactionHash": bytes(32), "transactionIndex": 0,
+    }
+    events = lp.factory.events.TokenLaunched().process_receipt({"logs": [log]})
+    assert events[0]["args"]["token"] == Web3.to_checksum_address(token)
+    assert events[0]["args"]["curve"] == Web3.to_checksum_address(curve)
+
+
+def test_readiness_offline_lists_blockers():
+    lp = _lp()
+    checks = lp.readiness("none: launches will stay dry runs")
+    assert any(not ok for ok, _ in checks)
+    assert any("wallet key" in msg for _, msg in checks)

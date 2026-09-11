@@ -260,15 +260,44 @@ class PonsLaunchpad:
                 out["balanceEth"] = float(self.w3.from_wei(self.w3.eth.get_balance(self.address), "ether"))
             except Exception as exc:
                 out["canLaunch"] = f"error: {exc}"
+        keys = ("supply", "curveFeeBps", "phantomQuote", "graduationThreshold", "poolFee", "tickSpacing", "enabled")
         try:
-            cfg_raw = f.getLaunchConfig(self.cfg.launch_config_id).call()
-            out["launchConfig"] = dict(zip(
-                ("supply", "curveFeeBps", "phantomQuote", "graduationThreshold", "poolFee", "tickSpacing", "enabled"),
-                cfg_raw,
-            ))
+            out["launchConfig"] = dict(zip(keys, f.getLaunchConfig(self.cfg.launch_config_id).call()))
         except Exception as exc:
             out["launchConfig"] = f"error: {exc}"
+        count = out.get("launchConfigCount")
+        if isinstance(count, int) and count > 1:
+            out["allLaunchConfigs"] = {}
+            for i in range(min(count, 8)):
+                try:
+                    out["allLaunchConfigs"][i] = dict(zip(keys, f.getLaunchConfig(i).call()))
+                except Exception as exc:
+                    out["allLaunchConfigs"][i] = f"error: {exc}"
         return out
+
+    def readiness(self, hosting_status: str = "") -> list[tuple[bool, str]]:
+        """Checklist for a real launch: (ok, message) pairs."""
+        checks: list[tuple[bool, str]] = []
+        checks.append((bool(self._account), "wallet key set (FLY_WALLET_PRIVATE_KEY)"))
+        connected = self.connected()
+        checks.append((connected, f"RPC reachable and on chain {self.cfg.chain_id} ({self.cfg.rpc_url})"))
+        st = self.status() if connected else {}
+        fee = st.get("launchFee")
+        if isinstance(fee, int):
+            checks.append((fee <= int(self.cfg.max_launch_fee_eth * 1e18),
+                           f"launch fee {fee / 1e18:.6f} ETH within FLY_MAX_LAUNCH_FEE_ETH={self.cfg.max_launch_fee_eth}"))
+        else:
+            checks.append((False, "launch fee readable"))
+        checks.append((st.get("launchEnabled") is True, "factory launching enabled"))
+        checks.append((st.get("canLaunch") is True, "this wallet may launch (canLaunch)"))
+        lc = st.get("launchConfig")
+        checks.append((isinstance(lc, dict) and bool(lc.get("enabled")), f"launch config {self.cfg.launch_config_id} enabled"))
+        bal = st.get("balanceEth")
+        need = (fee if isinstance(fee, int) else 0) / 1e18 + self.cfg.initial_buy_eth + 0.0005
+        checks.append((isinstance(bal, float) and bal >= need, f"balance {bal if isinstance(bal, float) else '?'} ETH >= {need:.6f} needed"))
+        checks.append((self.cfg.live, "FLY_LIVE_LAUNCH=1"))
+        checks.append(("authenticated" in hosting_status or hosting_status.startswith("github:"), f"image host ready ({hosting_status})"))
+        return checks
 
     # -- planning ------------------------------------------------------------
     def plan(self, params: TokenParams, initial_buy_eth: float = 0.0, live: bool = False) -> LaunchPlan:
@@ -315,16 +344,10 @@ class PonsLaunchpad:
 
         w3 = self.w3
         try:
-            tx = self.factory.functions.launchToken(
-                plan.params.as_abi_tuple(), plan.launch_config_id, plan.pair_token
-            ).build_transaction({
-                "from": self.address,
-                "value": int(plan.fee_wei or 0),
-                "nonce": w3.eth.get_transaction_count(self.address),
-                "chainId": self.cfg.chain_id,
-            })
+            fn = self.factory.functions.launchToken(plan.params.as_abi_tuple(), plan.launch_config_id, plan.pair_token)
+            tx = self._build_tx(fn, value=int(plan.fee_wei or 0))
             signed = self._account.sign_transaction(tx)
-            plan.tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+            plan.tx_hash = w3.eth.send_raw_transaction(_raw(signed)).hex()
             plan.status = "sent"
             receipt = w3.eth.wait_for_transaction_receipt(plan.tx_hash, timeout=240)
             if receipt.get("status") != 1:
@@ -359,14 +382,26 @@ class PonsLaunchpad:
         recipient = self.address or ZERO_ADDRESS
         if not (live and self.cfg.live and self._account):
             return curve.encode_abi("buy", args=[wei, min_tokens_out, recipient])
-        tx = curve.functions.buy(wei, min_tokens_out, recipient).build_transaction({
-            "from": self.address, "value": wei,
-            "nonce": self.w3.eth.get_transaction_count(self.address), "chainId": self.cfg.chain_id,
-        })
+        tx = self._build_tx(curve.functions.buy(wei, min_tokens_out, recipient), value=wei)
         signed = self._account.sign_transaction(tx)
-        tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction).hex()
+        tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
         return tx_hash
+
+
+    def _build_tx(self, fn, value: int) -> dict:
+        base = {
+            "from": self.address, "value": int(value),
+            "nonce": self.w3.eth.get_transaction_count(self.address), "chainId": self.cfg.chain_id,
+        }
+        try:
+            return fn.build_transaction(base)            # EIP-1559 fields filled by web3
+        except Exception:
+            return fn.build_transaction({**base, "gasPrice": self.w3.eth.gas_price})
+
+
+def _raw(signed) -> bytes:
+    return getattr(signed, "raw_transaction", None) or getattr(signed, "rawTransaction")
 
 
 class LaunchGuard:

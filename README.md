@@ -81,10 +81,18 @@ carries a minimal ABI for that call, the read-only status functions and the
 it with money.
 
 ```bash
-python fly.py launch-status              # reads launchFee, launchEnabled, canLaunch, config 0
+python fly.py wallet                     # address + balance of the launch wallet
+python fly.py host-test                  # upload a test image to Pinata and verify it serves
+python fly.py launch-status              # factory state + a readiness checklist
 python fly.py tick --force launch        # dry run: concept + hosted logo + calldata
 FLY_LIVE_LAUNCH=1 python fly.py tick --force launch --live   # real transaction
 ```
+
+Image hosting through Pinata: create a free account, make an API key with
+the Files "write" scope, copy its JWT into `PINATA_JWT`, and set
+`PINATA_GATEWAY` to your dedicated gateway
+(`https://<name>.mypinata.cloud/ipfs`). Uploads go through the v3 Files
+API with a fallback to the legacy pinning endpoint.
 
 Guard rails that cannot be turned off from the command line:
 
