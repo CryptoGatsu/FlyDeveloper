@@ -104,6 +104,19 @@ python fly.py launch --name "The Fly Dev" --symbol FLYDEV            # dry run
 python fly.py launch --name "The Fly Dev" --symbol FLYDEV --live     # send it
 ```
 
+**Creator fees.** Pons charges a 1% curve fee (plus any creator tax you set)
+and credits the creator's share to a claim-based fee escrow in ETH. The
+genesis coin launches with buyback **off**, so every creator fee stays
+claimable by the fly's wallet and funds the project. Later coins follow
+`FLY_COIN_FEE_MODE`: `buyback` (default) lets Pons spend the creator slice
+buying the coin back and locking it in the five-year vault; `wallet` keeps
+fees claimable like the genesis coin. Collect with:
+
+```bash
+python fly.py fees                         # pending on each curve + claimable in escrow
+python fly.py fees --sweep --claim --live  # push curve fees to escrow, claim to the wallet
+```
+
 Guard rails that cannot be turned off from the command line:
 
 * a live launch needs `FLY_LIVE_LAUNCH=1` **and** `--live`, a wallet key, a

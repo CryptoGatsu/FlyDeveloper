@@ -67,6 +67,24 @@ def test_launch_overrides_and_post_genesis(tmp_path):
     assert fly.memory.last("launches")["symbol"] != "FLYDEV"
 
 
+def test_fee_policy_genesis_vs_others(tmp_path):
+    from fly.drives import Drives
+
+    fly = _fly(tmp_path)
+    d = Drives(0.5, 0.5, 0.5, 0.9, 0.7, 0.1)
+    fly.act_launch(d)
+    genesis = fly.memory.last("launches")
+    assert genesis["genesis"] is True and genesis["buyback"] is False     # fees stay in the wallet
+    fly.memory.data["launches"].append({"live": True, "symbol": "FLYDEV", "name": "The Fly Dev", "ts": 0})
+    fly.cfg.launchpad.max_launches_per_day = 5
+    fly.act_launch(d)
+    other = fly.memory.last("launches")
+    assert other["genesis"] is False and other["buyback"] is True          # default: buy back and lock
+    fly.cfg.launchpad.coin_fee_mode = "wallet"
+    fly.act_launch(d)
+    assert fly.memory.last("launches")["buyback"] is False
+
+
 def test_tick_browse_uses_browser_and_rest(tmp_path):
     fly = _fly(tmp_path)
     r = fly.tick(force="browse", seed=4)

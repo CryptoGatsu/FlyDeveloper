@@ -131,6 +131,12 @@ class LaunchpadConfig:
     # The fly's own coin: used for its first live launch. Empty name disables.
     genesis_name: str = "The Fly Dev"
     genesis_symbol: str = "FLYDEV"
+    # Genesis creator fees stay in the fly's wallet (they fund the project):
+    # buyback stays OFF for it. Other coins follow coin_fee_mode:
+    #   "buyback": creator-bucket slice buys the coin back and locks it (on-chain)
+    #   "wallet":  creator fees accrue to the fly's wallet like the genesis coin
+    genesis_buyback: bool = False
+    coin_fee_mode: str = "buyback"
 
 
 @dataclass
@@ -158,6 +164,8 @@ def config_warnings(cfg: "FlyConfig") -> list[str]:
     raw_tax = os.environ.get("FLY_CREATOR_TAX_BPS", "")
     if raw_tax and not raw_tax.strip().isdigit():
         out.append(f"FLY_CREATOR_TAX_BPS must be whole basis points (2.5% = 250), got '{raw_tax}'; using 0")
+    if cfg.launchpad.coin_fee_mode not in ("buyback", "wallet"):
+        out.append(f"FLY_COIN_FEE_MODE must be 'buyback' or 'wallet', got '{cfg.launchpad.coin_fee_mode}'")
     if cfg.launchpad.creator_tax_bps > 1000:
         out.append("FLY_CREATOR_TAX_BPS above the protocol cap of 1000 (10%)")
     for name in ("FLY_INITIAL_BUY_ETH", "FLY_MAX_INITIAL_BUY_ETH", "FLY_MAX_LAUNCH_FEE_ETH", "FLY_BRAIN_T_RUN"):
@@ -246,6 +254,8 @@ class FlyConfig:
         lp.telegram = _env("FLY_TELEGRAM", "")
         lp.genesis_name = _env("FLY_GENESIS_NAME", lp.genesis_name)
         lp.genesis_symbol = _env("FLY_GENESIS_SYMBOL", lp.genesis_symbol)
+        lp.genesis_buyback = _env_bool("FLY_GENESIS_BUYBACK", False)
+        lp.coin_fee_mode = _env("FLY_COIN_FEE_MODE", "buyback").strip().lower()
 
         h = cfg.hosting
         h.provider = _env("FLY_IMAGE_HOST", "none")

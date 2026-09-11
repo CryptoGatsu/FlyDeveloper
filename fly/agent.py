@@ -199,8 +199,12 @@ class Fly:
         lp = self.cfg.launchpad
         theme = ""
         # The fly's first coin is its own identity coin (genesis), unless told otherwise.
-        if not name and lp.genesis_name and not self.has_launched():
+        is_genesis = bool(lp.genesis_name and not self.has_launched() and (not name or name == lp.genesis_name))
+        if is_genesis and not name:
             name, symbol = lp.genesis_name, lp.genesis_symbol
+        # Fee policy: genesis fees fund the project (stay claimable by the wallet);
+        # other coins buy back and lock, or accrue to the wallet, per config.
+        buyback = lp.genesis_buyback if is_genesis else (lp.coin_fee_mode == "buyback")
         if name:
             theme = (f"This meme is the face of the fly's own coin, {name} (${symbol}): a fruit-fly "
                      "connectome that browses, builds tiny tools and draws memes. Make it about that.")
@@ -225,7 +229,7 @@ class Fly:
         params = TokenParams(
             name=concept.name[:40], symbol=symbol, logo=logo, description=concept.description[:600],
             website=lp.website, twitter=lp.twitter, telegram=lp.telegram,
-            creator_tax_bps=lp.creator_tax_bps, buyback_enabled=lp.buyback_enabled,
+            creator_tax_bps=lp.creator_tax_bps, buyback_enabled=buyback,
             salt=make_salt(symbol, meme["path"]),
         )
         plan = self.launchpad.plan(params, initial_buy_eth=lp.initial_buy_eth, live=live)
@@ -233,6 +237,7 @@ class Fly:
         self.memory.add("launches", {
             "name": params.name, "symbol": symbol, "description": params.description, "meme": meme["path"],
             "logo": logo, "live": plan.status == "confirmed", "status": plan.status, "tx": plan.tx_hash,
+            "genesis": is_genesis, "buyback": buyback, "creator_tax_bps": lp.creator_tax_bps,
             "token": plan.token, "curve": plan.curve, "problems": plan.problems, "calldata": plan.calldata[:10],
         })
         self.log(plan.describe())

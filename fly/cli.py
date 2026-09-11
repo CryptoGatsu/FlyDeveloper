@@ -130,6 +130,32 @@ def cmd_wallet(args) -> int:
     return 0
 
 
+def cmd_fees(args) -> int:
+    """Show creator fees; optionally sweep curves and claim from escrow."""
+    from .launchpad import PonsLaunchpad
+    from .memory import Memory
+
+    cfg = FlyConfig.from_env()
+    lp = PonsLaunchpad(cfg.launchpad)
+    mem = Memory.load(cfg.memory_path)
+    curves = [l["curve"] for l in mem.data.get("launches", []) if l.get("live") and l.get("curve")]
+    if args.curve:
+        curves = [args.curve]
+    print(json.dumps(lp.fees(curves), indent=2, default=str))
+    if args.sweep:
+        for c in curves:
+            info = lp.fees([c])["curves"].get(c)
+            if isinstance(info, dict) and info.get("buybackEnabled") and not args.min_buyback_out:
+                print(f"skip sweep {c}: buyback is enabled, pass --min-buyback-out (token wei) to set a price floor")
+                continue
+            print(f"sweep {c}: {lp.sweep_fees(c, live=args.live, min_buyback_tokens_out=args.min_buyback_out)}")
+    if args.claim:
+        print(f"claim: {lp.claim_fees(live=args.live)}")
+    if (args.sweep or args.claim) and not (args.live and cfg.launchpad.live):
+        print("(dry run: printed calldata only; add --live with FLY_LIVE_LAUNCH=1 to send)")
+    return 0
+
+
 def cmd_host_test(args) -> int:
     from .hosting import check_host, host_image, verify_url
     from .memes import render_meme
@@ -199,6 +225,13 @@ def main(argv: list[str] | None = None) -> int:
     m.set_defaults(fn=cmd_meme)
     sub.add_parser("launch-status", help="read the Pons factory state and a readiness checklist").set_defaults(fn=cmd_launch_status)
     sub.add_parser("wallet", help="show the launch wallet address and balance").set_defaults(fn=cmd_wallet)
+    fe = sub.add_parser("fees", help="creator fees: pending on curves, claimable in escrow; --sweep/--claim to collect")
+    fe.add_argument("--curve", help="a specific curve address (default: every live launch in memory)")
+    fe.add_argument("--sweep", action="store_true", help="push pending curve fees into the escrow")
+    fe.add_argument("--claim", action="store_true", help="claim the escrow balance to the wallet")
+    fe.add_argument("--min-buyback-out", type=int, default=0, dest="min_buyback_out")
+    fe.add_argument("--live", action="store_true")
+    fe.set_defaults(fn=cmd_fees)
     ht = sub.add_parser("host-test", help="upload a test image to the configured host and verify it")
     ht.add_argument("image", nargs="?")
     ht.set_defaults(fn=cmd_host_test)
