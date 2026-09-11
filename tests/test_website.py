@@ -70,3 +70,15 @@ def test_refine_reloads_existing_site(tmp_path):
     assert {f.path for f in files} == {f.path for f in template_files()}
     res = build_website(OfflineMind(), site, log=lambda s: None, visual_qa=False, refine=True)
     assert res.source == "mind" and site_exists(site)
+
+
+def test_head_tags_injected_and_kept_on_install(tmp_path):
+    from fly.website import ensure_head_tags
+    html = "<html><head><title>x</title></head><body data-route=''><script src='/app.js'></script></body></html>"
+    fixed = ensure_head_tags(html)
+    assert '/favicon.png' in fixed and '/apple-touch-icon.png' in fixed
+    assert ensure_head_tags(fixed) == fixed
+    site = tmp_path / "site"
+    site.mkdir(); (site / "favicon.png").write_bytes(b"x")
+    install_site(site, template_files())
+    assert (site / "favicon.png").read_bytes() == b"x" and (site / "robots.txt").is_file()

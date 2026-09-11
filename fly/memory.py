@@ -26,7 +26,7 @@ class Memory:
     path: Path
     data: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
 
-    KEYS = ("journal", "pages", "ideas", "builds", "memes", "launches", "drives")
+    KEYS = ("journal", "pages", "ideas", "builds", "memes", "launches", "drives", "searches", "learnings")
 
     def __post_init__(self) -> None:
         for key in self.KEYS:

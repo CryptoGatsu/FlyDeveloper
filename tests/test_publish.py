@@ -36,4 +36,22 @@ def test_build_state_empty_memory(tmp_path):
 
     cfg = FlyConfig(root=tmp_path)
     st = build_state(cfg, Memory(path=tmp_path / "m.json"))
-    assert st["counts"] == {"pages": 0, "memes": 0, "coins": 0, "live_coins": 0, "builds": 0}
+    assert st["counts"] == {"pages": 0, "memes": 0, "coins": 0, "live_coins": 0, "builds": 0, "searches": 0}
+
+
+def test_build_links_point_at_github_branch(tmp_path):
+    from fly.memory import Memory
+    cfg = FlyConfig(root=tmp_path)
+    mem = Memory(path=tmp_path / "m.json")
+    mem.add("builds", {"slug": "ripeness-clock", "title": "Ripeness Clock", "ok": True, "files": ["README.md"]})
+    mem.add("builds", {"slug": "website", "title": "site", "ok": True, "files": []})
+    mem.add("builds", {"slug": "website", "title": "site again", "ok": True, "files": []})
+    mem.add("searches", {"query": "fly tools", "engine": "duckduckgo", "results": [{"title": "a", "url": "https://a.test"}]})
+    mem.add("learnings", {"summary": "learned a thing", "ideas": ["x"]})
+    st = build_state(cfg, mem)
+    tool = [b for b in st["builds"] if b["slug"] == "ripeness-clock"][0]
+    assert tool["url"].startswith("https://github.com/CryptoGatsu/FlyDeveloper/tree/") and tool["url"].endswith("/workshop/ripeness-clock")
+    assert "flydev.tech" not in tool["url"]
+    assert len([b for b in st["builds"] if b["slug"] == "website"]) == 1      # collapsed
+    assert st["fly"]["repo"] == "https://github.com/CryptoGatsu/FlyDeveloper"
+    assert st["searches"][0]["query"] == "fly tools" and st["learnings"][0]["summary"] == "learned a thing"

@@ -20,6 +20,16 @@ from .config import FlyConfig
 from .memory import Memory
 
 EXPLORER = "https://robinhoodchain.blockscout.com"
+REPO_URL = "https://github.com/CryptoGatsu/FlyDeveloper"
+
+
+def current_branch(root: Path) -> str:
+    try:
+        out = subprocess.run(["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, timeout=10)
+        name = out.stdout.strip()
+        return name if out.returncode == 0 and name and name != "HEAD" else "main"
+    except Exception:
+        return "main"
 
 
 def _meme_public_path(path: str) -> str:
@@ -58,11 +68,36 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
          "need": p.get("need"), "interesting": p.get("interesting"), "followups": p.get("followups") or []}
         for p in d.get("pages", [])
     ]
-    builds = [
-        {"at": b.get("at"), "slug": b.get("slug"), "title": b.get("title"), "ok": b.get("ok"),
-         "files": b.get("files") or [], "repo_path": f"workshop/{b.get('slug')}"}
-        for b in d.get("builds", [])
-    ]
+    branch = current_branch(cfg.root)
+    builds = []
+    for b in d.get("builds", []):
+        slug = b.get("slug") or ""
+        if slug == "website":
+            repo_path, kind = "site", "website"
+        elif slug == "brand":
+            repo_path, kind = "site/brand", "brand"
+        else:
+            repo_path, kind = f"workshop/{slug}", "tool"
+        builds.append({
+            "at": b.get("at"), "slug": slug, "title": b.get("title"), "ok": b.get("ok"), "kind": kind,
+            "files": b.get("files") or [], "repo_path": repo_path,
+            "url": f"{REPO_URL}/tree/{branch}/{repo_path}",
+            "readme_url": f"{REPO_URL}/blob/{branch}/{repo_path}/README.md" if kind == "tool" else "",
+        })
+    # keep only the latest website/brand build; the rest is history noise
+    seen_kinds: set[str] = set()
+    collapsed = []
+    for b in reversed(builds):
+        if b["kind"] in ("website", "brand"):
+            if b["kind"] in seen_kinds:
+                continue
+            seen_kinds.add(b["kind"])
+        collapsed.append(b)
+    builds = list(reversed(collapsed))
+    searches = [{"at": x.get("at"), "query": x.get("query"), "results": x.get("results") or [], "engine": x.get("engine")}
+                for x in d.get("searches", [])]
+    learnings = [{"at": x.get("at"), "summary": x.get("summary"), "ideas": x.get("ideas") or []}
+                 for x in d.get("learnings", [])]
     ideas = [{"at": i.get("at"), "title": i.get("title"), "pitch": i.get("pitch"), "for_whom": i.get("for_whom"),
               "why": i.get("why")} for i in d.get("ideas", [])]
     journal = [{"at": j.get("at"), "text": j.get("text")} for j in d.get("journal", [])]
@@ -76,7 +111,8 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "mind": cfg.mind.model if cfg.mind.mode == "claude" else "offline",
             "chain": cfg.launchpad.chain_id, "factory": cfg.launchpad.factory,
             "armed": bool(cfg.launchpad.live), "wallet": extra.get("wallet", "") if extra else "",
-            "repo": cfg.launchpad.website,
+            "factory_name": "Pons V2 launch factory (contract)",
+            "repo": REPO_URL, "branch": branch, "site": cfg.launchpad.website, "x": cfg.launchpad.twitter,
         },
         "now": {
             "at": last_drives.get("at"), "mood": mood,
@@ -84,8 +120,11 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "probs": last_drives.get("probs") or {}, "brain": last_drives.get("brain") or {},
         },
         "counts": {"pages": len(pages), "memes": len(memes), "coins": len(coins),
-                   "live_coins": sum(1 for c in coins if c["live"]), "builds": len(builds)},
+                   "live_coins": sum(1 for c in coins if c["live"]), "builds": len(builds),
+                   "searches": len(searches)},
         "pages": pages[::-1][:60],
+        "searches": searches[::-1][:40],
+        "learnings": learnings[::-1][:20],
         "memes": memes[::-1],
         "coins": coins[::-1],
         "builds": builds[::-1],
@@ -108,6 +147,13 @@ def export_site(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
                 shutil.copy2(src, dst)
     if cfg.site_domain:
         (site / "CNAME").write_text(cfg.site_domain + "\n", encoding="utf-8")
+    if not (site / "favicon.png").is_file():
+        try:
+            from .brand import render_favicons
+
+            render_favicons(site)
+        except Exception:
+            pass
     state = build_state(cfg, mem, extra)
     out = site / "data" / "state.json"
     out.write_text(json.dumps(state, indent=1, default=str), encoding="utf-8")

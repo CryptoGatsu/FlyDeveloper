@@ -182,11 +182,14 @@ class Fly:
     def context(self) -> str:
         return self.memory.summary()
 
-    def act_website(self, refine: bool = False) -> dict[str, Any]:
+    def act_website(self, refine: bool = False, changes: list[str] | None = None) -> dict[str, Any]:
+        from .brand import render_favicons
         from .website import build_website
 
+        site = self.cfg.root / "site"
+        render_favicons(site)
         self.log("the fly is polishing its website" if refine else "the fly is designing its website")
-        res = build_website(self.mind, self.cfg.root / "site", context=self.context(), log=self.log, refine=refine)
+        res = build_website(self.mind, site, context=self.context(), log=self.log, refine=refine, changes=changes)
         self.memory.add("builds", {"slug": "website", "title": "The Fly Dev website", "ok": res.ok,
                                    "path": str(self.cfg.root / "site"), "files": res.files,
                                    "log": f"source={res.source}; " + "; ".join(res.problems)[:800]})
@@ -218,7 +221,19 @@ class Fly:
         topics = topics[offset:] + topics[:offset]
         notes = self.browser.explore(self.mind, self.memory, topics, budget=self.cfg.browser.max_pages_per_session)
         self.memory.note(f"browsed {len(notes)} pages", topics=topics[:3])
-        return {"pages": [f"{n.title} -> {n.gist[:100]}" for n in notes], "topics": topics[:3]}
+        learned = None
+        if notes:
+            text = "\n".join(f"- {n.title} <{n.url}>: {n.gist} need: {n.need_spotted}" for n in notes)
+            try:
+                learned = self.mind.reflect(text)
+                self.memory.add("learnings", {"summary": learned.summary, "ideas": learned.ideas,
+                                              "pages": [n.url for n in notes]})
+                self.memory.note(f"learned: {learned.summary}"[:400])
+                self.log(f"learned: {learned.summary}")
+            except MindRefused as exc:
+                self.memory.note(f"could not reflect: {exc}")
+        return {"pages": [f"{n.title} -> {n.gist[:100]}" for n in notes], "topics": topics[:3],
+                "learned": learned.summary if learned else ""}
 
     def act_build(self, drives: Drives) -> dict[str, Any]:
         idea = self.mind.ideate(self.context())

@@ -109,3 +109,23 @@ def render_banner(out_path: Path, tagline: str, seed: int = 0, mood: str = "sche
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.convert("RGB").save(out_path, "PNG", optimize=True)
     return out_path
+
+
+def render_favicons(site_dir: Path, seed: int = 0, mood: str = "smug") -> list[Path]:
+    """favicon.png (64), favicon.ico (16/32/48) and apple-touch-icon.png (180),
+    cut from the fly's own profile picture."""
+    pfp = site_dir / "brand" / "pfp.png"
+    if not pfp.is_file():
+        render_pfp(pfp, seed=seed, mood=mood)
+    base = Image.open(pfp).convert("RGBA")
+    # tighter crop on the fly so it reads at 16px
+    w, h = base.size
+    face = base.crop((int(w * 0.12), int(h * 0.12), int(w * 0.88), int(h * 0.88)))
+    out = []
+    icon64 = face.resize((64, 64), Image.LANCZOS)
+    icon64.save(site_dir / "favicon.png", "PNG", optimize=True); out.append(site_dir / "favicon.png")
+    face.resize((180, 180), Image.LANCZOS).convert("RGB").save(site_dir / "apple-touch-icon.png", "PNG", optimize=True)
+    out.append(site_dir / "apple-touch-icon.png")
+    face.resize((48, 48), Image.LANCZOS).save(site_dir / "favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
+    out.append(site_dir / "favicon.ico")
+    return out

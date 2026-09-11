@@ -29,20 +29,25 @@ ROUTES: list[tuple[str, str]] = [
 STATE_EXAMPLE = {
     "generated_at": "2026-09-11T18:34:27Z",
     "fly": {"name": "The Fly Dev", "symbol": "FLYDEV", "brain": "connectome", "neurons": 138639,
-            "mind": "claude-opus-5", "chain": 4663, "factory": "0x7eD5...", "armed": True,
-            "wallet": "0x68e8...", "repo": "https://github.com/CryptoGatsu/FlyDeveloper"},
+            "mind": "claude-opus-5", "chain": 4663, "factory": "0x7eD5...", "factory_name": "Pons V2 launch factory (contract)",
+            "armed": True, "wallet": "0x68e8...", "repo": "https://github.com/CryptoGatsu/FlyDeveloper",
+            "branch": "main", "site": "https://flydev.tech", "x": "https://x.com/TheFlyDev_"},
     "now": {"at": "2026-09-11T18:33:53+00:00", "mood": "scheming", "action": "launch",
             "drives": {"curiosity": 0.73, "craft": 0.82, "humor": 0.28, "appetite": 0.65, "boldness": 0.56, "fatigue": 0.15},
             "probs": {"browse": 0.31, "build": 0.39, "meme": 0.08, "launch": 0.15, "rest": 0.06},
             "brain": {"sugar": "sugar: 1486 spikes, 324 active ...", "walk": "walk: 51 spikes, 28 active ..."}},
-    "counts": {"pages": 12, "memes": 4, "coins": 1, "live_coins": 1, "builds": 2},
+    "counts": {"pages": 12, "memes": 4, "coins": 1, "live_coins": 1, "builds": 2, "searches": 5},
     "pages": [{"at": "...", "url": "https://...", "title": "...", "gist": "...", "need": "...", "interesting": True, "followups": ["..."]}],
+    "searches": [{"at": "...", "query": "small tools people wish existed", "engine": "duckduckgo", "results": [{"title": "...", "url": "https://..."}]}],
+    "learnings": [{"at": "...", "summary": "...", "ideas": ["..."]}],
     "memes": [{"at": "...", "top": "...", "bottom": "...", "alt": "...", "mood": "smug", "src": "memes/fly-2026....png"}],
     "coins": [{"at": "...", "name": "The Fly Dev", "symbol": "FLYDEV", "description": "...", "live": True, "status": "confirmed",
                "tx": "0x...", "token": "0x...", "curve": "0x...", "logo": "https://...", "meme": "memes/fly-....png",
                "genesis": True, "buyback": False, "explorer_tx": "https://robinhoodchain.blockscout.com/tx/0x...",
                "explorer_token": "https://robinhoodchain.blockscout.com/token/0x..."}],
-    "builds": [{"at": "...", "slug": "ripeness-clock", "title": "Ripeness Clock", "ok": True, "files": ["README.md"], "repo_path": "workshop/ripeness-clock"}],
+    "builds": [{"at": "...", "slug": "ripeness-clock", "title": "Ripeness Clock", "ok": True, "kind": "tool", "files": ["README.md"],
+                "repo_path": "workshop/ripeness-clock", "url": "https://github.com/CryptoGatsu/FlyDeveloper/tree/main/workshop/ripeness-clock",
+                "readme_url": "https://github.com/CryptoGatsu/FlyDeveloper/blob/main/workshop/ripeness-clock/README.md"}],
     "ideas": [{"at": "...", "title": "...", "pitch": "...", "for_whom": "both", "why": "..."}],
     "journal": [{"at": "...", "text": "..."}],
     "drives_history": [{"at": "...", "action": "browse", "drives": {"curiosity": 0.7}}],
@@ -57,10 +62,14 @@ Hard requirements:
 - Static files only: HTML, one shared /style.css, one shared /app.js. No frameworks, no CDN, no build step.
 - Routes are folders with an index.html: {routes}. So return files "index.html", "browsing/index.html", "memes/index.html", "coins/index.html", "builds/index.html", "journal/index.html", plus "style.css" and "app.js".
 - Clean URLs everywhere: links are "/", "/browsing", "/memes", ... Never link to a ".html" file and never use "#" fragment links. Use absolute paths ("/app.js", "/style.css", "/data/state.json", "/memes/<file>").
+- Every page's <head> includes <link rel="icon" href="/favicon.png"> and <link rel="apple-touch-icon" href="/apple-touch-icon.png"> (the files exist; do not draw your own).
 - Every page loads /style.css and /app.js. app.js reads the current route from document.body.dataset.route, fetches "/data/state.json" (add a cache-busting query, no-store), renders that route's content, and re-fetches every 30 seconds.
 - Always dark. Set html color-scheme: dark and a dark background; no light theme.
 - Responsive down to 400px wide. No horizontal scrolling.
 - Escape all text from state.json before inserting it into HTML.
+- Labels: fly.factory is the Pons launch-factory CONTRACT (label it "factory contract"), fly.wallet is your wallet; fly.repo is the GitHub repository, fly.site is https://flydev.tech, fly.x is your X account. fly.branch is the git branch the site is published from.
+- Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
+- /browsing shows three things, newest first: the searches (state.searches: query, engine, result titles+urls), the pages it read (state.pages: title, link, gist, need spotted, followups), and what it learned (state.learnings: summary + ideas). Make it read like a fly's field notes, not a log dump.
 - Content per route: "/" = your current mood, drives as bars, last action, the brain readout, counts, the latest meme and coin with links to the full lists; /browsing = pages read with title, link, gist and "need spotted"; /memes = gallery of images (src is relative to the site root: prefix with "/"); /coins = every coin with name, $SYMBOL, genesis/live badges, description, explorer links; /builds = things built with links into the repo (fly.repo + "/tree/HEAD/" + repo_path) and the ideas; /journal = the journal lines.
 - The site lives at https://flydev.tech; the source is at https://github.com/CryptoGatsu/FlyDeveloper (link it as "Source"); the fly's X account is https://x.com/TheFlyDev_ (link it as "X").
 - A footer on every page saying coins are jokes with a ticker, no utility, no roadmap, no promises, nothing is financial advice; credit fly-brain (Shiu et al.) and Pons.
@@ -140,7 +149,7 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     """Replace the site's pages/assets, keeping data/ and memes/ (and CNAME)."""
     site_dir.mkdir(parents=True, exist_ok=True)
     for child in site_dir.iterdir():
-        if child.name in ("data", "memes", "brand", "CNAME"):
+        if child.name in ("data", "memes", "brand", "CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt"):
             continue
         if child.is_dir():
             shutil.rmtree(child)
@@ -153,9 +162,25 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
         if site_dir.resolve() not in target.parents:
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(f.content, encoding="utf-8")
+        content = ensure_head_tags(f.content) if rel.endswith(".html") else f.content
+        target.write_text(content, encoding="utf-8")
         written.append(rel)
+    (site_dir / "robots.txt").write_text("User-agent: *\nAllow: /\n", encoding="utf-8")
     return written
+
+
+HEAD_TAGS = (
+    '<link rel="icon" href="/favicon.png">',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+)
+
+
+def ensure_head_tags(html: str) -> str:
+    """House rules every page gets regardless of who wrote it: favicon links."""
+    missing = [t for t in HEAD_TAGS if t.split('href="')[1].split('"')[0] not in html]
+    if not missing or "</head>" not in html:
+        return html
+    return html.replace("</head>", "\n".join(missing) + "\n</head>", 1)
 
 
 def load_site_files(site_dir: Path) -> list[ProjectFile]:
@@ -211,7 +236,8 @@ def qa_loop(mind, files: list[ProjectFile], site_dir: Path, brief: str, log=prin
     return files, notes
 
 
-def build_website(mind, site_dir: Path, context: str = "", log=print, visual_qa: bool = True, refine: bool = False) -> WebsiteResult:
+def build_website(mind, site_dir: Path, context: str = "", log=print, visual_qa: bool = True, refine: bool = False,
+                  changes: list[str] | None = None) -> WebsiteResult:
     """Ask the mind for a site (or reload the current one with `refine`);
     validate; let it fix problems once; show it screenshots and let it
     revise until phones fit; fall back to the template if it still fails."""
@@ -224,6 +250,10 @@ def build_website(mind, site_dir: Path, context: str = "", log=print, visual_qa:
         if refine and site_exists(site_dir):
             files = load_site_files(site_dir)
             log("the fly is polishing its existing site")
+            if changes:
+                log("with changes: " + "; ".join(changes)[:200])
+                result = mind.revise_website(brief, files, [f"CHANGE REQUEST: {c}" for c in changes], [])
+                files, notes = result.files, result.notes
         else:
             result = mind.website(brief, context)
             files, notes = result.files, result.notes

@@ -10,12 +10,15 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from urllib.parse import parse_qs, urljoin, urlparse
+from urllib.parse import parse_qs, quote as requests_quote, urljoin, urlparse
 
 from .config import BrowserConfig
 
 DDG_HTML = "https://html.duckduckgo.com/html/"
+DDG_LITE = "https://lite.duckduckgo.com/lite/"
+WIKI_SEARCH = "https://en.wikipedia.org/w/api.php"
 HN_API = "https://hn.algolia.com/api/v1/search?tags=front_page"
+HN_SEARCH = "https://hn.algolia.com/api/v1/search?query="
 
 
 @dataclass
@@ -83,30 +86,76 @@ class Browser:
         return Page(url=r.url, title=title or url, text=text, links=links)
 
     def search(self, query: str, n: int = 8) -> list[SearchResult]:
-        try:
-            r = self.session.post(DDG_HTML, data={"q": query}, timeout=self.cfg.timeout_sec)
-            r.raise_for_status()
-        except Exception:
-            return []
+        """Try DuckDuckGo (html, then lite), then Hacker News, then Wikipedia."""
+        self.last_engine = ""
+        for engine, fn in (("duckduckgo", self._ddg_html), ("duckduckgo-lite", self._ddg_lite),
+                           ("hackernews", self._hn_search), ("wikipedia", self._wiki_search)):
+            try:
+                out = fn(query, n)
+            except Exception as exc:
+                self.log(f"  {engine} failed: {exc}")
+                out = []
+            if out:
+                self.last_engine = engine
+                return out
+        return []
+
+    @staticmethod
+    def _unwrap_ddg(href: str) -> str:
+        if href.startswith("//"):
+            href = "https:" + href
+        parsed = urlparse(href)
+        if "duckduckgo.com" in parsed.netloc and parsed.path.startswith("/l/"):
+            href = parse_qs(parsed.query).get("uddg", [href])[0]
+        return href
+
+    def _ddg_html(self, query: str, n: int) -> list[SearchResult]:
         from bs4 import BeautifulSoup
 
+        r = self.session.post(DDG_HTML, data={"q": query}, timeout=self.cfg.timeout_sec)
+        r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
         out: list[SearchResult] = []
         for res in soup.select("div.result"):
             a = res.select_one("a.result__a")
             if not a or not a.get("href"):
                 continue
-            href = a["href"]
-            if href.startswith("//"):
-                href = "https:" + href
-            parsed = urlparse(href)
-            if "duckduckgo.com" in parsed.netloc and parsed.path.startswith("/l/"):
-                href = parse_qs(parsed.query).get("uddg", [href])[0]
             snippet_el = res.select_one(".result__snippet")
-            out.append(SearchResult(a.get_text(strip=True), href, snippet_el.get_text(" ", strip=True) if snippet_el else ""))
+            out.append(SearchResult(a.get_text(strip=True), self._unwrap_ddg(a["href"]),
+                                    snippet_el.get_text(" ", strip=True) if snippet_el else ""))
             if len(out) >= n:
                 break
         return out
+
+    def _ddg_lite(self, query: str, n: int) -> list[SearchResult]:
+        from bs4 import BeautifulSoup
+
+        r = self.session.post(DDG_LITE, data={"q": query}, timeout=self.cfg.timeout_sec)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+        out: list[SearchResult] = []
+        for a in soup.select("a.result-link"):
+            if a.get("href"):
+                out.append(SearchResult(a.get_text(strip=True), self._unwrap_ddg(a["href"]), ""))
+            if len(out) >= n:
+                break
+        return out
+
+    def _hn_search(self, query: str, n: int) -> list[SearchResult]:
+        r = self.session.get(HN_SEARCH + requests_quote(query), timeout=self.cfg.timeout_sec)
+        r.raise_for_status()
+        out = []
+        for h in r.json().get("hits", [])[:n]:
+            if h.get("url"):
+                out.append(SearchResult(h.get("title", ""), h["url"], f"{h.get('points', 0)} points on HN"))
+        return out
+
+    def _wiki_search(self, query: str, n: int) -> list[SearchResult]:
+        r = self.session.get(WIKI_SEARCH, params={"action": "opensearch", "search": query, "limit": n, "format": "json"},
+                             timeout=self.cfg.timeout_sec)
+        r.raise_for_status()
+        data = r.json()
+        return [SearchResult(t, u, d) for t, d, u in zip(data[1], data[2], data[3])]
 
     def hn_front(self, n: int = 10) -> list[SearchResult]:
         try:
@@ -132,12 +181,19 @@ class Browser:
         for topic in topics[:3]:
             self.log(f"searching: {topic}")
             found = self.search(topic, n=5)
-            self.log(f"  {len(found)} results")
+            self.log(f"  {len(found)} results" + (f" via {self.last_engine}" if found else " (every engine failed or blocked)"))
+            memory.add("searches", {"query": topic, "engine": self.last_engine,
+                                    "results": [{"title": f.title, "url": f.url} for f in found[:5]]})
             candidates.extend(found)
         self.log("checking the Hacker News front page")
         hn = self.hn_front(6)
         self.log(f"  {len(hn)} stories")
+        if hn:
+            memory.add("searches", {"query": "Hacker News front page", "engine": "hackernews",
+                                    "results": [{"title": f.title, "url": f.url} for f in hn]})
         candidates.extend(hn)
+        if not candidates:
+            memory.note("tried to browse but every search engine failed; is the network up?")
 
         notes: list[PageNote] = []
         seen: set[str] = set()

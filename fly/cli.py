@@ -159,7 +159,7 @@ def cmd_fees(args) -> int:
 def cmd_website(args) -> int:
     """The fly designs and writes its own website into site/."""
     fly = _fly(args)
-    out = fly.act_website(refine=args.refine)
+    out = fly.act_website(refine=args.refine, changes=args.change or None)
     fly.memory.save()
     fly._publish("website", "scheming")
     print(f"site source: {out['website']}")
@@ -305,6 +305,7 @@ def main(argv: list[str] | None = None) -> int:
     fe.set_defaults(fn=cmd_fees)
     ws = sub.add_parser("website", help="the fly designs and writes its own website into site/")
     ws.add_argument("--refine", action="store_true", help="keep the current design; only run the look-and-fix loop")
+    ws.add_argument("--change", action="append", help="with --refine: a change request for the fly (repeatable)")
     ws.set_defaults(fn=cmd_website)
     bd = sub.add_parser("brand", help="the fly draws its X profile picture and banner into site/brand/")
     bd.add_argument("--seed", type=int)

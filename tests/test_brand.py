@@ -9,3 +9,10 @@ def test_pfp_and_banner_sizes(tmp_path):
     assert Image.open(p).size == (500, 500)
     assert Image.open(b).size == (1500, 500)
     assert p.stat().st_size > 5000 and b.stat().st_size > 10000
+
+
+def test_favicons(tmp_path):
+    from fly.brand import render_favicons
+    out = render_favicons(tmp_path)
+    assert {p.name for p in out} == {"favicon.png", "apple-touch-icon.png", "favicon.ico"}
+    assert Image.open(tmp_path / "favicon.png").size == (64, 64)

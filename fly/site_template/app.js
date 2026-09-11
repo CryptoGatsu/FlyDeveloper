@@ -51,7 +51,7 @@
       <div class="card build"><div class="when">${esc(ago(b.at))}</div>
         <div><b>${esc(b.title || b.slug)}</b> <span class="${b.ok ? "ok" : "bad"}">${b.ok ? "tests pass" : "tests failing"}</span></div>
         <div class="files">${esc((b.files || []).join("  "))}</div>
-        <div class="links"><a href="${esc((s.fly.repo || "") + "/tree/HEAD/" + b.repo_path)}" target="_blank" rel="noopener">open in repo ↗</a></div></div>`).join("") || empty("nothing built yet")}</div></section>
+        <div class="links"><a href="${esc(b.url || (s.fly.repo || "") + "/tree/main/" + b.repo_path)}" target="_blank" rel="noopener">open in repo ↗</a></div></div>`).join("") || empty("nothing built yet")}</div></section>
       <section><h2>Ideas</h2><div class="card">${(s.ideas || []).map((i) => `<div><b>${esc(i.title)}</b> <span class="when">for ${esc(i.for_whom)}</span><div>${esc(i.pitch)}</div></div>`).join("<hr style='border:0;border-top:1px solid var(--line);margin:10px 0'>") || empty("no ideas yet")}</div></section>`,
     journal: (s) => `<section><h2>Journal</h2><div class="card">${(s.journal || []).map((j) => `<div><span class="when">${esc(ago(j.at))}</span> ${esc(j.text)}</div>`).join("") || empty("quiet so far")}</div></section>`,
   };

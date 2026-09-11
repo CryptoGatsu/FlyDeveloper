@@ -68,6 +68,11 @@ class WebsiteFiles(BaseModel):
     files: list[ProjectFile] = Field(description="index.html, <route>/index.html for every route, style.css, app.js")
 
 
+class Learning(BaseModel):
+    summary: str = Field(description="Two or three sentences: what the fly learned this session, in its voice")
+    ideas: list[str] = Field(description="Up to 3 concrete tiny-tool ideas this reading suggests")
+
+
 class BrandCopy(BaseModel):
     tagline: str = Field(description="Banner tagline, <= 70 chars, in the fly's voice")
     bio: str = Field(description="X profile bio, <= 160 chars, honest and funny, no financial promises")
@@ -89,6 +94,7 @@ class Mind(Protocol):
     def digest(self, title: str, url: str, text: str) -> PageDigest: ...
     def website(self, brief: str, context: str) -> WebsiteFiles: ...
     def brand(self, context: str) -> BrandCopy: ...
+    def reflect(self, notes: str) -> Learning: ...
     def revise_website(self, brief: str, files: list[ProjectFile], problems: list[str], screenshots: list) -> WebsiteFiles: ...
 
 
@@ -179,6 +185,14 @@ What you have done so far (for flavour, do not hard-code it; the page reads stat
 
 Return every file complete. No placeholders, no TODOs."""
         return self._ask(prompt, WebsiteFiles, max_tokens=self.cfg.code_max_tokens)
+
+    def reflect(self, notes: str) -> Learning:
+        prompt = f"""You just finished a browsing session. Your notes on each page:
+{notes}
+
+Write what you learned (two or three sentences, plain, in your voice) and
+list up to three tiny tools this reading suggests flies or humans may need."""
+        return self._ask(prompt, Learning, max_tokens=1500)
 
     def brand(self, context: str) -> BrandCopy:
         prompt = f"""You are making your X (Twitter) profile: a banner tagline and a bio.
@@ -368,6 +382,10 @@ def test_tip():
 
         return WebsiteFiles(notes="The template nest: dark, six rooms, no frameworks. I will redecorate later.",
                             files=template_files())
+
+    def reflect(self, notes: str) -> Learning:
+        return Learning(summary="Read a few pages. Humans have many small annoyances and few small tools.",
+                        ideas=["a timer for fruit", "a swat-risk meter"])
 
     def brand(self, context: str) -> BrandCopy:
         return BrandCopy(tagline="138,639 neurons. ships tiny tools and worse jokes.",
