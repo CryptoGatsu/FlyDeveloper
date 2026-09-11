@@ -112,6 +112,16 @@ CURVE_ABI: list[dict[str, Any]] = [
 ]
 
 
+def mask_rpc(url: str) -> str:
+    """Hide provider tokens embedded in RPC URLs when printing."""
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url)
+    if parts.path.strip("/") or parts.query:
+        return f"{parts.scheme}://{parts.netloc}/<token hidden>"
+    return url
+
+
 class LaunchError(RuntimeError):
     pass
 
@@ -238,7 +248,7 @@ class PonsLaunchpad:
             return False
 
     def status(self) -> dict[str, Any]:
-        out: dict[str, Any] = {"rpc": self.cfg.rpc_url, "factory": self.cfg.factory, "wallet": self.address or None}
+        out: dict[str, Any] = {"rpc": mask_rpc(self.cfg.rpc_url), "factory": self.cfg.factory, "wallet": self.address or None}
         if not self.connected():
             out["connected"] = False
             return out
@@ -280,7 +290,7 @@ class PonsLaunchpad:
         checks: list[tuple[bool, str]] = []
         checks.append((bool(self._account), "wallet key set (FLY_WALLET_PRIVATE_KEY)"))
         connected = self.connected()
-        checks.append((connected, f"RPC reachable and on chain {self.cfg.chain_id} ({self.cfg.rpc_url})"))
+        checks.append((connected, f"RPC reachable and on chain {self.cfg.chain_id} ({mask_rpc(self.cfg.rpc_url)})"))
         st = self.status() if connected else {}
         fee = st.get("launchFee")
         if isinstance(fee, int):
