@@ -54,3 +54,30 @@ def test_repair_loop_fixes_failing_build(tmp_path):
                           ProjectFile(path="test_bad.py", content="def test_bad():\n    assert False\n")]), mind=mind)
     assert res.ok is True and mind.calls == 1
     assert "repair round 1: the test asserted False" in res.log
+
+
+def test_repair_existing_project(tmp_path):
+    ws = Workshop(tmp_path)
+    ws.build(_idea([ProjectFile(path="README.md", content="# x"),
+                    ProjectFile(path="test_bad.py", content="def test_bad():\n    assert False\n")]))
+    res = ws.repair("thing-one", "Thing", FixingMind())
+    assert res.ok is True
+
+
+def test_improve_keeps_only_passing_changes(tmp_path):
+    from fly.mind import OfflineMind, ProjectFix
+    ws = Workshop(tmp_path)
+    ws.build(_idea([ProjectFile(path="README.md", content="# x"),
+                    ProjectFile(path="test_ok.py", content="def test_ok():\n    assert True\n")]))
+    res, what = ws.improve("thing-one", "Thing", "p", OfflineMind())
+    assert res.ok and what and "Maintained by the fly" in (tmp_path / "thing-one" / "README.md").read_text()
+
+    class BadMind(OfflineMind):
+        def improve_project(self, title, pitch, files, context):
+            return ProjectFix(diagnosis="break it", files=[ProjectFile(path="test_ok.py", content="def test_ok():\n    assert False\n")])
+        def fix_project(self, idea, files, log):
+            return ProjectFix(diagnosis="cannot", files=[])
+
+    res2, what2 = ws.improve("thing-one", "Thing", "p", BadMind())
+    assert res2.ok and what2 == "" and "reverted" in res2.log
+    assert "assert True" in (tmp_path / "thing-one" / "test_ok.py").read_text()

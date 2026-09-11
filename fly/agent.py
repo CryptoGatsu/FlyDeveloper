@@ -134,6 +134,12 @@ class Fly:
         try:
             if action == "website":
                 result.outcome = self.act_website()
+            elif action == "repair":
+                broken = [b for b in self._tool_builds() if not b.get("ok")]
+                result.outcome = self.act_repair(broken[-1]) if broken else {"repair": "nothing is broken"}
+            elif action == "improve":
+                tools = self._tool_builds()
+                result.outcome = self.act_improve(min(tools, key=lambda b: float(b.get("touched_ts") or b.get("ts") or 0))) if tools else {"improve": "nothing built yet"}
             elif action == "browse":
                 result.outcome = self.act_browse(drives)
             elif action == "build":
@@ -235,7 +241,19 @@ class Fly:
         return {"pages": [f"{n.title} -> {n.gist[:100]}" for n in notes], "topics": topics[:3],
                 "learned": learned.summary if learned else ""}
 
+    def _tool_builds(self) -> list[dict[str, Any]]:
+        return [b for b in self.memory.data.get("builds", [])
+                if b.get("slug") not in ("website", "brand") and (self.cfg.workshop_dir / str(b.get("slug"))).is_dir()]
+
     def act_build(self, drives: Drives) -> dict[str, Any]:
+        tools = self._tool_builds()
+        broken = [b for b in tools if not b.get("ok")]
+        if broken:
+            return self.act_repair(broken[-1])
+        # Every third build, improve something that already works.
+        if tools and len(self.memory.data.get("builds", [])) % 3 == 2:
+            oldest = min(tools, key=lambda b: float(b.get("touched_ts") or b.get("ts") or 0))
+            return self.act_improve(oldest)
         idea = self.mind.ideate(self.context())
         self.memory.add("ideas", {"slug": idea.slug, "title": idea.title, "for_whom": idea.for_whom,
                                   "pitch": idea.pitch, "why": idea.why_needed})
@@ -249,6 +267,30 @@ class Fly:
 
     def has_launched(self) -> bool:
         return any(l.get("live") for l in self.memory.data.get("launches") or [])
+
+    def act_repair(self, build: dict[str, Any]) -> dict[str, Any]:
+        slug, title = str(build.get("slug")), str(build.get("title") or build.get("slug"))
+        self.log(f"the fly is repairing {title}")
+        result = self.workshop.repair(slug, title, self.mind, log_fn=self.log)
+        build.update({"ok": result.ok, "log": result.log[-1500:], "touched_ts": time.time(),
+                      "touched_at": self.memory.data["journal"][-1]["at"] if self.memory.data["journal"] else None,
+                      "files": result.files or build.get("files")})
+        self.memory.note(f"repaired {title}: {'tests pass' if result.ok else 'still failing'}")
+        return {"repaired": title, "ok": result.ok, "log_tail": result.log[-600:]}
+
+    def act_improve(self, build: dict[str, Any]) -> dict[str, Any]:
+        slug, title = str(build.get("slug")), str(build.get("title") or build.get("slug"))
+        pitch = next((i.get("pitch", "") for i in self.memory.data.get("ideas", []) if i.get("slug") == slug or i.get("title") == title), "")
+        self.log(f"the fly is improving {title}")
+        result, what = self.workshop.improve(slug, title, pitch, self.mind, context=self.context(), log_fn=self.log)
+        build.update({"ok": result.ok, "log": result.log[-1500:], "touched_ts": time.time(), "files": result.files or build.get("files")})
+        changes = build.setdefault("changes", [])
+        if what:
+            changes.append({"at": self.memory.data["journal"][-1]["at"] if self.memory.data["journal"] else None, "what": what})
+            self.memory.note(f"improved {title}: {what}"[:400])
+        else:
+            self.memory.note(f"looked at {title}; left it alone")
+        return {"improved": title, "what": what, "ok": result.ok}
 
     def act_meme(self, drives: Drives, fingerprint: str = "", theme: str = "") -> dict[str, Any]:
         mood = self.mood(drives)

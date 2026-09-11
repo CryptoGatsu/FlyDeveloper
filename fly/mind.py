@@ -101,6 +101,7 @@ class Mind(Protocol):
     def brand(self, context: str) -> BrandCopy: ...
     def reflect(self, notes: str) -> Learning: ...
     def fix_project(self, idea: "TechIdea", files: list[ProjectFile], log: str) -> ProjectFix: ...
+    def improve_project(self, title: str, pitch: str, files: list[ProjectFile], context: str) -> ProjectFix: ...
     def revise_website(self, brief: str, files: list[ProjectFile], problems: list[str], screenshots: list) -> WebsiteFiles: ...
 
 
@@ -205,6 +206,24 @@ Current files:
 Return only the files that need to change, each complete. Keep the project
 small; fix the code rather than deleting or weakening tests unless a test is
 plainly wrong."""
+        return self._ask(prompt, ProjectFix, max_tokens=self.cfg.code_max_tokens)
+
+    def improve_project(self, title: str, pitch: str, files: list[ProjectFile], context: str) -> ProjectFix:
+        listing = "\n\n".join(f"=== {f.path} ===\n{f.content}" for f in files)
+        prompt = f"""Revisit your project "{title}" and make it better.
+Pitch: {pitch}
+
+Recent context (what you have read and learned lately):
+{context}
+
+Current files:
+{listing}
+
+Pick ONE meaningful improvement: a real bug, a missing edge case, a feature a
+user would actually want, clearer README/usage, or a test that was missing.
+Keep it small and dependency-free. Update the README if behaviour changes.
+Return only the files that change, each complete, and say in `diagnosis`
+what you improved and why (one or two sentences)."""
         return self._ask(prompt, ProjectFix, max_tokens=self.cfg.code_max_tokens)
 
     def reflect(self, notes: str) -> Learning:
@@ -406,6 +425,13 @@ def test_tip():
 
     def fix_project(self, idea: TechIdea, files: list[ProjectFile], log: str) -> ProjectFix:
         return ProjectFix(diagnosis="Offline mind cannot fix code.", files=[])
+
+    def improve_project(self, title: str, pitch: str, files: list[ProjectFile], context: str) -> ProjectFix:
+        readme = next((f for f in files if f.path == "README.md"), None)
+        if readme is None:
+            return ProjectFix(diagnosis="nothing to improve offline", files=[])
+        return ProjectFix(diagnosis="Added a line to the README.",
+                          files=[ProjectFile(path="README.md", content=readme.content.rstrip() + "\n\nMaintained by the fly.\n")])
 
     def reflect(self, notes: str) -> Learning:
         return Learning(summary="Read a few pages. Humans have many small annoyances and few small tools.",

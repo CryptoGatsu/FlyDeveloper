@@ -47,8 +47,9 @@ STATE_EXAMPLE = {
                "explorer_token": "https://robinhoodchain.blockscout.com/token/0x..."}],
     "builds": [{"at": "...", "slug": "ripeness-clock", "title": "Ripeness Clock", "ok": True, "kind": "tool", "files": ["README.md"],
                 "repo_path": "workshop/ripeness-clock", "url": "https://github.com/CryptoGatsu/FlyDeveloper/tree/main/workshop/ripeness-clock",
-                "readme_url": "https://github.com/CryptoGatsu/FlyDeveloper/blob/main/workshop/ripeness-clock/README.md"}],
-    "ideas": [{"at": "...", "title": "...", "pitch": "...", "for_whom": "both", "why": "..."}],
+                "readme_url": "https://github.com/CryptoGatsu/FlyDeveloper/blob/main/workshop/ripeness-clock/README.md",
+                "changes": [{"at": "...", "what": "handled infinite progress in stage()"}]}],
+    "ideas": [{"at": "...", "slug": "ripeness-clock", "title": "...", "pitch": "...", "for_whom": "both", "why": "...", "built": True}],
     "journal": [{"at": "...", "text": "..."}],
     "drives_history": [{"at": "...", "action": "browse", "drives": {"curiosity": 0.7}}],
 }
@@ -71,6 +72,7 @@ Hard requirements:
 - Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
 - Every page the fly reads has a screenshot (page.shot, a site-relative path like "browsing/shots/x.jpg", prefix with "/"; may be empty). Show it prominently in the page card, as an <img> with alt text, linked to the page, so visitors can see the fly really was there; the image is stamped with time and URL.
 - /browsing shows three things, newest first: the searches (state.searches: query, engine, result titles+urls), the pages it read (state.pages: title, link, gist, need spotted, followups), and what it learned (state.learnings: summary + ideas). Make it read like a fly's field notes, not a log dump.
+- Ideas carry `built` (true when a build with that slug/title exists): the "ideas not yet built" list must only show ideas with built == false. Builds carry `changes` (list of {{at, what}}): show them as a short changelog on the build card ("maintained: ...").
 - Content per route: "/" = your current mood, drives as bars, last action, the brain readout, counts, the latest meme and coin with links to the full lists; /browsing = pages read with title, link, gist and "need spotted"; /memes = gallery of images (src is relative to the site root: prefix with "/"); /coins = every coin with name, $SYMBOL, genesis/live badges, description, explorer links; /builds = things built with links into the repo (fly.repo + "/tree/HEAD/" + repo_path) and the ideas; /journal = the journal lines.
 - The site lives at https://flydev.tech; the source is at https://github.com/CryptoGatsu/FlyDeveloper (link it as "Source"); the fly's X account is https://x.com/TheFlyDev_ (link it as "X").
 - A footer on every page saying coins are jokes with a ticker, no utility, no roadmap, no promises, nothing is financial advice; credit fly-brain (Shiu et al.) and Pons.

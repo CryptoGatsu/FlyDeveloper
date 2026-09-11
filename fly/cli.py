@@ -299,7 +299,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--seed", type=int)
     b.set_defaults(fn=cmd_brain)
     t = sub.add_parser("tick", help="one heartbeat: perceive, decide, act")
-    t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest", "website"])
+    t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest", "website", "repair", "improve"])
     t.add_argument("--seed", type=int)
     t.add_argument("--live", action="store_true", help="allow a real launch (also needs FLY_LIVE_LAUNCH=1)")
     t.set_defaults(fn=cmd_tick)

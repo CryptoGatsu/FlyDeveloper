@@ -36,6 +36,18 @@ def _meme_public_path(path: str) -> str:
     return f"memes/{Path(path).name}"
 
 
+def _wallet_address(cfg: FlyConfig) -> str:
+    key = cfg.launchpad.private_key.strip()
+    if not key:
+        return ""
+    try:
+        from eth_account import Account
+
+        return Account.from_key(key).address
+    except Exception:
+        return ""
+
+
 def _mood_from(drives: dict[str, float]) -> str:
     if not drives:
         return ""
@@ -82,6 +94,7 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
         builds.append({
             "at": b.get("at"), "slug": slug, "title": b.get("title"), "ok": b.get("ok"), "kind": kind,
             "files": b.get("files") or [], "repo_path": repo_path,
+            "changes": [{"at": c.get("at"), "what": c.get("what")} for c in (b.get("changes") or [])][-5:],
             "url": f"{REPO_URL}/tree/{branch}/{repo_path}",
             "readme_url": f"{REPO_URL}/blob/{branch}/{repo_path}/README.md" if kind == "tool" else "",
         })
@@ -99,11 +112,15 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
                 for x in d.get("searches", [])]
     learnings = [{"at": x.get("at"), "summary": x.get("summary"), "ideas": x.get("ideas") or []}
                  for x in d.get("learnings", [])]
-    ideas = [{"at": i.get("at"), "title": i.get("title"), "pitch": i.get("pitch"), "for_whom": i.get("for_whom"),
-              "why": i.get("why")} for i in d.get("ideas", [])]
+    built_slugs = {b.get("slug") for b in d.get("builds", [])} | {b.get("title") for b in d.get("builds", [])}
+    ideas = [{"at": i.get("at"), "slug": i.get("slug"), "title": i.get("title"), "pitch": i.get("pitch"),
+              "for_whom": i.get("for_whom"), "why": i.get("why"),
+              "built": (i.get("slug") in built_slugs) or (i.get("title") in built_slugs)}
+             for i in d.get("ideas", [])]
     journal = [{"at": j.get("at"), "text": j.get("text")} for j in d.get("journal", [])]
     drives = last_drives.get("drives") or {}
     mood = (extra or {}).get("mood") or _mood_from(drives)
+    wallet = (extra or {}).get("wallet") or _wallet_address(cfg)
     state = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "fly": {
@@ -111,7 +128,7 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "brain": cfg.brain.mode, "neurons": 138639 if cfg.brain.mode == "connectome" else cfg.brain.phantom_neurons,
             "mind": cfg.mind.model if cfg.mind.mode == "claude" else "offline",
             "chain": cfg.launchpad.chain_id, "factory": cfg.launchpad.factory,
-            "armed": bool(cfg.launchpad.live), "wallet": extra.get("wallet", "") if extra else "",
+            "armed": bool(cfg.launchpad.live), "wallet": wallet,
             "factory_name": "Pons V2 launch factory (contract)",
             "repo": REPO_URL, "branch": branch, "site": cfg.launchpad.website, "x": cfg.launchpad.twitter,
         },

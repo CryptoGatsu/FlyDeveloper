@@ -98,3 +98,34 @@ def test_policy_runs_without_force(tmp_path):
     r = fly.tick(seed=6)
     assert r.action in ("browse", "build", "meme", "launch", "rest")
     assert abs(sum(r.probabilities.values()) - 1.0) < 1e-3
+
+
+def test_build_repairs_broken_before_new(tmp_path):
+    from fly.mind import ProjectFix, ProjectFile
+
+    fly = _fly(tmp_path)
+    r = fly.tick(force="build", seed=1)
+    slug = r.outcome["path"].split("/")[-1]
+    proj = tmp_path / "workshop" / slug
+    (proj / "test_broken.py").write_text("def test_broken():\n    assert False\n")
+    fly.memory.data["builds"][-1]["ok"] = False
+
+    class Fixer(OfflineMind):
+        def fix_project(self, idea, files, log):
+            return ProjectFix(diagnosis="removed the bad assertion", files=[ProjectFile(path="test_broken.py", content="def test_broken():\n    assert True\n")])
+
+    fly.mind = Fixer()
+    r2 = fly.tick(force="build", seed=2)
+    assert "repaired" in r2.outcome and r2.outcome["ok"] is True
+    assert fly.memory.data["builds"][-1]["ok"] is True
+
+
+def test_state_marks_built_ideas_and_wallet(tmp_path):
+    from fly.publish import build_state
+
+    fly = _fly(tmp_path)
+    fly.tick(force="build", seed=1)
+    fly.cfg.launchpad.private_key = "0x" + "11" * 32
+    st = build_state(fly.cfg, fly.memory)
+    assert st["ideas"][0]["built"] is True
+    assert st["fly"]["wallet"].startswith("0x") and len(st["fly"]["wallet"]) == 42

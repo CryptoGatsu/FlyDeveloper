@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .mind import TechIdea
+from .mind import ProjectFile, TechIdea
 
 SLUG_RE = re.compile(r"[^a-z0-9-]+")
 TEXT_SUFFIXES = {
@@ -52,6 +52,96 @@ class Workshop:
         self.dir = workshop_dir
         self.test_timeout_sec = test_timeout_sec
 
+    # -- existing projects -----------------------------------------------------
+    def load(self, slug: str) -> list[ProjectFile]:
+        project = self.dir / slug
+        out: list[ProjectFile] = []
+        if not project.is_dir():
+            return out
+        for path in sorted(project.rglob("*")):
+            if not path.is_file() or "__pycache__" in path.parts or ".pytest_cache" in path.parts:
+                continue
+            if path.suffix.lower() not in TEXT_SUFFIXES or path.name == "FLY_NOTES.md":
+                continue
+            try:
+                out.append(ProjectFile(path=path.relative_to(project).as_posix(), content=path.read_text(encoding="utf-8")))
+            except UnicodeDecodeError:
+                continue
+        return out
+
+    def repair(self, slug: str, title: str, mind, repair_rounds: int = 2, log_fn=None) -> BuildResult:
+        """Re-check an existing project and let the mind fix what fails."""
+        project = self.dir / slug
+        files = self.load(slug)
+        idea = TechIdea(slug=slug, title=title, pitch="", for_whom="both", why_needed="", language="python",
+                        run_hint="", files=files)
+        written = [f.path for f in files]
+        result = self._check(project, written, idea, [], write_notes=False)
+        return self._repair_loop(project, idea, {f.path: f for f in files}, written, result, mind, repair_rounds, log_fn)
+
+    def improve(self, slug: str, title: str, pitch: str, mind, context: str = "", log_fn=None) -> tuple[BuildResult, str]:
+        """Ask the mind for one improvement; keep it only if checks still pass."""
+        project = self.dir / slug
+        before = self.load(slug)
+        if not before:
+            return BuildResult(slug=slug, path=project, ok=False, log="project missing"), ""
+        fix = mind.improve_project(title, pitch, before, context)
+        if not fix.files:
+            return BuildResult(slug=slug, path=project, ok=True, log="no change", files=[f.path for f in before]), ""
+        files = {f.path: f for f in before}
+        written = list(files)
+        for f in fix.files:
+            target = _safe_relpath(project, f.path)
+            if target is None:
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(f.content, encoding="utf-8")
+            files[f.path] = f
+            if f.path not in written:
+                written.append(f.path)
+        idea = TechIdea(slug=slug, title=title, pitch=pitch, for_whom="both", why_needed="", language="python",
+                        run_hint="", files=list(files.values()))
+        result = self._check(project, written, idea, [f"improvement: {fix.diagnosis}"], write_notes=False)
+        result = self._repair_loop(project, idea, files, written, result, mind, 1, log_fn)
+        if not result.ok:                                   # roll back to the working version
+            for f in before:
+                (project / f.path).write_text(f.content, encoding="utf-8")
+            for f in fix.files:
+                if f.path not in {b.path for b in before}:
+                    (project / f.path).unlink(missing_ok=True)
+            result.log += "\nimprovement reverted: checks failed"
+            result.ok = True
+            return result, ""
+        return result, fix.diagnosis
+
+    def _repair_loop(self, project, idea, files, written, result, mind, repair_rounds, log_fn):
+        log: list[str] = []
+        rounds = 0
+        while not result.ok and mind is not None and rounds < repair_rounds:
+            rounds += 1
+            if log_fn:
+                log_fn(f"tests failed; the fly is fixing {idea.title} (round {rounds})")
+            try:
+                fix = mind.fix_project(idea, list(files.values()), result.log)
+            except Exception as exc:
+                result.log += f"\nrepair round {rounds} failed: {exc}"
+                break
+            if not fix.files:
+                break
+            log.append(f"repair round {rounds}: {fix.diagnosis}")
+            for f in fix.files:
+                target = _safe_relpath(project, f.path)
+                if target is None:
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(f.content, encoding="utf-8")
+                files[f.path] = f
+                rel = str(target.relative_to(project))
+                if rel not in written:
+                    written.append(rel)
+            result = self._check(project, written, idea, log, write_notes=False)
+        return result
+
     def build(self, idea: TechIdea, mind=None, repair_rounds: int = 2, log_fn=None) -> BuildResult:
         """Write the project, check it, and let the mind repair failures."""
         slug = safe_slug(idea.slug)
@@ -74,33 +164,9 @@ class Workshop:
             target.write_text(f.content, encoding="utf-8")
             written.append(str(target.relative_to(project)))
         result = self._check(project, written, idea, log)
-        rounds = 0
-        while not result.ok and mind is not None and rounds < repair_rounds:
-            rounds += 1
-            if log_fn:
-                log_fn(f"tests failed; the fly is fixing {idea.title} (round {rounds})")
-            try:
-                fix = mind.fix_project(idea, list(files.values()), result.log)
-            except Exception as exc:
-                log.append(f"repair round {rounds} failed: {exc}")
-                break
-            if not fix.files:
-                break
-            log.append(f"repair round {rounds}: {fix.diagnosis}")
-            for f in fix.files:
-                target = _safe_relpath(project, f.path)
-                if target is None:
-                    continue
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(f.content, encoding="utf-8")
-                files[f.path] = f
-                rel = str(target.relative_to(project))
-                if rel not in written:
-                    written.append(rel)
-            result = self._check(project, written, idea, log)
-        return result
+        return self._repair_loop(project, idea, files, written, result, mind, repair_rounds, log_fn)
 
-    def _check(self, project: Path, written: list[str], idea: TechIdea, log: list[str]) -> BuildResult:
+    def _check(self, project: Path, written: list[str], idea: TechIdea, log: list[str], write_notes: bool = True) -> BuildResult:
         log = list(log)
         if "README.md" not in written:
             (project / "README.md").write_text(
@@ -108,10 +174,11 @@ class Workshop:
                 encoding="utf-8",
             )
             written.append("README.md")
-        (project / "FLY_NOTES.md").write_text(
-            f"# Why the fly built this\n\n{idea.why_needed}\n\nPitch: {idea.pitch}\n",
-            encoding="utf-8",
-        )
+        if write_notes:
+            (project / "FLY_NOTES.md").write_text(
+                f"# Why the fly built this\n\n{idea.why_needed}\n\nPitch: {idea.pitch}\n",
+                encoding="utf-8",
+            )
         for stale in project.rglob("__pycache__"):
             shutil.rmtree(stale, ignore_errors=True)
 
