@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .config import FlyConfig
+from .config import FlyConfig, config_warnings
 
 
 def _fly(args):
@@ -31,6 +31,8 @@ def cmd_status(args) -> int:
     print(f"mind: {cfg.mind.mode} ({cfg.mind.model}, effort {cfg.mind.effort})")
     print(f"launchpad: chain {cfg.launchpad.chain_id} factory {cfg.launchpad.factory} live={cfg.launchpad.live} wallet={'set' if cfg.launchpad.private_key else 'unset'}")
     print(f"image host: {cfg.hosting.provider}")
+    for w in config_warnings(cfg):
+        print(f"WARNING: {w}")
     from .memory import Memory
 
     mem = Memory.load(cfg.memory_path)

@@ -35,7 +35,13 @@ def load_dotenv(path: Path | None = None) -> None:
             continue
         key, value = line.split("=", 1)
         key = key.strip()
-        value = value.strip().strip('"').strip("'")
+        if key.startswith("export "):
+            key = key[7:].strip()
+        value = value.strip()
+        if value[:1] in ('"', "'") and value.endswith(value[0]) and len(value) >= 2:
+            value = value[1:-1]                      # quoted: keep everything inside
+        elif " #" in value or "\t#" in value:
+            value = value.split("#", 1)[0].strip()   # unquoted: drop inline comment
         if key and key not in os.environ:
             os.environ[key] = value
 
@@ -134,6 +140,35 @@ class HostingConfig:
     github_repo: str = ""            # owner/name
     github_branch: str = "main"
     github_dir: str = "memes"
+
+
+def config_warnings(cfg: "FlyConfig") -> list[str]:
+    """Human-readable problems with the loaded configuration."""
+    out: list[str] = []
+    key = cfg.launchpad.private_key.strip()
+    if key:
+        hexpart = key[2:] if key.lower().startswith("0x") else key
+        if len(hexpart) == 40:
+            out.append("FLY_WALLET_PRIVATE_KEY looks like a wallet ADDRESS (40 hex chars); it must be the private key (64 hex chars)")
+        elif len(hexpart) != 64 or any(c not in "0123456789abcdefABCDEF" for c in hexpart):
+            out.append("FLY_WALLET_PRIVATE_KEY is not a 64-hex-char private key")
+    raw_tax = os.environ.get("FLY_CREATOR_TAX_BPS", "")
+    if raw_tax and not raw_tax.strip().isdigit():
+        out.append(f"FLY_CREATOR_TAX_BPS must be whole basis points (2.5% = 250), got '{raw_tax}'; using 0")
+    if cfg.launchpad.creator_tax_bps > 1000:
+        out.append("FLY_CREATOR_TAX_BPS above the protocol cap of 1000 (10%)")
+    for name in ("FLY_INITIAL_BUY_ETH", "FLY_MAX_INITIAL_BUY_ETH", "FLY_MAX_LAUNCH_FEE_ETH", "FLY_BRAIN_T_RUN"):
+        raw = os.environ.get(name, "")
+        if raw:
+            try:
+                float(raw)
+            except ValueError:
+                out.append(f"{name} is not a number: '{raw}'")
+    if cfg.mind.mode == "offline" and os.environ.get("FLY_MIND", "claude") == "claude":
+        out.append("no ANTHROPIC_API_KEY found, mind fell back to offline templates")
+    if cfg.hosting.provider == "none" and cfg.launchpad.live:
+        out.append("FLY_LIVE_LAUNCH=1 but FLY_IMAGE_HOST=none: launches will be blocked")
+    return out
 
 
 @dataclass
