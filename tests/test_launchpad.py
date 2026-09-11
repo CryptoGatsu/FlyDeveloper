@@ -83,3 +83,12 @@ def test_buy_dry_run_encodes_calldata():
 
 def test_abi_has_event():
     assert any(e.get("name") == "TokenLaunched" for e in FACTORY_ABI)
+
+
+def test_guard_allows_disclaimers_but_not_promises(tmp_path):
+    lp = _lp()
+    mem = Memory(path=tmp_path / "m.json")
+    ok = lp.plan(_params(description="No utility, no roadmap, not an investment. Zero returns promised."))
+    assert not [p for p in LaunchGuard(lp.cfg).check(ok, mem) if "promise" in p]
+    bad = lp.plan(_params(description="Early holders get guaranteed returns. Will moon."))
+    assert len([p for p in LaunchGuard(lp.cfg).check(bad, mem) if "promise" in p]) >= 2

@@ -61,6 +61,10 @@ def _caption(draw, text: str, width: int, y: int, from_bottom: bool, size: int =
         return
     font = _font(size)
     lines = _wrap(draw, text.upper(), font, width - 60)
+    if len(lines) > 2:                       # long captions: smaller type, at most 3 lines
+        size = 44
+        font = _font(size)
+        lines = _wrap(draw, text.upper(), font, width - 60)[:3]
     line_h = size + 8
     total = line_h * len(lines)
     y0 = y - total if from_bottom else y

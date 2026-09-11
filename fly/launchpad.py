@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -406,11 +407,14 @@ class LaunchGuard:
             today = memory.count_since("launches", 24.0, live=True)
             if today >= self.cfg.max_launches_per_day:
                 problems.append(f"daily launch cap reached ({today}/{self.cfg.max_launches_per_day})")
-        forbidden = ("guaranteed", "risk-free", "investment", "will moon", "100x")
-        low = (p.description + " " + p.name).lower()
-        for word in forbidden:
-            if word in low:
-                problems.append(f"description contains a financial promise: '{word}'")
+        forbidden = ("guaranteed", "risk-free", "investment", "will moon", "100x", "returns", "profit")
+        negations = ("no ", "not ", "never ", "zero ", "isn't", "aren't")
+        for sentence in re.split(r"[.!?\n]+", (p.name + ". " + p.description).lower()):
+            if any(neg in sentence for neg in negations):
+                continue                     # "not an investment" is a disclaimer, not a promise
+            for word in forbidden:
+                if word in sentence:
+                    problems.append(f"description contains a financial promise: '{word}'")
         return problems
 
 
