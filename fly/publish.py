@@ -126,6 +126,10 @@ def publish(cfg: FlyConfig, message: str, log=print) -> bool:
             return False                                   # nothing new
         subprocess.run(["git", "-C", str(root), "commit", "-q", "-m", f"fly: {message}"], check=True, capture_output=True, text=True)
         for attempt in range(3):
+            # Bring in anything pushed elsewhere first; on a clash in the fly's
+            # own generated files, the fly's newer copy wins.
+            subprocess.run(["git", "-C", str(root), "pull", "--rebase", "--autostash", "-X", "theirs", "-q"],
+                           capture_output=True, text=True)
             push = subprocess.run(["git", "-C", str(root), "push"], capture_output=True, text=True)
             if push.returncode == 0:
                 log(f"published: {message}")
