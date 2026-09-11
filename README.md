@@ -69,6 +69,41 @@ connectome data? `FLY_BRAIN=phantom` uses a small synthetic network. The
 first connectome run builds `data/fly_connectome_cache.npz` (~50 MB) so later
 loads take under a second.
 
+## The website: flydev.tech
+
+The fly designs and writes its own website. `python fly.py website` (or the
+first tick, if `site/` is empty) hands the mind a brief: six clean routes
+(`/`, `/browsing`, `/memes`, `/coins`, `/builds`, `/journal`, never `.html`
+or `#` links), always dark, one shared `app.js` reading `/data/state.json`,
+responsive to 400 px. The result is checked (routes present, links clean,
+JavaScript parses), rendered headless in Chrome at desktop and phone widths,
+and the screenshots are shown back to the fly so it can revise; a phone
+overflow detector forces one more pass. If its site still fails, the
+built-in template (`fly/site_template/`) is used so the page never breaks.
+
+After every tick the fly exports `site/data/state.json` (`FLY_PUBLISH=site`,
+the default) and, with `FLY_PUBLISH=git`, commits `site/` and `workshop/` and
+pushes, so the host redeploys on its own.
+
+```bash
+python fly.py website          # the fly (re)designs its site
+python fly.py serve            # watch locally at http://127.0.0.1:8642
+python fly.py publish --push   # export + commit + push by hand
+```
+
+Hosting the domain: `vercel.json` serves `site/` with clean URLs (import the
+repo at vercel.com/new, add `flydev.tech` under Domains); or GitHub Pages via
+`.github/workflows/pages.yml` (Settings → Pages → Source: GitHub Actions,
+custom domain `flydev.tech`; the fly writes `site/CNAME` from
+`FLY_SITE_DOMAIN`). Either redeploys whenever the fly pushes.
+
+## X profile
+
+`python fly.py brand` has the fly write a tagline and bio and draw its own
+profile picture (500×500) and banner (1500×500) into `site/brand/`, so they
+are also served at `/brand/pfp.png` and `/brand/banner.png`. The X account is
+[@TheFlyDev_](https://x.com/TheFlyDev_).
+
 ## Launching on Pons
 
 Pons V2 (`0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e` on Robinhood Chain,
@@ -93,6 +128,33 @@ the Files "write" scope, copy its JWT into `PINATA_JWT`, and set
 `PINATA_GATEWAY` to your dedicated gateway
 (`https://<name>.mypinata.cloud/ipfs`). Uploads go through the v3 Files
 API with a fallback to the legacy pinning endpoint.
+
+When launches are armed and the fly has not launched its own coin yet, its
+appetite drive is pinned high: the next tick is the genesis launch, done by
+the fly, on camera if you like (`python fly.py live --live`).
+
+The fly's first live launch is always its own coin, **The Fly Dev ($FLYDEV)**
+(`FLY_GENESIS_NAME` / `FLY_GENESIS_SYMBOL`; leave the name empty to
+disable). After that, every coin comes from a meme it drew. You can also
+force a launch by hand:
+
+```bash
+python fly.py launch --name "The Fly Dev" --symbol FLYDEV            # dry run
+python fly.py launch --name "The Fly Dev" --symbol FLYDEV --live     # send it
+```
+
+**Creator fees.** Pons charges a 1% curve fee (plus any creator tax you set)
+and credits the creator's share to a claim-based fee escrow in ETH. The
+genesis coin launches with buyback **off**, so every creator fee stays
+claimable by the fly's wallet and funds the project. Later coins follow
+`FLY_COIN_FEE_MODE`: `buyback` (default) lets Pons spend the creator slice
+buying the coin back and locking it in the five-year vault; `wallet` keeps
+fees claimable like the genesis coin. Collect with:
+
+```bash
+python fly.py fees                         # pending on each curve + claimable in escrow
+python fly.py fees --sweep --claim --live  # push curve fees to escrow, claim to the wallet
+```
 
 Guard rails that cannot be turned off from the command line:
 

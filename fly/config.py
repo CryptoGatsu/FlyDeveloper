@@ -91,7 +91,7 @@ class MindConfig:
     model: str = "claude-opus-5"
     effort: str = "high"
     max_tokens: int = 16000
-    code_max_tokens: int = 64000
+    code_max_tokens: int = 24000
 
 
 @dataclass
@@ -125,9 +125,18 @@ class LaunchpadConfig:
     max_initial_buy_eth: float = 0.01
     max_launch_fee_eth: float = 0.01 # refuse to launch if the factory fee exceeds this
     creator_fee_recipient: str = ""  # defaults to the launching wallet
-    website: str = "https://github.com/CryptoGatsu/FlyDeveloper"
-    twitter: str = ""
+    website: str = "https://flydev.tech"
+    twitter: str = "https://x.com/TheFlyDev_"
     telegram: str = ""
+    # The fly's own coin: used for its first live launch. Empty name disables.
+    genesis_name: str = "The Fly Dev"
+    genesis_symbol: str = "FLYDEV"
+    # Genesis creator fees stay in the fly's wallet (they fund the project):
+    # buyback stays OFF for it. Other coins follow coin_fee_mode:
+    #   "buyback": creator-bucket slice buys the coin back and locks it (on-chain)
+    #   "wallet":  creator fees accrue to the fly's wallet like the genesis coin
+    genesis_buyback: bool = False
+    coin_fee_mode: str = "buyback"
 
 
 @dataclass
@@ -155,6 +164,8 @@ def config_warnings(cfg: "FlyConfig") -> list[str]:
     raw_tax = os.environ.get("FLY_CREATOR_TAX_BPS", "")
     if raw_tax and not raw_tax.strip().isdigit():
         out.append(f"FLY_CREATOR_TAX_BPS must be whole basis points (2.5% = 250), got '{raw_tax}'; using 0")
+    if cfg.launchpad.coin_fee_mode not in ("buyback", "wallet"):
+        out.append(f"FLY_COIN_FEE_MODE must be 'buyback' or 'wallet', got '{cfg.launchpad.coin_fee_mode}'")
     if cfg.launchpad.creator_tax_bps > 1000:
         out.append("FLY_CREATOR_TAX_BPS above the protocol cap of 1000 (10%)")
     for name in ("FLY_INITIAL_BUY_ETH", "FLY_MAX_INITIAL_BUY_ETH", "FLY_MAX_LAUNCH_FEE_ETH", "FLY_BRAIN_T_RUN"):
@@ -183,6 +194,8 @@ class FlyConfig:
     launchpad: LaunchpadConfig = field(default_factory=LaunchpadConfig)
     hosting: HostingConfig = field(default_factory=HostingConfig)
     tick_interval_sec: int = 1800
+    publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
+    site_domain: str = "flydev.tech"   # FLY_SITE_DOMAIN: writes site/CNAME for GitHub Pages custom domains
 
     @classmethod
     def from_env(cls, root: Path | None = None) -> "FlyConfig":
@@ -193,6 +206,8 @@ class FlyConfig:
         cfg.memes_dir = Path(_env("FLY_MEMES_DIR", str(root / "memes")))
         cfg.memory_path = Path(_env("FLY_MEMORY_PATH", str(root / "data" / "fly_memory.json")))
         cfg.tick_interval_sec = _env_int("FLY_TICK_INTERVAL_SEC", 1800)
+        cfg.publish = _env("FLY_PUBLISH", "site").strip().lower()
+        cfg.site_domain = _env("FLY_SITE_DOMAIN", "flydev.tech").strip()
 
         b = cfg.brain
         b.mode = _env("FLY_BRAIN", "connectome")
@@ -239,8 +254,12 @@ class FlyConfig:
         lp.max_launch_fee_eth = _env_float("FLY_MAX_LAUNCH_FEE_ETH", 0.01)
         lp.creator_fee_recipient = _env("FLY_CREATOR_FEE_RECIPIENT", "")
         lp.website = _env("FLY_WEBSITE", lp.website)
-        lp.twitter = _env("FLY_TWITTER", "")
+        lp.twitter = _env("FLY_TWITTER", lp.twitter)
         lp.telegram = _env("FLY_TELEGRAM", "")
+        lp.genesis_name = _env("FLY_GENESIS_NAME", lp.genesis_name)
+        lp.genesis_symbol = _env("FLY_GENESIS_SYMBOL", lp.genesis_symbol)
+        lp.genesis_buyback = _env_bool("FLY_GENESIS_BUYBACK", False)
+        lp.coin_fee_mode = _env("FLY_COIN_FEE_MODE", "buyback").strip().lower()
 
         h = cfg.hosting
         h.provider = _env("FLY_IMAGE_HOST", "none")

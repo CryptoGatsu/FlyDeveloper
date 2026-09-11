@@ -80,6 +80,7 @@ class Fly:
             launches_today=m.count_since("launches", 24.0, live=True),
             max_launches_per_day=self.cfg.launchpad.max_launches_per_day,
             launch_armed=self.cfg.launchpad.live,
+            genesis_pending=bool(self.cfg.launchpad.genesis_name) and not self.has_launched(),
         )
 
     def perceive(self, seed: int | None = None) -> dict[str, SpikeReport]:
@@ -117,10 +118,23 @@ class Fly:
             action = force
         self.memory.add("drives", {"drives": drives.as_dict(), "action": action, "probs": probs,
                                    "brain": {k: r.describe() for k, r in reports.items()}})
-        self.log(f"fly feels {self.mood(drives)} ({drives.describe()}) -> {action}")
+        mood = self.mood(drives)
+        self.log(f"fly feels {mood} ({drives.describe()}) -> {action}")
+        if action == "launch" and world.genesis_pending and world.launch_armed:
+            self.log("the fly wants to hatch its own coin")
         result = TickResult(action=action, drives=drives, probabilities=probs, reports=reports)
+        from .website import site_exists
+
+        if action != "website" and not site_exists(self.cfg.root / "site"):
+            self.log("the fly has no website yet; building one first")
+            try:
+                result.outcome["website"] = self.act_website()
+            except MindRefused as exc:
+                self.memory.note(f"mind refused to build the website: {exc}")
         try:
-            if action == "browse":
+            if action == "website":
+                result.outcome = self.act_website()
+            elif action == "browse":
                 result.outcome = self.act_browse(drives)
             elif action == "build":
                 result.outcome = self.act_build(drives)
@@ -136,7 +150,22 @@ class Fly:
             self.memory.note(f"mind refused during {action}: {exc}")
         finally:
             self.memory.save()
+            self._publish(action, mood)
         return result
+
+    def _publish(self, action: str, mood: str) -> None:
+        if self.cfg.publish == "none":
+            return
+        try:
+            from .publish import export_site, publish
+
+            export_site(self.cfg, self.memory, extra={"mood": mood, "wallet": self._launchpad.address if self._launchpad else ""})
+            if self.cfg.publish == "git":
+                last = self.memory.last(action if action in ("builds",) else {"browse": "pages", "build": "builds", "meme": "memes", "launch": "launches"}.get(action, "journal")) or {}
+                what = last.get("title") or last.get("top") or last.get("symbol") or action
+                publish(self.cfg, f"{action}: {what}", log=self.log)
+        except Exception as exc:
+            self.log(f"publish skipped: {exc}")
 
     def run(self, ticks: int | None = None, interval_sec: int | None = None, live: bool = False) -> None:
         interval = interval_sec or self.cfg.tick_interval_sec
@@ -152,6 +181,33 @@ class Fly:
     # -- actions ---------------------------------------------------------
     def context(self) -> str:
         return self.memory.summary()
+
+    def act_website(self, refine: bool = False) -> dict[str, Any]:
+        from .website import build_website
+
+        self.log("the fly is polishing its website" if refine else "the fly is designing its website")
+        res = build_website(self.mind, self.cfg.root / "site", context=self.context(), log=self.log, refine=refine)
+        self.memory.add("builds", {"slug": "website", "title": "The Fly Dev website", "ok": res.ok,
+                                   "path": str(self.cfg.root / "site"), "files": res.files,
+                                   "log": f"source={res.source}; " + "; ".join(res.problems)[:800]})
+        self.memory.note(f"built its website ({res.source}): {res.notes}"[:400])
+        return {"website": res.source, "files": res.files, "notes": res.notes, "problems": res.problems}
+
+    def act_brand(self, seed: int | None = None) -> dict[str, Any]:
+        """Profile picture and banner for the fly's X page, plus a bio."""
+        from .brand import render_banner, render_pfp
+
+        copy = self.mind.brand(self.context())
+        seed = seed if seed is not None else int(time.time())
+        out = self.cfg.root / "site" / "brand"
+        pfp = render_pfp(out / "pfp.png", seed=seed, mood=copy.mood)
+        banner = render_banner(out / "banner.png", copy.tagline, seed=seed, mood=copy.mood,
+                               symbol=self.cfg.launchpad.genesis_symbol or "FLYDEV")
+        (out / "bio.txt").write_text(copy.bio + "\n", encoding="utf-8")
+        self.memory.add("builds", {"slug": "brand", "title": "X profile picture and banner", "ok": True,
+                                   "path": str(out), "files": ["pfp.png", "banner.png", "bio.txt"], "log": copy.tagline})
+        self.memory.note(f"drew its X profile: {copy.tagline}")
+        return {"pfp": str(pfp), "banner": str(banner), "tagline": copy.tagline, "bio": copy.bio, "mood": copy.mood}
 
     def act_browse(self, drives: Drives) -> dict[str, Any]:
         topics = list(self.cfg.browser.seeds)
@@ -176,9 +232,12 @@ class Fly:
         return {"built": idea.title, "path": str(result.path), "ok": result.ok, "files": result.files,
                 "log_tail": result.log[-600:]}
 
-    def act_meme(self, drives: Drives, fingerprint: str = "") -> dict[str, Any]:
+    def has_launched(self) -> bool:
+        return any(l.get("live") for l in self.memory.data.get("launches") or [])
+
+    def act_meme(self, drives: Drives, fingerprint: str = "", theme: str = "") -> dict[str, Any]:
         mood = self.mood(drives)
-        caption = self.mind.caption(self.context(), mood)
+        caption = self.mind.caption(self.context(), mood, theme=theme)
         seed = int(fingerprint[:8], 16) if fingerprint else int(time.time())
         stamp = time.strftime("%Y%m%d-%H%M%S")
         path = self.cfg.memes_dir / f"fly-{stamp}-{caption.mood}.png"
@@ -187,17 +246,33 @@ class Fly:
                                   "alt": caption.alt_text, "mood": caption.mood})
         return {"meme": str(path), "top": caption.top, "bottom": caption.bottom}
 
-    def act_launch(self, drives: Drives, live: bool = False, meme: dict[str, Any] | None = None) -> dict[str, Any]:
+    def act_launch(
+        self, drives: Drives, live: bool = False, meme: dict[str, Any] | None = None,
+        name: str = "", symbol: str = "", description: str = "",
+    ) -> dict[str, Any]:
         from .mind import MemeCaption
 
-        memes = self.memory.unlaunched_memes()
+        lp = self.cfg.launchpad
+        theme = ""
+        # The fly's first coin is its own identity coin (genesis), unless told otherwise.
+        is_genesis = bool(lp.genesis_name and not self.has_launched() and (not name or name == lp.genesis_name))
+        if is_genesis and not name:
+            name, symbol = lp.genesis_name, lp.genesis_symbol
+        # Fee policy: genesis fees fund the project (stay claimable by the wallet);
+        # other coins buy back and lock, or accrue to the wallet, per config.
+        buyback = lp.genesis_buyback if is_genesis else (lp.coin_fee_mode == "buyback")
+        if name:
+            theme = (f"This meme is the face of the fly's own coin, {name} (${symbol}): a fruit-fly "
+                     "connectome that browses, builds tiny tools and draws memes. Make it about that.")
+
         if meme is None:
-            if not memes:
-                out = self.act_meme(drives)
-                memes = self.memory.unlaunched_memes()
-            meme = memes[-1]
+            if name or not self.memory.unlaunched_memes():
+                self.act_meme(drives, theme=theme)        # a fresh meme for a named coin
+            meme = self.memory.unlaunched_memes()[-1]
         caption = MemeCaption(top=meme["top"], bottom=meme["bottom"], alt_text=meme.get("alt", ""), mood=meme.get("mood", "curious"))
-        concept = self.mind.coin(caption, self.context())
+        concept = self.mind.coin(caption, self.context(), name=name, symbol=symbol)
+        if description:
+            concept.description = description
         symbol = "".join(ch for ch in concept.symbol.upper() if ch.isalpha())[:8] or "FLY"
 
         logo = ""
@@ -210,7 +285,7 @@ class Fly:
         params = TokenParams(
             name=concept.name[:40], symbol=symbol, logo=logo, description=concept.description[:600],
             website=lp.website, twitter=lp.twitter, telegram=lp.telegram,
-            creator_tax_bps=lp.creator_tax_bps, buyback_enabled=lp.buyback_enabled,
+            creator_tax_bps=lp.creator_tax_bps, buyback_enabled=buyback,
             salt=make_salt(symbol, meme["path"]),
         )
         plan = self.launchpad.plan(params, initial_buy_eth=lp.initial_buy_eth, live=live)
@@ -218,6 +293,7 @@ class Fly:
         self.memory.add("launches", {
             "name": params.name, "symbol": symbol, "description": params.description, "meme": meme["path"],
             "logo": logo, "live": plan.status == "confirmed", "status": plan.status, "tx": plan.tx_hash,
+            "genesis": is_genesis, "buyback": buyback, "creator_tax_bps": lp.creator_tax_bps,
             "token": plan.token, "curve": plan.curve, "problems": plan.problems, "calldata": plan.calldata[:10],
         })
         self.log(plan.describe())

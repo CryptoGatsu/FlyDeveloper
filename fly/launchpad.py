@@ -61,6 +61,7 @@ FACTORY_ABI: list[dict[str, Any]] = [
         "outputs": [{"name": "token", "type": "address"}, {"name": "curve", "type": "address"}],
     },
     {"type": "function", "name": "launchFee", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "feeEscrow", "stateMutability": "view", "inputs": [], "outputs": [{"type": "address"}]},
     {"type": "function", "name": "launchEnabled", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
     {"type": "function", "name": "maxCreatorTaxBps", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
     {"type": "function", "name": "canLaunch", "stateMutability": "view", "inputs": [{"name": "launcher", "type": "address"}], "outputs": [{"type": "bool"}]},
@@ -107,8 +108,28 @@ CURVE_ABI: list[dict[str, Any]] = [
         "outputs": [{"name": "tokensOut", "type": "uint256"}],
     },
     {"type": "function", "name": "getReserves", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}, {"type": "uint256"}]},
+    {"type": "function", "name": "sweepFees", "stateMutability": "nonpayable", "inputs": [{"name": "minBuybackTokensOut", "type": "uint256"}], "outputs": []},
+    {"type": "function", "name": "quoteFeeBalance", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "creatorTaxBalance", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "buybackEnabled", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
     {"type": "function", "name": "readyToGraduate", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
     {"type": "function", "name": "graduated", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
+]
+
+
+def mask_rpc(url: str) -> str:
+    """Hide provider tokens embedded in RPC URLs when printing."""
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url)
+    if parts.path.strip("/") or parts.query:
+        return f"{parts.scheme}://{parts.netloc}/<token hidden>"
+    return url
+
+
+ESCROW_ABI: list[dict[str, Any]] = [
+    {"type": "function", "name": "balanceOf", "stateMutability": "view", "inputs": [{"name": "recipient", "type": "address"}], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "claim", "stateMutability": "nonpayable", "inputs": [], "outputs": [{"type": "uint256"}]},
 ]
 
 
@@ -238,7 +259,7 @@ class PonsLaunchpad:
             return False
 
     def status(self) -> dict[str, Any]:
-        out: dict[str, Any] = {"rpc": self.cfg.rpc_url, "factory": self.cfg.factory, "wallet": self.address or None}
+        out: dict[str, Any] = {"rpc": mask_rpc(self.cfg.rpc_url), "factory": self.cfg.factory, "wallet": self.address or None}
         if not self.connected():
             out["connected"] = False
             return out
@@ -280,7 +301,7 @@ class PonsLaunchpad:
         checks: list[tuple[bool, str]] = []
         checks.append((bool(self._account), "wallet key set (FLY_WALLET_PRIVATE_KEY)"))
         connected = self.connected()
-        checks.append((connected, f"RPC reachable and on chain {self.cfg.chain_id} ({self.cfg.rpc_url})"))
+        checks.append((connected, f"RPC reachable and on chain {self.cfg.chain_id} ({mask_rpc(self.cfg.rpc_url)})"))
         st = self.status() if connected else {}
         fee = st.get("launchFee")
         if isinstance(fee, int):
@@ -388,6 +409,65 @@ class PonsLaunchpad:
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
         return tx_hash
 
+
+    # -- creator fees ----------------------------------------------------------
+    def fees(self, curves: list[str] | None = None) -> dict[str, Any]:
+        """Creator-fee picture for the launch wallet: pending on each curve and
+        claimable in the Pons fee escrow."""
+        from web3 import Web3
+
+        out: dict[str, Any] = {"wallet": self.address or None, "curves": {}}
+        if not self.connected():
+            out["error"] = "rpc unreachable"
+            return out
+        try:
+            escrow_addr = self.factory.functions.feeEscrow().call()
+            out["escrow"] = escrow_addr
+            if self.address:
+                escrow = self.w3.eth.contract(address=Web3.to_checksum_address(escrow_addr), abi=ESCROW_ABI)
+                out["claimableEth"] = escrow.functions.balanceOf(self.address).call() / 1e18
+        except Exception as exc:
+            out["error"] = f"escrow read failed: {exc}"
+        for c in curves or []:
+            try:
+                curve = self.w3.eth.contract(address=Web3.to_checksum_address(c), abi=CURVE_ABI)
+                out["curves"][c] = {
+                    "pendingFeeEth": curve.functions.quoteFeeBalance().call() / 1e18,
+                    "pendingCreatorTaxEth": curve.functions.creatorTaxBalance().call() / 1e18,
+                    "buybackEnabled": curve.functions.buybackEnabled().call(),
+                    "graduated": curve.functions.graduated().call(),
+                }
+            except Exception as exc:
+                out["curves"][c] = f"error: {exc}"
+        return out
+
+    def sweep_fees(self, curve_address: str, live: bool = False, min_buyback_tokens_out: int = 0) -> str:
+        """Move a curve's pending fees into the escrow (permissionless). With
+        buyback enabled the curve demands a non-zero output floor."""
+        from web3 import Web3
+
+        curve = self.w3.eth.contract(address=Web3.to_checksum_address(curve_address), abi=CURVE_ABI)
+        if not (live and self.cfg.live and self._account):
+            return curve.encode_abi("sweepFees", args=[min_buyback_tokens_out])
+        tx = self._build_tx(curve.functions.sweepFees(min_buyback_tokens_out), value=0)
+        signed = self._account.sign_transaction(tx)
+        tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
+        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
+        return tx_hash
+
+    def claim_fees(self, live: bool = False) -> str:
+        """Claim the wallet's escrow balance in ETH."""
+        from web3 import Web3
+
+        escrow_addr = self.factory.functions.feeEscrow().call()
+        escrow = self.w3.eth.contract(address=Web3.to_checksum_address(escrow_addr), abi=ESCROW_ABI)
+        if not (live and self.cfg.live and self._account):
+            return escrow.encode_abi("claim", args=[])
+        tx = self._build_tx(escrow.functions.claim(), value=0)
+        signed = self._account.sign_transaction(tx)
+        tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
+        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
+        return tx_hash
 
     def _build_tx(self, fn, value: int) -> dict:
         base = {

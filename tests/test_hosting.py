@@ -66,3 +66,11 @@ def test_pinata_failure_raises(tmp_path, monkeypatch):
 def test_none_provider(tmp_path):
     assert host_image(_img(tmp_path), HostingConfig(provider="none")) is None
     assert check_host(HostingConfig(provider="pinata")).endswith("PINATA_JWT is not set")
+
+
+def test_gateway_normalization():
+    from fly.hosting import normalize_gateway
+
+    assert normalize_gateway("beige-large-swift-176.mypinata.cloud") == "https://beige-large-swift-176.mypinata.cloud/ipfs"
+    assert normalize_gateway("https://x.mypinata.cloud/ipfs/") == "https://x.mypinata.cloud/ipfs"
+    assert normalize_gateway("") == "https://gateway.pinata.cloud/ipfs"

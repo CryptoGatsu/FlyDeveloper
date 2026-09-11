@@ -17,6 +17,9 @@ FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
     "/usr/share/fonts/truetype/msttcorefonts/Impact.ttf",
     "/Library/Fonts/Impact.ttf",
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Impact.ttf",
+    "/System/Library/Fonts/HelveticaNeue.ttc",
     "C:/Windows/Fonts/impact.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
 ]

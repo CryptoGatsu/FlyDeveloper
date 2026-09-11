@@ -130,6 +130,103 @@ def cmd_wallet(args) -> int:
     return 0
 
 
+def cmd_fees(args) -> int:
+    """Show creator fees; optionally sweep curves and claim from escrow."""
+    from .launchpad import PonsLaunchpad
+    from .memory import Memory
+
+    cfg = FlyConfig.from_env()
+    lp = PonsLaunchpad(cfg.launchpad)
+    mem = Memory.load(cfg.memory_path)
+    curves = [l["curve"] for l in mem.data.get("launches", []) if l.get("live") and l.get("curve")]
+    if args.curve:
+        curves = [args.curve]
+    print(json.dumps(lp.fees(curves), indent=2, default=str))
+    if args.sweep:
+        for c in curves:
+            info = lp.fees([c])["curves"].get(c)
+            if isinstance(info, dict) and info.get("buybackEnabled") and not args.min_buyback_out:
+                print(f"skip sweep {c}: buyback is enabled, pass --min-buyback-out (token wei) to set a price floor")
+                continue
+            print(f"sweep {c}: {lp.sweep_fees(c, live=args.live, min_buyback_tokens_out=args.min_buyback_out)}")
+    if args.claim:
+        print(f"claim: {lp.claim_fees(live=args.live)}")
+    if (args.sweep or args.claim) and not (args.live and cfg.launchpad.live):
+        print("(dry run: printed calldata only; add --live with FLY_LIVE_LAUNCH=1 to send)")
+    return 0
+
+
+def cmd_website(args) -> int:
+    """The fly designs and writes its own website into site/."""
+    fly = _fly(args)
+    out = fly.act_website(refine=args.refine)
+    fly.memory.save()
+    fly._publish("website", "scheming")
+    print(f"site source: {out['website']}")
+    print("files: " + ", ".join(out["files"]))
+    if out["problems"]:
+        print("problems with the fly's own attempt: " + "; ".join(out["problems"]))
+    print(out["notes"])
+    return 0
+
+
+def cmd_brand(args) -> int:
+    """The fly draws its X profile picture (500x500) and banner (1500x500)."""
+    fly = _fly(args)
+    out = fly.act_brand(seed=args.seed)
+    fly.memory.save()
+    print(f"pfp:    {out['pfp']}")
+    print(f"banner: {out['banner']}")
+    print(f"tagline: {out['tagline']}")
+    print(f"bio:     {out['bio']}")
+    return 0
+
+
+def cmd_publish(args) -> int:
+    from .memory import Memory
+    from .publish import export_site, publish
+
+    cfg = FlyConfig.from_env()
+    out = export_site(cfg, Memory.load(cfg.memory_path))
+    print(f"exported {out}")
+    if args.push:
+        pushed = publish(cfg, "manual publish")
+        print("pushed" if pushed else "nothing new to push")
+    return 0
+
+
+def cmd_serve(args) -> int:
+    """Serve site/ locally so you can watch (and record) the fly."""
+    import functools
+    import http.server
+    import threading
+
+    from .memory import Memory
+    from .publish import export_site
+
+    cfg = FlyConfig.from_env()
+    export_site(cfg, Memory.load(cfg.memory_path))
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(cfg.root / "site"))
+    handler.log_message = lambda *a, **k: None  # type: ignore[attr-defined]
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", args.port), handler)
+
+    def refresh():
+        while True:
+            __import__("time").sleep(10)
+            try:
+                export_site(cfg, Memory.load(cfg.memory_path))
+            except Exception:
+                pass
+
+    threading.Thread(target=refresh, daemon=True).start()
+    print(f"watching the fly at http://127.0.0.1:{args.port}  (ctrl-c to stop)")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
 def cmd_host_test(args) -> int:
     from .hosting import check_host, host_image, verify_url
     from .memes import render_meme
@@ -158,7 +255,8 @@ def cmd_launch(args) -> int:
     meme = None
     if args.meme:
         meme = {"path": args.meme, "top": args.top or "FLY", "bottom": args.bottom or "", "mood": args.mood}
-    outcome = fly.act_launch(drives, live=args.live, meme=meme)
+    outcome = fly.act_launch(drives, live=args.live, meme=meme, name=args.name or "",
+                             symbol=(args.symbol or "").upper(), description=args.description or "")
     fly.memory.save()
     print(outcome["launch"])
     return 0 if outcome["status"] in ("planned", "confirmed") else 1
@@ -176,7 +274,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--seed", type=int)
     b.set_defaults(fn=cmd_brain)
     t = sub.add_parser("tick", help="one heartbeat: perceive, decide, act")
-    t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest"])
+    t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest", "website"])
     t.add_argument("--seed", type=int)
     t.add_argument("--live", action="store_true", help="allow a real launch (also needs FLY_LIVE_LAUNCH=1)")
     t.set_defaults(fn=cmd_tick)
@@ -198,6 +296,25 @@ def main(argv: list[str] | None = None) -> int:
     m.set_defaults(fn=cmd_meme)
     sub.add_parser("launch-status", help="read the Pons factory state and a readiness checklist").set_defaults(fn=cmd_launch_status)
     sub.add_parser("wallet", help="show the launch wallet address and balance").set_defaults(fn=cmd_wallet)
+    fe = sub.add_parser("fees", help="creator fees: pending on curves, claimable in escrow; --sweep/--claim to collect")
+    fe.add_argument("--curve", help="a specific curve address (default: every live launch in memory)")
+    fe.add_argument("--sweep", action="store_true", help="push pending curve fees into the escrow")
+    fe.add_argument("--claim", action="store_true", help="claim the escrow balance to the wallet")
+    fe.add_argument("--min-buyback-out", type=int, default=0, dest="min_buyback_out")
+    fe.add_argument("--live", action="store_true")
+    fe.set_defaults(fn=cmd_fees)
+    ws = sub.add_parser("website", help="the fly designs and writes its own website into site/")
+    ws.add_argument("--refine", action="store_true", help="keep the current design; only run the look-and-fix loop")
+    ws.set_defaults(fn=cmd_website)
+    bd = sub.add_parser("brand", help="the fly draws its X profile picture and banner into site/brand/")
+    bd.add_argument("--seed", type=int)
+    bd.set_defaults(fn=cmd_brand)
+    pu = sub.add_parser("publish", help="export site/data/state.json (+ --push to commit and push)")
+    pu.add_argument("--push", action="store_true")
+    pu.set_defaults(fn=cmd_publish)
+    sv = sub.add_parser("serve", help="serve the website locally and keep it refreshed")
+    sv.add_argument("--port", type=int, default=8642)
+    sv.set_defaults(fn=cmd_serve)
     ht = sub.add_parser("host-test", help="upload a test image to the configured host and verify it")
     ht.add_argument("image", nargs="?")
     ht.set_defaults(fn=cmd_host_test)
@@ -206,6 +323,9 @@ def main(argv: list[str] | None = None) -> int:
     la.add_argument("--top")
     la.add_argument("--bottom")
     la.add_argument("--mood", default="curious")
+    la.add_argument("--name", help="force the token name (default: genesis coin for the first launch, else the mind's idea)")
+    la.add_argument("--symbol", help="force the ticker, 2-8 letters")
+    la.add_argument("--description", help="force the on-chain description")
     la.add_argument("--live", action="store_true")
     la.set_defaults(fn=cmd_launch)
 

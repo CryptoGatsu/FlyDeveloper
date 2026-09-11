@@ -29,6 +29,19 @@ class HostingError(RuntimeError):
     pass
 
 
+def normalize_gateway(gateway: str) -> str:
+    """Accept 'name.mypinata.cloud', 'https://name.mypinata.cloud', or a full
+    '/ipfs' URL and return 'https://name.mypinata.cloud/ipfs'."""
+    g = (gateway or "").strip().rstrip("/")
+    if not g:
+        return "https://gateway.pinata.cloud/ipfs"
+    if not g.startswith(("http://", "https://")):
+        g = "https://" + g
+    if not g.endswith("/ipfs"):
+        g = g + "/ipfs"
+    return g
+
+
 def host_image(path: Path, cfg: HostingConfig, name: str | None = None) -> str | None:
     if cfg.provider == "none":
         return None
@@ -53,7 +66,7 @@ def check_host(cfg: HostingConfig) -> str:
         except Exception as exc:
             return f"pinata: unreachable ({exc})"
         if r.status_code == 200:
-            return f"pinata: authenticated, gateway {cfg.pinata_gateway}"
+            return f"pinata: authenticated, gateway {normalize_gateway(cfg.pinata_gateway)}"
         return f"pinata: auth failed ({r.status_code} {r.text[:120]})"
     if cfg.provider == "github":
         if not (cfg.github_token and cfg.github_repo):
@@ -118,7 +131,7 @@ def _pinata(path: Path, cfg: HostingConfig, name: str | None) -> str:
             errors.append(f"legacy {exc}")
     if not cid:
         raise HostingError("pinata upload failed: " + "; ".join(errors))
-    return f"{cfg.pinata_gateway.rstrip('/')}/{cid}"
+    return f"{normalize_gateway(cfg.pinata_gateway)}/{cid}"
 
 
 def _github(path: Path, cfg: HostingConfig, name: str | None) -> str:

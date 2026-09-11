@@ -120,3 +120,17 @@ def test_readiness_offline_lists_blockers():
     checks = lp.readiness("none: launches will stay dry runs")
     assert any(not ok for ok, _ in checks)
     assert any("wallet key" in msg for _, msg in checks)
+
+
+def test_rpc_token_is_masked():
+    from fly.launchpad import mask_rpc
+
+    assert mask_rpc("https://x.quiknode.pro/abc123/") == "https://x.quiknode.pro/<token hidden>"
+    assert mask_rpc("https://rpc.mainnet.chain.robinhood.com") == "https://rpc.mainnet.chain.robinhood.com"
+
+
+def test_sweep_and_claim_dry_run_encode():
+    lp = _lp()
+    data = lp.sweep_fees("0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e")
+    assert data.startswith("0x") and len(data) == 2 + 8 + 64
+    assert lp.fees()["error"] == "rpc unreachable"
