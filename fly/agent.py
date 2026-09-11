@@ -54,7 +54,7 @@ class Fly:
         self.memory = Memory.load(cfg.memory_path)
         self.brain = brain or build_brain(cfg.brain)
         self.mind = mind or build_mind(cfg.mind)
-        self.browser = browser or Browser(cfg.browser, log=log)
+        self.browser = browser or Browser(cfg.browser, log=log, shots_dir=cfg.root / "site" / "browsing" / "shots")
         self.workshop = Workshop(cfg.workshop_dir)
         self._launchpad = launchpad
         self.senses: dict[str, Sense] = load_senses(cfg.root / "data" / "fly_senses.json")

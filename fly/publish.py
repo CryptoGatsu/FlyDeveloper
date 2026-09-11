@@ -65,7 +65,8 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
         })
     pages = [
         {"at": p.get("at"), "url": p.get("url"), "title": p.get("title"), "gist": p.get("gist"),
-         "need": p.get("need"), "interesting": p.get("interesting"), "followups": p.get("followups") or []}
+         "need": p.get("need"), "interesting": p.get("interesting"), "followups": p.get("followups") or [],
+         "shot": p.get("shot") or ""}
         for p in d.get("pages", [])
     ]
     branch = current_branch(cfg.root)
@@ -155,9 +156,20 @@ def export_site(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
         except Exception:
             pass
     state = build_state(cfg, mem, extra)
+    _prune_shots(site / "browsing" / "shots", {p["shot"] for p in state["pages"] if p.get("shot")})
     out = site / "data" / "state.json"
     out.write_text(json.dumps(state, indent=1, default=str), encoding="utf-8")
     return out
+
+
+def _prune_shots(shots_dir: Path, keep: set[str]) -> None:
+    """Keep only screenshots still referenced by the published pages."""
+    if not shots_dir.is_dir():
+        return
+    keep_names = {Path(k).name for k in keep}
+    for f in shots_dir.glob("*.jpg"):
+        if f.name not in keep_names:
+            f.unlink(missing_ok=True)
 
 
 def publish(cfg: FlyConfig, message: str, log=print) -> bool:

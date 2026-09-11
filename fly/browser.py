@@ -9,7 +9,10 @@ Every network failure degrades to an empty result so the fly can move on.
 from __future__ import annotations
 
 import re
+import hashlib
+import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from urllib.parse import parse_qs, quote as requests_quote, urljoin, urlparse
 
 from .config import BrowserConfig
@@ -44,6 +47,7 @@ class PageNote:
     need_spotted: str
     interesting: bool
     followups: list[str]
+    shot: str = ""      # site-relative path of the screenshot, if one was taken
 
 
 def _clean_text(html: str, max_chars: int) -> tuple[str, str, list[str]]:
@@ -64,9 +68,10 @@ def _clean_text(html: str, max_chars: int) -> tuple[str, str, list[str]]:
 
 
 class Browser:
-    def __init__(self, cfg: BrowserConfig, log=None):
+    def __init__(self, cfg: BrowserConfig, log=None, shots_dir: Path | None = None):
         self.cfg = cfg
         self.log = log or (lambda msg: None)
+        self.shots_dir = shots_dir          # where page screenshots go (site/browsing/shots)
         import requests
 
         self.session = requests.Session()
@@ -208,6 +213,9 @@ class Browser:
             if page is None or len(page.text) < 200:
                 self.log("  nothing readable there")
                 continue
+            shot = self.snapshot(page.url)
+            if shot:
+                self.log(f"  screenshot: {shot}")
             try:
                 digest = mind.digest(page.title, page.url, page.text)
                 self.log(f"  gist: {digest.gist[:160]}")
@@ -216,10 +224,28 @@ class Browser:
             except Exception as exc:  # the mind may refuse or time out
                 memory.note(f"could not digest {page.url}: {exc}")
                 continue
-            note = PageNote(page.url, page.title, digest.gist, digest.need_spotted, digest.interesting, digest.followups)
+            note = PageNote(page.url, page.title, digest.gist, digest.need_spotted, digest.interesting, digest.followups, shot)
             notes.append(note)
             memory.add("pages", {
                 "url": note.url, "title": note.title, "gist": note.gist,
                 "need": note.need_spotted, "interesting": note.interesting, "followups": note.followups,
+                "shot": shot,
             })
         return notes
+
+    def snapshot(self, url: str) -> str:
+        """Screenshot `url` into the site's browsing/shots folder; returns the
+        site-relative path ("browsing/shots/<id>.jpg") or ""."""
+        if not self.shots_dir:
+            return ""
+        from .render import screenshot_url
+
+        name = time.strftime("%Y%m%d-%H%M%S") + "-" + hashlib.sha1(url.encode()).hexdigest()[:8] + ".jpg"
+        stamp = f"seen by the fly · {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime())} · {url}"
+        try:
+            out = screenshot_url(url, self.shots_dir / name, stamp=stamp)
+        except Exception:
+            return ""
+        if not out:
+            return ""
+        return f"browsing/shots/{name}"

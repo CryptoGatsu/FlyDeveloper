@@ -39,7 +39,9 @@ for the brain: the `fly/` package.
    spike fingerprint, picks one of browse / build / meme / launch / rest.
 4. **Act.**
    * **browse** searches the web and the Hacker News front page, reads a few
-     pages, and asks the mind (Claude) what need each page reveals.
+     pages, screenshots each one with headless Chrome (stamped with time and
+     URL, published under `/browsing/shots/`), asks the mind (Claude) what
+     need each page reveals, and writes down what it learned.
    * **build** asks the mind for one small, complete piece of technology
      that flies or humans may need, writes it into `workshop/<slug>/`,
      byte-compiles it and runs its tests.

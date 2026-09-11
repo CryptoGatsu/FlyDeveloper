@@ -82,3 +82,23 @@ def test_head_tags_injected_and_kept_on_install(tmp_path):
     site.mkdir(); (site / "favicon.png").write_bytes(b"x")
     install_site(site, template_files())
     assert (site / "favicon.png").read_bytes() == b"x" and (site / "robots.txt").is_file()
+
+
+def test_install_keeps_browsing_shots(tmp_path):
+    site = tmp_path / "site"
+    install_site(site, template_files())
+    (site / "browsing" / "shots").mkdir(parents=True)
+    (site / "browsing" / "shots" / "a.jpg").write_bytes(b"jpg")
+    install_site(site, template_files())
+    assert (site / "browsing" / "shots" / "a.jpg").is_file() and (site / "browsing" / "index.html").is_file()
+
+
+def test_screenshot_url_when_chrome_available(tmp_path):
+    from fly.render import find_chrome, screenshot_url
+    if not find_chrome():
+        return
+    page = tmp_path / "p.html"; page.write_text("<html><body style='background:#123'><h1>hello fly</h1></body></html>")
+    out = screenshot_url(page.as_uri(), tmp_path / "shot.jpg", stamp="seen by the fly · test · file")
+    assert out and out.stat().st_size > 1000
+    from PIL import Image
+    assert Image.open(out).width <= 720

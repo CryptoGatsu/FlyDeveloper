@@ -132,3 +132,39 @@ def edge_overflow(path: Path, edge_px: int = 3) -> float:
         if any(differs(px[w - 1 - k, y]) for k in range(edge_px)):
             rows += 1
     return rows / max(1, h)
+
+
+def screenshot_url(url: str, out_path: Path, chrome: str | None = None, stamp: str = "",
+                   width: int = 1100, height: int = 800, final_width: int = 720) -> Path | None:
+    """Screenshot a live web page as the fly sees it, downscale to a small
+    JPEG and stamp it with the time and URL so viewers can tell it is real."""
+    chrome = chrome or find_chrome()
+    if not chrome:
+        return None
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out_path.with_suffix(".raw.png")
+    cmd = [chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--mute-audio",
+           f"--window-size={width},{height}", f"--screenshot={tmp}", "--virtual-time-budget=6000", url]
+    try:
+        subprocess.run(cmd, capture_output=True, timeout=60)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    if not tmp.is_file() or tmp.stat().st_size == 0:
+        return None
+    from PIL import Image, ImageDraw
+
+    from .memes import _font
+
+    img = Image.open(tmp).convert("RGB")
+    if img.width > final_width:
+        img = img.resize((final_width, int(img.height * final_width / img.width)), Image.LANCZOS)
+    if stamp:
+        d = ImageDraw.Draw(img)
+        font = _font(13)
+        text = stamp[:140]
+        tw = d.textlength(text, font=font)
+        d.rectangle([0, img.height - 22, min(img.width, tw + 16), img.height], fill=(11, 13, 12))
+        d.text((8, img.height - 19), text, font=font, fill=(158, 240, 122))
+    img.save(out_path, "JPEG", quality=72, optimize=True)
+    tmp.unlink(missing_ok=True)
+    return out_path

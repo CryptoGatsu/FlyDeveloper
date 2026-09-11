@@ -55,3 +55,11 @@ def test_build_links_point_at_github_branch(tmp_path):
     assert len([b for b in st["builds"] if b["slug"] == "website"]) == 1      # collapsed
     assert st["fly"]["repo"] == "https://github.com/CryptoGatsu/FlyDeveloper"
     assert st["searches"][0]["query"] == "fly tools" and st["learnings"][0]["summary"] == "learned a thing"
+
+
+def test_prune_shots(tmp_path):
+    from fly.publish import _prune_shots
+    d = tmp_path / "shots"; d.mkdir()
+    (d / "keep.jpg").write_bytes(b"1"); (d / "old.jpg").write_bytes(b"1")
+    _prune_shots(d, {"browsing/shots/keep.jpg"})
+    assert (d / "keep.jpg").is_file() and not (d / "old.jpg").exists()

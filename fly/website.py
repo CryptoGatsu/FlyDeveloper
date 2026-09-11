@@ -37,7 +37,7 @@ STATE_EXAMPLE = {
             "probs": {"browse": 0.31, "build": 0.39, "meme": 0.08, "launch": 0.15, "rest": 0.06},
             "brain": {"sugar": "sugar: 1486 spikes, 324 active ...", "walk": "walk: 51 spikes, 28 active ..."}},
     "counts": {"pages": 12, "memes": 4, "coins": 1, "live_coins": 1, "builds": 2, "searches": 5},
-    "pages": [{"at": "...", "url": "https://...", "title": "...", "gist": "...", "need": "...", "interesting": True, "followups": ["..."]}],
+    "pages": [{"at": "...", "url": "https://...", "title": "...", "gist": "...", "need": "...", "interesting": True, "followups": ["..."], "shot": "browsing/shots/20260911-195100-ab12cd34.jpg"}],
     "searches": [{"at": "...", "query": "small tools people wish existed", "engine": "duckduckgo", "results": [{"title": "...", "url": "https://..."}]}],
     "learnings": [{"at": "...", "summary": "...", "ideas": ["..."]}],
     "memes": [{"at": "...", "top": "...", "bottom": "...", "alt": "...", "mood": "smug", "src": "memes/fly-2026....png"}],
@@ -69,6 +69,7 @@ Hard requirements:
 - Escape all text from state.json before inserting it into HTML.
 - Labels: fly.factory is the Pons launch-factory CONTRACT (label it "factory contract"), fly.wallet is your wallet; fly.repo is the GitHub repository, fly.site is https://flydev.tech, fly.x is your X account. fly.branch is the git branch the site is published from.
 - Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
+- Every page the fly reads has a screenshot (page.shot, a site-relative path like "browsing/shots/x.jpg", prefix with "/"; may be empty). Show it prominently in the page card, as an <img> with alt text, linked to the page, so visitors can see the fly really was there; the image is stamped with time and URL.
 - /browsing shows three things, newest first: the searches (state.searches: query, engine, result titles+urls), the pages it read (state.pages: title, link, gist, need spotted, followups), and what it learned (state.learnings: summary + ideas). Make it read like a fly's field notes, not a log dump.
 - Content per route: "/" = your current mood, drives as bars, last action, the brain readout, counts, the latest meme and coin with links to the full lists; /browsing = pages read with title, link, gist and "need spotted"; /memes = gallery of images (src is relative to the site root: prefix with "/"); /coins = every coin with name, $SYMBOL, genesis/live badges, description, explorer links; /builds = things built with links into the repo (fly.repo + "/tree/HEAD/" + repo_path) and the ideas; /journal = the journal lines.
 - The site lives at https://flydev.tech; the source is at https://github.com/CryptoGatsu/FlyDeveloper (link it as "Source"); the fly's X account is https://x.com/TheFlyDev_ (link it as "X").
@@ -148,10 +149,17 @@ def validate_site(files: list[ProjectFile]) -> list[str]:
 def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     """Replace the site's pages/assets, keeping data/ and memes/ (and CNAME)."""
     site_dir.mkdir(parents=True, exist_ok=True)
+    keep_dirs = ("data", "memes", "brand")
+    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt")
     for child in site_dir.iterdir():
-        if child.name in ("data", "memes", "brand", "CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt"):
+        if child.name in keep_dirs or child.name in keep_files:
             continue
         if child.is_dir():
+            if child.name == "browsing":            # keep the page screenshots
+                for sub in child.iterdir():
+                    if sub.name != "shots":
+                        shutil.rmtree(sub) if sub.is_dir() else sub.unlink()
+                continue
             shutil.rmtree(child)
         else:
             child.unlink()
@@ -190,7 +198,7 @@ def load_site_files(site_dir: Path) -> list[ProjectFile]:
         if not path.is_file():
             continue
         rel = path.relative_to(site_dir).as_posix()
-        if rel.startswith(("data/", "brand/", "__qa/")) or rel == "CNAME":
+        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/")) or rel == "CNAME":
             continue
         if rel.startswith("memes/") and not rel.endswith(".html"):
             continue                                   # the /memes route page shares the images folder

@@ -32,6 +32,15 @@ function memeFig(m){
     '<br><span class="muted">'+ts(m.at)+(m.mood?" \u00b7 mood: "+e(m.mood):"")+'</span></figcaption></figure>';
 }
 
+// proof of visit: the screenshot my eye took, stamped with time + url, linked to the page
+function proof(x){
+  var src=media(x.shot);if(!src)return "";
+  var u=href(x.url),ttl=x.title||x.url||"a page";
+  var img='<img class="shot big" src="'+src+'" alt="Screenshot the fly took of '+e(ttl)+', stamped with the time and URL of the visit" loading="lazy" decoding="async">';
+  return '<figure class="proof">'+(u?'<a class="shotlink" href="'+u+'">'+img+'</a>':'<span class="shotlink">'+img+'</span>')+
+    '<figcaption class="stamp">I was here \u2014 shot '+ts(x.at)+'<br><b>'+e(x.url||"")+'</b></figcaption></figure>';
+}
+
 function home(s){
   var f=s.fly||{},n=s.now||{},c=s.counts||{},b=n.brain||{};
   var meme=newest(s.memes)[0],coin=newest(s.coins)[0],h="";
@@ -69,7 +78,7 @@ function home(s){
 
 function browsing(s){
   var q=newest(s.searches),p=newest(s.pages),l=newest(s.learnings);
-  var h='<h1>browsing</h1><p class="muted">Field notes from a compound eye: what I went looking for, what I actually read, and what stuck. Newest first.</p>';
+  var h='<h1>browsing</h1><p class="muted">Field notes from a compound eye: what I went looking for, what I actually read (screenshots attached, I don\u2019t expect you to trust a fly), and what stuck. Newest first.</p>';
 
   h+='<h2 class="gap">what I went looking for</h2>';
   h+=q.length?q.map(function(x){
@@ -87,6 +96,7 @@ function browsing(s){
     return '<article class="card"><p class="kicker">'+ts(x.at)+(x.interesting?' \u00b7 <span class="mood">worth a second pass</span>':"")+'</p>'+
       '<h3>'+link(x.url,x.title||x.url||"untitled")+'</h3>'+
       (host(x.url)?'<p class="mono">'+e(host(x.url))+'</p>':"")+
+      proof(x)+
       (x.gist?'<p>'+e(x.gist)+'</p>':"")+
       (x.need?'<p class="need"><b>need spotted:</b> '+e(x.need)+'</p>':"")+
       (fu.length?'<p class="muted">threads to pull:</p><ul class="plain">'+fu.map(function(f){return '<li>\u21b3 '+e(f)+'</li>';}).join("")+'</ul>':"")+
