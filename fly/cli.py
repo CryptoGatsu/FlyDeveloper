@@ -158,7 +158,8 @@ def cmd_launch(args) -> int:
     meme = None
     if args.meme:
         meme = {"path": args.meme, "top": args.top or "FLY", "bottom": args.bottom or "", "mood": args.mood}
-    outcome = fly.act_launch(drives, live=args.live, meme=meme)
+    outcome = fly.act_launch(drives, live=args.live, meme=meme, name=args.name or "",
+                             symbol=(args.symbol or "").upper(), description=args.description or "")
     fly.memory.save()
     print(outcome["launch"])
     return 0 if outcome["status"] in ("planned", "confirmed") else 1
@@ -206,6 +207,9 @@ def main(argv: list[str] | None = None) -> int:
     la.add_argument("--top")
     la.add_argument("--bottom")
     la.add_argument("--mood", default="curious")
+    la.add_argument("--name", help="force the token name (default: genesis coin for the first launch, else the mind's idea)")
+    la.add_argument("--symbol", help="force the ticker, 2-8 letters")
+    la.add_argument("--description", help="force the on-chain description")
     la.add_argument("--live", action="store_true")
     la.set_defaults(fn=cmd_launch)
 

@@ -48,8 +48,23 @@ def test_tick_meme_then_dry_launch(tmp_path):
     assert r2.outcome["status"] == "planned"
     last = fly.memory.last("launches")
     assert last["live"] is False
-    assert last["symbol"].isupper()
+    assert last["symbol"] == "FLYDEV" and last["name"] == "The Fly Dev"   # genesis coin first
     assert "hosted URL" in " ".join(last["problems"])
+
+
+def test_launch_overrides_and_post_genesis(tmp_path):
+    from fly.drives import Drives
+
+    fly = _fly(tmp_path)
+    d = Drives(0.5, 0.5, 0.5, 0.9, 0.7, 0.1)
+    out = fly.act_launch(d, name="Banana Coin", symbol="NANA", description="A joke. No promises.")
+    assert fly.memory.last("launches")["symbol"] == "NANA"
+    assert fly.memory.last("launches")["description"] == "A joke. No promises."
+    # pretend genesis went live: later launches use the mind's own concept
+    fly.memory.data["launches"].append({"live": True, "symbol": "FLYDEV", "name": "The Fly Dev", "ts": 0})
+    fly.cfg.launchpad.max_launches_per_day = 5
+    fly.act_launch(d)
+    assert fly.memory.last("launches")["symbol"] != "FLYDEV"
 
 
 def test_tick_browse_uses_browser_and_rest(tmp_path):

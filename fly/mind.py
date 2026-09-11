@@ -72,8 +72,8 @@ class PageDigest(BaseModel):
 # --- interface ---------------------------------------------------------------
 class Mind(Protocol):
     def ideate(self, context: str) -> TechIdea: ...
-    def caption(self, context: str, mood: str) -> MemeCaption: ...
-    def coin(self, meme: MemeCaption, context: str) -> CoinConcept: ...
+    def caption(self, context: str, mood: str, theme: str = "") -> MemeCaption: ...
+    def coin(self, meme: MemeCaption, context: str, name: str = "", symbol: str = "") -> CoinConcept: ...
     def digest(self, title: str, url: str, text: str) -> PageDigest: ...
 
 
@@ -123,26 +123,36 @@ under ~300 lines total, dependency-free where possible. Do not include
 binaries. Do not touch the filesystem outside the project directory."""
         return self._ask(prompt, TechIdea, max_tokens=self.cfg.code_max_tokens)
 
-    def caption(self, context: str, mood: str) -> MemeCaption:
+    def caption(self, context: str, mood: str, theme: str = "") -> MemeCaption:
+        theme_line = f"\nTheme for this meme: {theme}\n" if theme else ""
         prompt = f"""Your brain is currently feeling: {mood}.
 Recent context:
 {context}
-
+{theme_line}
 Write a two-line fly meme caption (top and bottom) about fly life, building
 tech, or the internet. Funny, short, kind. No real people, no brands as
 targets, no slurs, no financial advice."""
         return self._ask(prompt, MemeCaption, max_tokens=2000)
 
-    def coin(self, meme: MemeCaption, context: str) -> CoinConcept:
+    def coin(self, meme: MemeCaption, context: str, name: str = "", symbol: str = "") -> CoinConcept:
+        fixed = ""
+        if name or symbol:
+            fixed = (f"\nThe token's name is fixed: \"{name}\" with ticker {symbol}. Use exactly those; "
+                     "write only the description and tagline.\n")
         prompt = f"""You drew a meme: top "{meme.top}" / bottom "{meme.bottom}" (mood: {meme.mood}).
 Recent context:
 {context}
-
+{fixed}
 Turn it into a memecoin concept for the Pons launchpad on Robinhood Chain.
 The description must say plainly that it is a joke token created by an
 autonomous fly-brain agent, with no utility, no roadmap and no promises.
 The ticker must be 2-8 uppercase ascii letters."""
-        return self._ask(prompt, CoinConcept, max_tokens=2000)
+        concept = self._ask(prompt, CoinConcept, max_tokens=2000)
+        if name:
+            concept.name = name
+        if symbol:
+            concept.symbol = symbol
+        return concept
 
     def digest(self, title: str, url: str, text: str) -> PageDigest:
         prompt = f"""You are reading a web page.
@@ -159,6 +169,7 @@ suggest up to three search queries to follow."""
 
 
 # --- offline -----------------------------------------------------------------
+MOODS = ("curious", "hungry", "tired", "hyped", "smug", "scheming")
 def _pick(seed: str, options: list):
     h = int(hashlib.sha256(seed.encode()).hexdigest()[:8], 16)
     return options[h % len(options)]
@@ -269,16 +280,19 @@ def test_tip():
     def ideate(self, context: str) -> TechIdea:
         return _pick(context, self.IDEAS).model_copy(deep=True)
 
-    def caption(self, context: str, mood: str) -> MemeCaption:
+    def caption(self, context: str, mood: str, theme: str = "") -> MemeCaption:
+        if theme:
+            return MemeCaption(top="THE FLY DEV", bottom="138,000 NEURONS. SHIPS ANYWAY.",
+                               alt_text="A cartoon fly at a keyboard.", mood=mood if mood in MOODS else "smug")
         top, bottom, m = _pick(context + mood, self.CAPTIONS)
         return MemeCaption(top=top, bottom=bottom, alt_text=f"A cartoon fly. {top} / {bottom}", mood=m)
 
-    def coin(self, meme: MemeCaption, context: str) -> CoinConcept:
+    def coin(self, meme: MemeCaption, context: str, name: str = "", symbol: str = "") -> CoinConcept:
         words = re.findall(r"[A-Za-z]+", meme.top + " " + meme.bottom)
         base = "".join(w[0] for w in words[:6]).upper() or "FLY"
-        symbol = ("FLY" + base)[:8]
+        symbol = symbol or ("FLY" + base)[:8]
         return CoinConcept(
-            name=f"Fly {words[0].title() if words else 'Buzz'} Coin",
+            name=name or f"Fly {words[0].title() if words else 'Buzz'} Coin",
             symbol=symbol,
             description=(
                 f"A joke token created by an autonomous fly-brain agent from the meme "

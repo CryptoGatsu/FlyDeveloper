@@ -176,9 +176,12 @@ class Fly:
         return {"built": idea.title, "path": str(result.path), "ok": result.ok, "files": result.files,
                 "log_tail": result.log[-600:]}
 
-    def act_meme(self, drives: Drives, fingerprint: str = "") -> dict[str, Any]:
+    def has_launched(self) -> bool:
+        return any(l.get("live") for l in self.memory.data.get("launches") or [])
+
+    def act_meme(self, drives: Drives, fingerprint: str = "", theme: str = "") -> dict[str, Any]:
         mood = self.mood(drives)
-        caption = self.mind.caption(self.context(), mood)
+        caption = self.mind.caption(self.context(), mood, theme=theme)
         seed = int(fingerprint[:8], 16) if fingerprint else int(time.time())
         stamp = time.strftime("%Y%m%d-%H%M%S")
         path = self.cfg.memes_dir / f"fly-{stamp}-{caption.mood}.png"
@@ -187,17 +190,29 @@ class Fly:
                                   "alt": caption.alt_text, "mood": caption.mood})
         return {"meme": str(path), "top": caption.top, "bottom": caption.bottom}
 
-    def act_launch(self, drives: Drives, live: bool = False, meme: dict[str, Any] | None = None) -> dict[str, Any]:
+    def act_launch(
+        self, drives: Drives, live: bool = False, meme: dict[str, Any] | None = None,
+        name: str = "", symbol: str = "", description: str = "",
+    ) -> dict[str, Any]:
         from .mind import MemeCaption
 
-        memes = self.memory.unlaunched_memes()
+        lp = self.cfg.launchpad
+        theme = ""
+        # The fly's first coin is its own identity coin (genesis), unless told otherwise.
+        if not name and lp.genesis_name and not self.has_launched():
+            name, symbol = lp.genesis_name, lp.genesis_symbol
+        if name:
+            theme = (f"This meme is the face of the fly's own coin, {name} (${symbol}): a fruit-fly "
+                     "connectome that browses, builds tiny tools and draws memes. Make it about that.")
+
         if meme is None:
-            if not memes:
-                out = self.act_meme(drives)
-                memes = self.memory.unlaunched_memes()
-            meme = memes[-1]
+            if name or not self.memory.unlaunched_memes():
+                self.act_meme(drives, theme=theme)        # a fresh meme for a named coin
+            meme = self.memory.unlaunched_memes()[-1]
         caption = MemeCaption(top=meme["top"], bottom=meme["bottom"], alt_text=meme.get("alt", ""), mood=meme.get("mood", "curious"))
-        concept = self.mind.coin(caption, self.context())
+        concept = self.mind.coin(caption, self.context(), name=name, symbol=symbol)
+        if description:
+            concept.description = description
         symbol = "".join(ch for ch in concept.symbol.upper() if ch.isalpha())[:8] or "FLY"
 
         logo = ""

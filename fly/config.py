@@ -128,6 +128,9 @@ class LaunchpadConfig:
     website: str = "https://github.com/CryptoGatsu/FlyDeveloper"
     twitter: str = ""
     telegram: str = ""
+    # The fly's own coin: used for its first live launch. Empty name disables.
+    genesis_name: str = "The Fly Dev"
+    genesis_symbol: str = "FLYDEV"
 
 
 @dataclass
@@ -241,6 +244,8 @@ class FlyConfig:
         lp.website = _env("FLY_WEBSITE", lp.website)
         lp.twitter = _env("FLY_TWITTER", "")
         lp.telegram = _env("FLY_TELEGRAM", "")
+        lp.genesis_name = _env("FLY_GENESIS_NAME", lp.genesis_name)
+        lp.genesis_symbol = _env("FLY_GENESIS_SYMBOL", lp.genesis_symbol)
 
         h = cfg.hosting
         h.provider = _env("FLY_IMAGE_HOST", "none")

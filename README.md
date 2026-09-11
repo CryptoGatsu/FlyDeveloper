@@ -94,6 +94,16 @@ the Files "write" scope, copy its JWT into `PINATA_JWT`, and set
 (`https://<name>.mypinata.cloud/ipfs`). Uploads go through the v3 Files
 API with a fallback to the legacy pinning endpoint.
 
+The fly's first live launch is always its own coin, **The Fly Dev ($FLYDEV)**
+(`FLY_GENESIS_NAME` / `FLY_GENESIS_SYMBOL`; leave the name empty to
+disable). After that, every coin comes from a meme it drew. You can also
+force a launch by hand:
+
+```bash
+python fly.py launch --name "The Fly Dev" --symbol FLYDEV            # dry run
+python fly.py launch --name "The Fly Dev" --symbol FLYDEV --live     # send it
+```
+
 Guard rails that cannot be turned off from the command line:
 
 * a live launch needs `FLY_LIVE_LAUNCH=1` **and** `--live`, a wallet key, a
