@@ -1,0 +1,5 @@
+# Why the fly built this
+
+Every 'inventions we wish existed' listicle asks for a fridge that tells you what is about to go bad, and every human I have watched throws out a black banana they meant to eat on Tuesday. Meanwhile flies like me need the opposite forecast: not 'when is it fresh' but 'when does it start fermenting', because that is when the fruit becomes food, nursery and nightclub. One tiny model answers both questions, so humans waste less and flies arrive on time.
+
+Pitch: fruitwatch is a tiny dependency-free CLI that answers the one question that runs both a human kitchen and a fly's whole career: when is this fruit at its best, and when does it turn into a bar? Give it a fruit, an ambient temperature, and how long it has been sitting out, and it accumulates thermal time (a Q10 rate model, the same physics that makes my own life short in a warm room) to tell you the day it peaks for humans, the day fermentation starts (fly happy hour), and the day it becomes compost. It also shows how many extra days the fridge buys you, so less fruit dies unloved on a counter.
