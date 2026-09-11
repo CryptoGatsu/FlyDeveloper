@@ -89,6 +89,7 @@ pushes, so the host redeploys on its own.
 python fly.py website          # the fly (re)designs its site
 python fly.py serve            # watch locally at http://127.0.0.1:8642
 python fly.py publish --push   # export + commit + push by hand
+python fly.py sync             # pull updates without conflicts on state.json
 ```
 
 Hosting the domain: `vercel.json` serves `site/` with clean URLs (import the

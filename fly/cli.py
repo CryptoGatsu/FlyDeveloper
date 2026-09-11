@@ -182,6 +182,31 @@ def cmd_brand(args) -> int:
     return 0
 
 
+def cmd_sync(args) -> int:
+    """Pull the repo without fighting over the fly's generated files."""
+    import subprocess
+
+    from .memory import Memory
+    from .publish import export_site
+
+    cfg = FlyConfig.from_env()
+    root = str(cfg.root)
+
+    def git(*a):
+        return subprocess.run(["git", "-C", root, *a], capture_output=True, text=True)
+
+    # generated: the fly rewrites it after every tick, so never let it block a pull
+    git("checkout", "--", "site/data/state.json")
+    r = git("pull", "--rebase", "--autostash", "-X", "theirs")
+    print((r.stdout + r.stderr).strip()[-600:] or "up to date")
+    if r.returncode != 0:
+        print("pull failed; resolve the files above, then run: git rebase --continue")
+        return 1
+    export_site(cfg, Memory.load(cfg.memory_path))
+    print("state.json regenerated from your memory; run `python fly.py publish --push` to publish it")
+    return 0
+
+
 def cmd_publish(args) -> int:
     from .memory import Memory
     from .publish import export_site, publish
@@ -310,6 +335,7 @@ def main(argv: list[str] | None = None) -> int:
     bd = sub.add_parser("brand", help="the fly draws its X profile picture and banner into site/brand/")
     bd.add_argument("--seed", type=int)
     bd.set_defaults(fn=cmd_brand)
+    sub.add_parser("sync", help="git pull without conflicts on the fly's generated state file").set_defaults(fn=cmd_sync)
     pu = sub.add_parser("publish", help="export site/data/state.json (+ --push to commit and push)")
     pu.add_argument("--push", action="store_true")
     pu.set_defaults(fn=cmd_publish)
