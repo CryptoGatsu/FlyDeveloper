@@ -61,8 +61,9 @@ def _clean_text(html: str, max_chars: int) -> tuple[str, str, list[str]]:
 
 
 class Browser:
-    def __init__(self, cfg: BrowserConfig):
+    def __init__(self, cfg: BrowserConfig, log=None):
         self.cfg = cfg
+        self.log = log or (lambda msg: None)
         import requests
 
         self.session = requests.Session()
@@ -129,8 +130,14 @@ class Browser:
         budget = budget or self.cfg.max_pages_per_session
         candidates: list[SearchResult] = []
         for topic in topics[:3]:
-            candidates.extend(self.search(topic, n=5))
-        candidates.extend(self.hn_front(6))
+            self.log(f"searching: {topic}")
+            found = self.search(topic, n=5)
+            self.log(f"  {len(found)} results")
+            candidates.extend(found)
+        self.log("checking the Hacker News front page")
+        hn = self.hn_front(6)
+        self.log(f"  {len(hn)} stories")
+        candidates.extend(hn)
 
         notes: list[PageNote] = []
         seen: set[str] = set()
@@ -140,11 +147,16 @@ class Browser:
             if not cand.url or cand.url in seen or memory.visited(cand.url):
                 continue
             seen.add(cand.url)
+            self.log(f"reading: {cand.title[:70]} <{cand.url}>")
             page = self.fetch(cand.url)
             if page is None or len(page.text) < 200:
+                self.log("  nothing readable there")
                 continue
             try:
                 digest = mind.digest(page.title, page.url, page.text)
+                self.log(f"  gist: {digest.gist[:160]}")
+                if digest.need_spotted:
+                    self.log(f"  need spotted: {digest.need_spotted[:160]}")
             except Exception as exc:  # the mind may refuse or time out
                 memory.note(f"could not digest {page.url}: {exc}")
                 continue

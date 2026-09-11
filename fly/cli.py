@@ -66,6 +66,24 @@ def cmd_live(args) -> int:
     return 0
 
 
+def cmd_browse(args) -> int:
+    """A browsing session you can watch: search, read, digest, remember."""
+    fly = _fly(args)
+    topics = args.topics or list(fly.cfg.browser.seeds)
+    notes = fly.browser.explore(fly.mind, fly.memory, topics, budget=args.pages)
+    fly.memory.note(f"browsed {len(notes)} pages", topics=topics[:3])
+    fly.memory.save()
+    print()
+    print(f"read {len(notes)} pages:")
+    for n in notes:
+        print(f"- {n.title}\n  {n.url}\n  {n.gist}")
+        if n.need_spotted:
+            print(f"  need: {n.need_spotted}")
+        if n.followups:
+            print(f"  next: {', '.join(n.followups)}")
+    return 0
+
+
 def cmd_meme(args) -> int:
     from .memes import render_meme
 
@@ -119,6 +137,10 @@ def main(argv: list[str] | None = None) -> int:
     l.add_argument("--interval", type=int)
     l.add_argument("--live", action="store_true")
     l.set_defaults(fn=cmd_live)
+    br = sub.add_parser("browse", help="watch the fly browse: search, read, digest")
+    br.add_argument("topics", nargs="*", help="search topics (default: the fly's seed topics)")
+    br.add_argument("--pages", type=int, default=None, help="how many pages to read")
+    br.set_defaults(fn=cmd_browse)
     m = sub.add_parser("meme", help="render a meme by hand")
     m.add_argument("top")
     m.add_argument("bottom", nargs="?")
