@@ -9,6 +9,7 @@ pydantic>=2.6
 pillow>=10
 requests>=2.31
 beautifulsoup4>=4.12
+requests-oauthlib>=2.0
 web3>=7
 eth-account>=0.13
 pytest>=8

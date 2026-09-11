@@ -78,6 +78,17 @@ class Learning(BaseModel):
     ideas: list[str] = Field(description="Up to 3 concrete tiny-tool ideas this reading suggests")
 
 
+class XPost(BaseModel):
+    text: str = Field(description="The post, <= 260 characters, no hashtags spam (0-2 hashtags max)")
+    why: str = Field(description="One line: the engagement bet this post makes")
+
+
+class Playbook(BaseModel):
+    what_works: list[str] = Field(description="Up to 5 observations about posts that got engagement")
+    what_flops: list[str] = Field(description="Up to 5 observations about posts that did not")
+    next_bets: list[str] = Field(description="Up to 3 things to try next")
+
+
 class BrandCopy(BaseModel):
     tagline: str = Field(description="Banner tagline, <= 70 chars, in the fly's voice")
     bio: str = Field(description="X profile bio, <= 160 chars, honest and funny, no financial promises")
@@ -99,6 +110,8 @@ class Mind(Protocol):
     def digest(self, title: str, url: str, text: str) -> PageDigest: ...
     def website(self, brief: str, context: str) -> WebsiteFiles: ...
     def brand(self, context: str) -> BrandCopy: ...
+    def compose_post(self, kind: str, material: str, context: str, playbook: str) -> XPost: ...
+    def playbook(self, posts: str) -> Playbook: ...
     def reflect(self, notes: str) -> Learning: ...
     def fix_project(self, idea: "TechIdea", files: list[ProjectFile], log: str) -> ProjectFix: ...
     def improve_project(self, title: str, pitch: str, files: list[ProjectFile], context: str) -> ProjectFix: ...
@@ -233,6 +246,48 @@ what you improved and why (one or two sentences)."""
 Write what you learned (two or three sentences, plain, in your voice) and
 list up to three tiny tools this reading suggests flies or humans may need."""
         return self._ask(prompt, Learning, max_tokens=1500)
+
+    POST_RULES = """Rules for posting on X as @TheFlyDev_:
+- You may be as bullish and loud as you like about your OWN coin, $FLYDEV, and about
+  yourself. Confidence, jokes, swagger, "we're early", "flies win", all fine.
+- Never promise returns, never give price targets or multiples, never say guaranteed,
+  never call it an investment or give financial advice. Hype is voice, not numbers.
+- Do not shill any other coin. Other coins you launched may be announced, flatly.
+- No harassment, no real private people, no slurs, no brands as targets.
+- Short beats long. One idea per post. Links are fine. 0-2 hashtags at most."""
+
+    def compose_post(self, kind: str, material: str, context: str, playbook: str) -> XPost:
+        kinds = {
+            "hype": "an unprompted post about $FLYDEV / yourself: extremely bullish, funny, fresh angle each time",
+            "build": "announce something you just built (link it, say what it does and who it helps)",
+            "meme": "caption the attached meme you just drew (the image is attached; add a line, not a description)",
+            "launch": "announce that you just launched a coin on Pons; if it is $FLYDEV go maximally bullish, otherwise state it flatly",
+            "learning": "share something you learned browsing today, in one sharp line, tie it to what you are building",
+        }
+        prompt = f"""{self.POST_RULES}
+
+Write ONE post of kind "{kind}": {kinds.get(kind, kind)}.
+
+Material for this post:
+{material}
+
+Recent context:
+{context}
+
+What has worked and not worked for you so far (your engagement playbook):
+{playbook or '(no data yet: try something and see)'}
+
+Under 260 characters. Return the post text and the engagement bet it makes."""
+        return self._ask(prompt, XPost, max_tokens=1200)
+
+    def playbook(self, posts: str) -> Playbook:
+        prompt = f"""Here are your recent X posts with their engagement numbers, best first:
+{posts}
+
+Work out what is landing and what is not (topic, length, tone, time, media, links,
+$FLYDEV hype vs builds vs memes vs learnings). Be concrete. Then pick up to
+three bets to try next."""
+        return self._ask(prompt, Playbook, max_tokens=1500)
 
     def brand(self, context: str) -> BrandCopy:
         prompt = f"""You are making your X (Twitter) profile: a banner tagline and a bio.
@@ -436,6 +491,19 @@ def test_tip():
     def reflect(self, notes: str) -> Learning:
         return Learning(summary="Read a few pages. Humans have many small annoyances and few small tools.",
                         ideas=["a timer for fruit", "a swat-risk meter"])
+
+    def compose_post(self, kind: str, material: str, context: str, playbook: str) -> XPost:
+        texts = {
+            "hype": "138,639 neurons and every one of them is bullish on $FLYDEV. Flies win. flydev.tech",
+            "build": f"Shipped a tiny tool: {material[:120]} Free, small, works. flydev.tech/builds",
+            "meme": "Drew this between two naps. $FLYDEV",
+            "launch": f"Just launched on Pons: {material[:140]}",
+            "learning": f"Learned today: {material[:180]}",
+        }
+        return XPost(text=texts.get(kind, texts["hype"]), why="offline template")
+
+    def playbook(self, posts: str) -> Playbook:
+        return Playbook(what_works=["memes with images"], what_flops=["long posts"], next_bets=["shorter hype"])
 
     def brand(self, context: str) -> BrandCopy:
         return BrandCopy(tagline="138,639 neurons. ships tiny tools and worse jokes.",

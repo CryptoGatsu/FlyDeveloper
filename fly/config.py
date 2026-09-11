@@ -140,6 +140,19 @@ class LaunchpadConfig:
 
 
 @dataclass
+class XConfig:
+    handle: str = "@TheFlyDev_"
+    api_key: str = ""            # X_API_KEY (consumer key)
+    api_secret: str = ""         # X_API_SECRET
+    access_token: str = ""       # X_ACCESS_TOKEN (the account's)
+    access_secret: str = ""      # X_ACCESS_SECRET
+    post: bool = False           # FLY_X_POST=1 sends posts; otherwise dry runs
+    max_posts_per_day: int = 6
+    hype_every_hours: float = 8.0   # at most one unprompted $FLYDEV post per this many hours
+    metrics_every_hours: float = 3.0
+
+
+@dataclass
 class HostingConfig:
     # "none" | "pinata" | "github"
     provider: str = "none"
@@ -193,6 +206,7 @@ class FlyConfig:
     browser: BrowserConfig = field(default_factory=BrowserConfig)
     launchpad: LaunchpadConfig = field(default_factory=LaunchpadConfig)
     hosting: HostingConfig = field(default_factory=HostingConfig)
+    x: XConfig = field(default_factory=XConfig)
     tick_interval_sec: int = 1800
     publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
     site_domain: str = "flydev.tech"   # FLY_SITE_DOMAIN: writes site/CNAME for GitHub Pages custom domains
@@ -260,6 +274,16 @@ class FlyConfig:
         lp.genesis_symbol = _env("FLY_GENESIS_SYMBOL", lp.genesis_symbol)
         lp.genesis_buyback = _env_bool("FLY_GENESIS_BUYBACK", False)
         lp.coin_fee_mode = _env("FLY_COIN_FEE_MODE", "buyback").strip().lower()
+
+        xc = cfg.x
+        xc.handle = _env("FLY_X_HANDLE", xc.handle)
+        xc.api_key = _env("X_API_KEY", "")
+        xc.api_secret = _env("X_API_SECRET", "")
+        xc.access_token = _env("X_ACCESS_TOKEN", "")
+        xc.access_secret = _env("X_ACCESS_SECRET", "")
+        xc.post = _env_bool("FLY_X_POST", False)
+        xc.max_posts_per_day = _env_int("FLY_X_MAX_POSTS_PER_DAY", 6)
+        xc.hype_every_hours = _env_float("FLY_X_HYPE_EVERY_HOURS", 8.0)
 
         h = cfg.hosting
         h.provider = _env("FLY_IMAGE_HOST", "none")

@@ -107,6 +107,31 @@ profile picture (500×500) and banner (1500×500) into `site/brand/`, so they
 are also served at `/brand/pfp.png` and `/brand/banner.png`. The X account is
 [@TheFlyDev_](https://x.com/TheFlyDev_).
 
+## Posting on X
+
+The fly posts as [@TheFlyDev_](https://x.com/TheFlyDev_): what it builds,
+the memes it draws (with the image), its launches, one line from each
+browsing session, and unprompted $FLYDEV posts on a cadence
+(`FLY_X_HYPE_EVERY_HOURS`). It is allowed to be as bullish as it likes about
+its own coin and itself, and only its own coin. A guard holds any post with
+a promise word, a price target or a multiple, and it never posts more than
+`FLY_X_MAX_POSTS_PER_DAY`.
+
+It learns: every few hours it pulls `public_metrics` for its live posts,
+scores them, and asks the mind for a playbook (what works, what flops, what
+to try next) that shapes every later post. `python fly.py x-status` shows
+the recent posts, scores and current bets.
+
+Credentials go in `.env` (`X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`,
+`X_ACCESS_SECRET`, from an X developer app with read+write on the account).
+Posts are drafts until `FLY_X_POST=1` and `--live`.
+
+```bash
+python fly.py post --kind hype           # draft one post
+python fly.py post --kind meme --live    # send the latest meme
+python fly.py live --live                # everything real: launches and posts
+```
+
 ## Launching on Pons
 
 Pons V2 (`0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e` on Robinhood Chain,

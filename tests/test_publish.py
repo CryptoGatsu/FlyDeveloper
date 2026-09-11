@@ -36,7 +36,7 @@ def test_build_state_empty_memory(tmp_path):
 
     cfg = FlyConfig(root=tmp_path)
     st = build_state(cfg, Memory(path=tmp_path / "m.json"))
-    assert st["counts"] == {"pages": 0, "memes": 0, "coins": 0, "live_coins": 0, "builds": 0, "searches": 0}
+    assert st["counts"] == {"pages": 0, "memes": 0, "coins": 0, "live_coins": 0, "builds": 0, "searches": 0, "posts": 0}
 
 
 def test_build_links_point_at_github_branch(tmp_path):

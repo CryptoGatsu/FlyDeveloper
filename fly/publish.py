@@ -112,6 +112,13 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
                 for x in d.get("searches", [])]
     learnings = [{"at": x.get("at"), "summary": x.get("summary"), "ideas": x.get("ideas") or []}
                  for x in d.get("learnings", [])]
+    posts = [{"at": x.get("at"), "kind": x.get("kind"), "text": x.get("text"), "url": x.get("url") or "", "live": bool(x.get("live")),
+              "media": _meme_public_path(x["media"]) if x.get("media") and str(x["media"]).endswith(".png") else "",
+              "metrics": x.get("metrics") or {}, "score": x.get("score", 0), "why": x.get("why", "")}
+             for x in d.get("posts", []) if not x.get("problems")]
+    pb = mem.last("playbook") or {}
+    playbook = {"at": pb.get("at"), "what_works": pb.get("what_works") or [], "what_flops": pb.get("what_flops") or [],
+                "next_bets": pb.get("next_bets") or []}
     built_slugs = {b.get("slug") for b in d.get("builds", [])} | {b.get("title") for b in d.get("builds", [])}
     ideas = [{"at": i.get("at"), "slug": i.get("slug"), "title": i.get("title"), "pitch": i.get("pitch"),
               "for_whom": i.get("for_whom"), "why": i.get("why"),
@@ -139,10 +146,12 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
         },
         "counts": {"pages": len(pages), "memes": len(memes), "coins": len(coins),
                    "live_coins": sum(1 for c in coins if c["live"]), "builds": len(builds),
-                   "searches": len(searches)},
+                   "searches": len(searches), "posts": sum(1 for p in posts if p["live"])},
         "pages": pages[::-1][:60],
         "searches": searches[::-1][:40],
         "learnings": learnings[::-1][:20],
+        "posts": posts[::-1][:40],
+        "playbook": playbook,
         "memes": memes[::-1],
         "coins": coins[::-1],
         "builds": builds[::-1],

@@ -18,6 +18,7 @@ from .memes import render_meme
 from .memory import Memory
 from .mind import Mind, MindRefused, build_mind
 from .neurons import Sense, load_senses
+from .x import Post, XClient, XError, engagement_score, post_problems
 
 Logger = Callable[[str], None]
 
@@ -57,6 +58,7 @@ class Fly:
         self.browser = browser or Browser(cfg.browser, log=log, shots_dir=cfg.root / "site" / "browsing" / "shots")
         self.workshop = Workshop(cfg.workshop_dir)
         self._launchpad = launchpad
+        self.x = XClient(cfg.x)
         self.senses: dict[str, Sense] = load_senses(cfg.root / "data" / "fly_senses.json")
 
     @property
@@ -154,10 +156,99 @@ class Fly:
         except MindRefused as exc:
             result.outcome = {"error": f"mind refused: {exc}"}
             self.memory.note(f"mind refused during {action}: {exc}")
+        try:
+            result.outcome["x"] = self.social_after(action, result.outcome, live=live)
+        except Exception as exc:                       # posting must never break a tick
+            self.memory.note(f"x error: {exc}")
+            result.outcome["x"] = f"error: {exc}"
         finally:
             self.memory.save()
             self._publish(action, mood)
         return result
+
+    # -- X ---------------------------------------------------------------
+    def social_after(self, action: str, outcome: dict[str, Any], live: bool = False) -> str:
+        """Post about what just happened, refresh engagement, keep a hype cadence."""
+        self.refresh_metrics()
+        posted: list[str] = []
+        if action == "build" and outcome.get("ok") and outcome.get("built"):
+            posted.append(self.act_post("build", f"{outcome['built']}: {outcome.get('pitch', '')} "
+                                         f"{self.cfg.launchpad.website.rstrip('/')}/builds", live=live))
+        elif action == "build" and outcome.get("improved") and outcome.get("what"):
+            posted.append(self.act_post("build", f"Improved {outcome['improved']}: {outcome['what']} "
+                                         f"{self.cfg.launchpad.website.rstrip('/')}/builds", live=live))
+        elif action == "meme" and outcome.get("meme"):
+            posted.append(self.act_post("meme", f"{outcome.get('top')} / {outcome.get('bottom')}", media=outcome["meme"], live=live))
+        elif action == "launch" and outcome.get("status") == "confirmed":
+            last = self.memory.last("launches") or {}
+            posted.append(self.act_post("launch", f"{last.get('name')} (${last.get('symbol')}) "
+                                         f"{'genesis, my own coin' if last.get('genesis') else 'another joke with a ticker'}; "
+                                         f"tx {last.get('tx')}; {self.cfg.launchpad.website.rstrip('/')}/coins",
+                                         media=last.get("meme") or "", live=live))
+        elif action == "browse" and outcome.get("learned"):
+            posted.append(self.act_post("learning", outcome["learned"], live=live))
+        # unprompted $FLYDEV hype on a cadence
+        if self.memory.hours_since_kind("posts", "hype") >= self.cfg.x.hype_every_hours:
+            posted.append(self.act_post("hype", "your own coin $FLYDEV, your brain, your builds; pick a fresh angle", live=live))
+        return "; ".join(p for p in posted if p) or "nothing to say"
+
+    def act_post(self, kind: str, material: str, media: str = "", live: bool = False) -> str:
+        today = self.memory.count_since("posts", 24.0, live=True)
+        if today >= self.cfg.x.max_posts_per_day:
+            return f"{kind}: daily post cap reached"
+        draft = self.mind.compose_post(kind, material, self.context(), self.playbook_text())
+        post = Post(text=draft.text.strip(), kind=kind, media=media)
+        post.problems = post_problems(post.text)
+        if not post.problems and live and self.x.armed:
+            post = self.x.send(post)                    # real post
+        entry = {"kind": kind, "text": post.text, "media": media, "id": post.id, "url": post.url, "live": post.live,
+                 "why": draft.why, "problems": post.problems, "metrics": {}, "score": 0.0}
+        self.memory.add("posts", entry)
+        if post.problems:
+            self.memory.note(f"held an X post ({kind}): {'; '.join(post.problems)}")
+            self.log(f"held post ({kind}): {'; '.join(post.problems)} :: {post.text}")
+            return f"{kind}: held ({post.problems[0]})"
+        self.log(f"{'posted' if post.live else 'drafted'} on X ({kind}): {post.text}")
+        return f"{kind}: {'posted ' + post.url if post.live else 'drafted (dry run)'}"
+
+    def playbook_text(self) -> str:
+        pb = self.memory.last("playbook")
+        if not pb:
+            return ""
+        return ("works: " + "; ".join(pb.get("what_works") or []) + "\nflops: " + "; ".join(pb.get("what_flops") or [])
+                + "\nnext: " + "; ".join(pb.get("next_bets") or []))
+
+    def refresh_metrics(self) -> None:
+        """Pull engagement for live posts and rewrite the playbook when it moved."""
+        if not self.x.configured:
+            return
+        if self.memory.hours_since("playbook", default=1e6) < self.cfg.x.metrics_every_hours and self.memory.last("playbook"):
+            return
+        live = [p for p in self.memory.data.get("posts", []) if p.get("live") and p.get("id")]
+        if not live:
+            return
+        try:
+            found = self.x.metrics([p["id"] for p in live[-100:]])
+        except XError as exc:
+            self.memory.note(f"could not read X metrics: {exc}")
+            return
+        for p in live:
+            m = found.get(p["id"])
+            if m:
+                p["metrics"] = m
+                p["score"] = round(engagement_score(m), 2)
+        scored = sorted((p for p in live if p.get("metrics")), key=lambda p: p.get("score", 0), reverse=True)
+        if len(scored) >= 3:
+            lines = [f"[{p['kind']}] score {p['score']} likes {p['metrics'].get('like_count', 0)} reposts {p['metrics'].get('retweet_count', 0)} "
+                     f"replies {p['metrics'].get('reply_count', 0)} views {p['metrics'].get('impression_count', 0)} media={'yes' if p.get('media') else 'no'} :: {p['text']}"
+                     for p in scored[:25]]
+            try:
+                pb = self.mind.playbook("\n".join(lines))
+                self.memory.add("playbook", {"what_works": pb.what_works, "what_flops": pb.what_flops, "next_bets": pb.next_bets,
+                                             "posts_scored": len(scored)})
+                self.log("updated the engagement playbook: " + "; ".join(pb.next_bets)[:200])
+            except MindRefused as exc:
+                self.memory.note(f"playbook refused: {exc}")
 
     def _publish(self, action: str, mood: str) -> None:
         if self.cfg.publish == "none":
@@ -263,7 +354,7 @@ class Fly:
         self.memory.add("builds", {"slug": result.slug, "title": idea.title, "ok": result.ok,
                                    "path": str(result.path), "files": result.files, "log": result.log[-1500:]})
         return {"built": idea.title, "path": str(result.path), "ok": result.ok, "files": result.files,
-                "log_tail": result.log[-600:]}
+                "log_tail": result.log[-600:], "pitch": idea.pitch}
 
     def has_launched(self) -> bool:
         return any(l.get("live") for l in self.memory.data.get("launches") or [])

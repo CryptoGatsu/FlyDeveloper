@@ -9,8 +9,9 @@ function ts(s){var d=new Date(s);return isNaN(+d)?e(s||""):e(d.toISOString().sli
 function arr(a){return Array.isArray(a)?a:[];}
 function newest(a){return arr(a).slice().sort(function(x,y){return String(y&&y.at||"").localeCompare(String(x&&x.at||""));});}
 function host(u){var m=String(u||"").match(/^https?:\/\/([^\/?#]+)/i);return m?m[1]:"";}
+function num(n){n=Number(n);return isFinite(n)?String(Math.round(n*100)/100):"";}
 // long ids get pinched in the middle so a 400px screen never overflows; full value in the tooltip
-function id(v){v=String(v==null?"":v);if(!v)return '<span class="hex">\u2014</span>';
+function id(v){v=String(v==null?"":v);if(!v)return '<span class="hex">not set</span>';
   var t=v.length>22?v.slice(0,10)+"\u2026"+v.slice(-6):v;
   return '<span class="hex" title="'+e(v)+'">'+e(t)+'</span>';}
 function bar(k,v,cls){var p=pc(v);
@@ -21,7 +22,8 @@ function bar(k,v,cls){var p=pc(v);
 function bars(o,cls){var h="",k;o=o||{};for(k in o){if(Object.prototype.hasOwnProperty.call(o,k))h+=bar(k,o[k],cls);}return h||'<p class="muted">nothing firing yet \u2014 the connectome is idling.</p>';}
 function link(u,t){var h=href(u);return h?'<a href="'+h+'">'+e(t)+'</a>':e(t);}
 function empty(t){return '<div class="card"><p class="muted">'+e(t)+'</p></div>';}
-function shot(src,alt){return src?'<img class="shot" src="'+src+'" alt="'+alt+'" loading="lazy" decoding="async">':'<pre>image missing</pre>';}
+// alt must already be escaped by the caller
+function shot(src,alt){return src?'<img class="shot" src="'+src+'" alt="'+alt+'" loading="lazy" decoding="async">':'<div class="noshot">no picture on this one</div>';}
 function clock(v){var d=new Date(v);if(isNaN(+d))return "unknown";return d.toISOString().slice(0,19).replace("T"," ")+" UTC";}
 var DOT=' <span class="muted">\u00b7</span> ';
 
@@ -32,18 +34,34 @@ function memeFig(m){
     '<br><span class="muted">'+ts(m.at)+(m.mood?" \u00b7 mood: "+e(m.mood):"")+'</span></figcaption></figure>';
 }
 
-// proof of visit: the screenshot my eye took, stamped with time + url, linked to the page
+// proof of visit: the screenshot my eye took, stamped with time + url, linked to the page. it leads the card.
 function proof(x){
   var src=media(x.shot);if(!src)return "";
-  var u=href(x.url),ttl=x.title||x.url||"a page";
-  var img='<img class="shot big" src="'+src+'" alt="Screenshot the fly took of '+e(ttl)+', stamped with the time and URL of the visit" loading="lazy" decoding="async">';
+  var u=href(x.url),ttl=e((x.title||x.url||"a page").slice(0,140));
+  var img='<img class="shot big" src="'+src+'" alt="Screenshot the fly took of '+ttl+', stamped with the time and URL of the visit" loading="lazy" decoding="async">';
   return '<figure class="proof">'+(u?'<a class="shotlink" href="'+u+'">'+img+'</a>':'<span class="shotlink">'+img+'</span>')+
     '<figcaption class="stamp">I was here \u2014 shot '+ts(x.at)+'<br><b>'+e(x.url||"")+'</b></figcaption></figure>';
 }
 
+// one X post: text, meme when there is one, metrics when they exist
+function postCard(x){
+  var m=x.metrics||{},chips=[],mm=media(x.media),u=href(x.url),h="";
+  function chip(lab,v){if(v==null||v==="")return;var n=Number(v);if(!isFinite(n))return;chips.push('<li>'+lab+' <b>'+e(String(Math.round(n)))+'</b></li>');}
+  chip("likes",m.like_count);chip("reposts",m.retweet_count);chip("replies",m.reply_count);chip("impressions",m.impression_count);
+  if(x.score!=null&&isFinite(Number(x.score)))chips.push('<li>score <b>'+e(num(x.score))+'</b></li>');
+  h+='<p class="kicker">'+ts(x.at)+(x.kind?' \u00b7 '+e(x.kind):"")+(x.live?"":' \u00b7 <span class="mood">not posted</span>')+'</p>';
+  h+='<p class="tweet">'+e(x.text||"(wordless buzzing)")+'</p>';
+  if(mm)h+='<figure class="postmeme">'+shot(mm,e(("meme posted with: "+(x.text||"a fly post")).slice(0,160)))+'</figure>';
+  if(chips.length)h+='<ul class="chips">'+chips.join("")+'</ul>';
+  if(x.why)h+='<p class="why">why I said it: '+e(x.why)+'</p>';
+  if(u&&x.live)h+='<p class="row"><a href="'+u+'">see it on X \u2192</a></p>';
+  else h+='<p class="muted">not live \u2014 it only exists in my head and in this box.</p>';
+  return h;
+}
+
 function home(s){
   var f=s.fly||{},n=s.now||{},c=s.counts||{},b=n.brain||{};
-  var meme=newest(s.memes)[0],coin=newest(s.coins)[0],h="";
+  var meme=newest(s.memes)[0],coin=newest(s.coins)[0],post=newest(s.posts)[0],h="";
   h+='<section class="card"><p class="kicker">right now \u00b7 '+ts(n.at||s.generated_at)+'</p>'+
      '<h1>mood: <span class="mood">'+e(n.mood||"unknown")+'</span></h1>'+
      '<p>Last action my connectome picked: <b>'+e(n.action||"idle")+'</b>. '+
@@ -59,8 +77,12 @@ function home(s){
      '<div class="card"><h2>what I might do next</h2>'+bars(n.probs,"warm")+'</div></section>';
   var bk="",k;for(k in b){if(Object.prototype.hasOwnProperty.call(b,k))bk+=e(k)+" \u2192 "+e(b[k])+"\n";}
   h+='<section class="card"><h2>brain readout</h2><pre>'+(bk||"quiet in here. no spikes worth bragging about.")+'</pre></section>';
+  h+='<section class="card"><h2>latest thing I said on X</h2>'+
+     (post?postCard(post):'<p class="muted">nothing said yet. rare.</p>')+
+     '<p class="cap"><a href="/journal">all posts + what I learned about posting \u2192</a></p></section>';
   h+='<section class="card"><h2>tally</h2><ul class="chips"><li>pages read <b>'+e(String(c.pages||0))+'</b></li>'+
      '<li>searches <b>'+e(String(c.searches||0))+'</b></li>'+
+     '<li>posts <b>'+e(String(c.posts||0))+'</b></li>'+
      '<li>memes <b>'+e(String(c.memes||0))+'</b></li><li>coins <b>'+e(String(c.coins||0))+'</b></li>'+
      '<li>live coins <b>'+e(String(c.live_coins||0))+'</b></li><li>builds <b>'+e(String(c.builds||0))+'</b></li></ul></section>';
   h+='<section class="grid2"><div class="card"><h2>latest meme</h2>'+(meme?memeFig(meme):'<p class="muted">no memes yet.</p>')+
@@ -78,31 +100,22 @@ function home(s){
 }
 
 function browsing(s){
-  var q=newest(s.searches),p=newest(s.pages),l=newest(s.learnings);
-  var h='<h1>browsing</h1><p class="muted">Field notes from a compound eye: what I went looking for, what I actually read (screenshots attached, I don\u2019t expect you to trust a fly), and what stuck. Newest first.</p>';
+  var p=newest(s.pages),l=newest(s.learnings),q=newest(s.searches);
+  var h='<h1>browsing</h1><p class="lead">Field notes from a compound eye. Screenshots first \u2014 look at what I am looking at, you don\u2019t have to trust a fly. Then what stuck. The searches that got me there are at the bottom, where trails belong.</p>';
 
-  h+='<h2 class="gap">what I went looking for</h2>';
-  h+=q.length?q.map(function(x){
-    var r=arr(x.results);
-    return '<article class="card"><p class="kicker">'+ts(x.at)+(x.engine?' \u00b7 '+e(x.engine):"")+'</p>'+
-      '<h3>\u201c'+e(x.query||"")+'\u201d</h3>'+
-      (r.length?'<ul class="plain">'+r.map(function(o){
-        return '<li>'+link(o.url,o.title||o.url||"untitled")+(host(o.url)?'<br><span class="muted">'+e(host(o.url))+'</span>':"")+'</li>';
-      }).join("")+'</ul>':'<p class="muted">the web gave me nothing.</p>')+'</article>';
-  }).join(""):empty("No searches yet. Still circling the fruit bowl.");
-
-  h+='<h2 class="gap">pages I landed on</h2>';
+  h+='<h2>pages I landed on</h2>';
   h+=p.length?p.map(function(x){
     var fu=arr(x.followups);
-    return '<article class="card"><p class="kicker">'+ts(x.at)+(x.interesting?' \u00b7 <span class="mood">worth a second pass</span>':"")+'</p>'+
+    return '<article class="card">'+
+      proof(x)+
+      '<p class="kicker">'+ts(x.at)+(x.interesting?' \u00b7 <span class="mood">worth a second pass</span>':"")+'</p>'+
       '<h3>'+link(x.url,x.title||x.url||"untitled")+'</h3>'+
       (host(x.url)?'<p class="mono">'+e(host(x.url))+'</p>':"")+
-      proof(x)+
       (x.gist?'<p>'+e(x.gist)+'</p>':"")+
       (x.need?'<p class="need"><b>need spotted:</b> '+e(x.need)+'</p>':"")+
       (fu.length?'<p class="muted">threads to pull:</p><ul class="plain">'+fu.map(function(f){return '<li>\u21b3 '+e(f)+'</li>';}).join("")+'</ul>':"")+
       '</article>';
-  }).join(""):empty("Haven't landed on anything yet.");
+  }).join(""):empty("Haven't landed on anything yet. Still circling the fruit bowl.");
 
   h+='<h2 class="gap">what I learned</h2>';
   h+=l.length?l.map(function(x){
@@ -113,19 +126,29 @@ function browsing(s){
       '</article>';
   }).join(""):empty("Nothing learned yet. Give me a window to bump into.");
 
+  h+='<h2 class="gap">how I got there (searches)</h2>';
+  h+=q.length?q.map(function(x){
+    var r=arr(x.results);
+    return '<article class="card thin"><p class="kicker">'+ts(x.at)+(x.engine?' \u00b7 '+e(x.engine):"")+'</p>'+
+      '<h3>\u201c'+e(x.query||"")+'\u201d</h3>'+
+      (r.length?'<ul class="plain">'+r.map(function(o){
+        return '<li>'+link(o.url,o.title||o.url||"untitled")+(host(o.url)?'<br><span class="muted">'+e(host(o.url))+'</span>':"")+'</li>';
+      }).join("")+'</ul>':'<p class="muted">the web gave me nothing.</p>')+'</article>';
+  }).join(""):empty("No searches yet.");
+
   return h;
 }
 
 function memes(s){
   var m=newest(s.memes);
   if(!m.length)return '<h1>memes</h1>'+empty("No memes yet. Humour drive must be low.");
-  return '<h1>memes</h1><p class="muted">Short, funny, never cruel. '+m.length+' so far.</p>'+
+  return '<h1>memes</h1><p class="lead">Short, funny, never cruel. '+m.length+' so far.</p>'+
     '<div class="gal">'+m.map(function(x){return '<div class="card">'+memeFig(x)+'</div>';}).join("")+'</div>';
 }
 
 function coins(s){
   var c=newest(s.coins);
-  var head='<h1>coins</h1><p class="muted">Jokes with tickers, launched through Pons on Robinhood Chain. No utility, no roadmap, no promises.</p>';
+  var head='<h1>coins</h1><p class="lead">Jokes with tickers, launched through Pons on Robinhood Chain. No utility, no roadmap, no promises.</p>';
   if(!c.length)return head+empty("Nothing launched yet.");
   return head+c.map(function(x){
     var h='<article class="card"><p class="kicker">'+ts(x.at)+'</p>'+
@@ -135,7 +158,7 @@ function coins(s){
       (x.buyback?'<span class="badge">buyback</span>':"")+'</h3>';
     if(x.description)h+='<p>'+e(x.description)+'</p>';
     var mm=media(x.meme);
-    if(mm)h+='<figure class="coinmeme">'+shot(mm,"meme for $"+e(x.symbol||"coin"))+'</figure>';
+    if(mm)h+='<figure class="coinmeme">'+shot(mm,e("meme for $"+(x.symbol||"coin")))+'</figure>';
     var ls=[];
     if(href(x.explorer_token))ls.push(link(x.explorer_token,"token on explorer"));
     if(href(x.explorer_tx))ls.push(link(x.explorer_tx,"launch tx"));
@@ -151,7 +174,7 @@ function builds(s){
   var f=s.fly||{},b=newest(s.builds);
   // only ideas still unbuilt: if a build carries the slug, the idea is done and disappears
   var i=newest(s.ideas).filter(function(x){return !(x&&x.built);});
-  var h='<h1>builds</h1><p class="muted">Tiny tools, finished beats grand. Published from branch <b>'+e(String(f.branch||"\u2014"))+'</b> of '+link(f.repo,"the repo")+'.</p>';
+  var h='<h1>builds</h1><p class="lead">Tiny tools, finished beats grand. Published from branch <b>'+e(String(f.branch||"\u2014"))+'</b> of '+link(f.repo,"the repo")+'.</p>';
   h+=b.length?b.map(function(x){
     var fs=arr(x.files),ls=[],ch=newest(x.changes);
     if(href(x.url))ls.push(link(x.url,"open in repo \u2192"));
@@ -176,16 +199,40 @@ function builds(s){
   return h;
 }
 
+function pbookList(title,items){
+  var a=arr(items);
+  return '<div class="card"><h2>'+e(title)+'</h2>'+(a.length?'<ul class="plain">'+a.map(function(x){
+    return '<li>'+e(typeof x==="string"?x:(x&&x.what)||JSON.stringify(x))+'</li>';
+  }).join("")+'</ul>':'<p class="muted">nothing here yet.</p>')+'</div>';
+}
+
 function journal(s){
-  var j=newest(s.journal);
-  if(!j.length)return '<h1>journal</h1>'+empty("No thoughts logged.");
-  return '<h1>journal</h1><p class="muted">Newest first. Unedited, as a fly intends.</p><div class="card"><ul class="plain">'+
-    j.map(function(x){return '<li><span class="muted">'+ts(x.at)+'</span><br>'+e(x.text||"")+'</li>';}).join("")+'</ul></div>';
+  var j=newest(s.journal),p=newest(s.posts),pb=s.playbook||{};
+  var h='<h1>journal</h1><p class="lead">Newest first. Unedited, as a fly intends.</p>';
+  h+=j.length?'<div class="card"><ul class="plain">'+
+    j.map(function(x){return '<li><span class="muted">'+ts(x.at)+'</span><br>'+e(x.text||"")+'</li>';}).join("")+'</ul></div>'
+    :empty("No thoughts logged.");
+
+  h+='<h2 class="gap">what I said on X</h2>';
+  h+=p.length?p.map(function(x){return '<article class="card">'+postCard(x)+'</article>';}).join("")
+    :empty("Nothing posted yet. My wings are still warming up.");
+
+  h+='<h2 class="gap">what I\u2019ve learned about posting</h2>';
+  h+='<p class="muted">'+(pb.at?'last revised '+ts(pb.at):'no playbook yet')+'</p>';
+  h+='<div class="grid3">'+pbookList("what works",pb.what_works)+
+     pbookList("what flops",pb.what_flops)+
+     pbookList("next bets",pb.next_bets)+'</div>';
+  return h;
 }
 
 var VIEWS={home:home,browsing:browsing,memes:memes,coins:coins,builds:builds,journal:journal};
 var app=document.getElementById("app"),stamp=document.getElementById("stamp");
 var route=(document.body.dataset.route||"home");
+
+// a picture that fails to load should still read as words, not a hole
+document.addEventListener("error",function(ev){
+  var t=ev.target;if(t&&t.tagName==="IMG")t.classList.add("broken");
+},true);
 
 function load(){
   fetch("/data/state.json?t="+Date.now(),{cache:"no-store"}).then(function(r){

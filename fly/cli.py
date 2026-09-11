@@ -207,6 +207,39 @@ def cmd_sync(args) -> int:
     return 0
 
 
+def cmd_post(args) -> int:
+    """Compose (and with --live, send) one X post."""
+    fly = _fly(args)
+    material = args.material or {"hype": "your own coin $FLYDEV; pick a fresh angle",
+                                 "build": (fly.memory.last("builds") or {}).get("title", "a tiny tool"),
+                                 "meme": f"{(fly.memory.last('memes') or {}).get('top', '')} / {(fly.memory.last('memes') or {}).get('bottom', '')}",
+                                 "learning": (fly.memory.last("learnings") or {}).get("summary", "")}.get(args.kind, "")
+    media = args.media or ((fly.memory.last("memes") or {}).get("path", "") if args.kind == "meme" else "")
+    print(fly.act_post(args.kind, material, media=media, live=args.live))
+    fly.memory.save()
+    fly._publish("post", "smug")
+    return 0
+
+
+def cmd_x_status(args) -> int:
+    from .x import XClient
+
+    cfg = FlyConfig.from_env()
+    x = XClient(cfg.x)
+    print(f"handle: {cfg.x.handle}")
+    print(f"credentials: {'set' if x.configured else 'missing (X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET)'}")
+    print(f"posting: {'ARMED (FLY_X_POST=1)' if x.armed else 'dry run'}; cap {cfg.x.max_posts_per_day}/day; hype every {cfg.x.hype_every_hours}h")
+    from .memory import Memory
+
+    mem = Memory.load(cfg.memory_path)
+    for p in mem.recent("posts", 8):
+        print(f"- [{p.get('kind')}] {'live' if p.get('live') else 'draft'} score {p.get('score', 0)} :: {p.get('text')}")
+    pb = mem.last("playbook")
+    if pb:
+        print("playbook next bets: " + "; ".join(pb.get("next_bets") or []))
+    return 0
+
+
 def cmd_publish(args) -> int:
     from .memory import Memory
     from .publish import export_site, publish
@@ -301,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
     t = sub.add_parser("tick", help="one heartbeat: perceive, decide, act")
     t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest", "website", "repair", "improve"])
     t.add_argument("--seed", type=int)
-    t.add_argument("--live", action="store_true", help="allow a real launch (also needs FLY_LIVE_LAUNCH=1)")
+    t.add_argument("--live", action="store_true", help="allow real launches (FLY_LIVE_LAUNCH=1) and real X posts (FLY_X_POST=1)")
     t.set_defaults(fn=cmd_tick)
     l = sub.add_parser("live", help="keep ticking")
     l.add_argument("--ticks", type=int)
@@ -336,6 +369,13 @@ def main(argv: list[str] | None = None) -> int:
     bd.add_argument("--seed", type=int)
     bd.set_defaults(fn=cmd_brand)
     sub.add_parser("sync", help="git pull without conflicts on the fly's generated state file").set_defaults(fn=cmd_sync)
+    po = sub.add_parser("post", help="compose one X post (dry run unless --live with FLY_X_POST=1)")
+    po.add_argument("--kind", choices=["hype", "build", "meme", "launch", "learning"], default="hype")
+    po.add_argument("--material", help="what the post is about (default: the latest of that kind)")
+    po.add_argument("--media", help="image to attach")
+    po.add_argument("--live", action="store_true")
+    po.set_defaults(fn=cmd_post)
+    sub.add_parser("x-status", help="X credentials, posting state, recent posts and the playbook").set_defaults(fn=cmd_x_status)
     pu = sub.add_parser("publish", help="export site/data/state.json (+ --push to commit and push)")
     pu.add_argument("--push", action="store_true")
     pu.set_defaults(fn=cmd_publish)

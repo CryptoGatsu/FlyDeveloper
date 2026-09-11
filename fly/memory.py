@@ -26,7 +26,7 @@ class Memory:
     path: Path
     data: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
 
-    KEYS = ("journal", "pages", "ideas", "builds", "memes", "launches", "drives", "searches", "learnings")
+    KEYS = ("journal", "pages", "ideas", "builds", "memes", "launches", "drives", "searches", "learnings", "posts", "playbook")
 
     def __post_init__(self) -> None:
         for key in self.KEYS:
@@ -77,6 +77,12 @@ class Memory:
         if not item or "ts" not in item:
             return default
         return max(0.0, (time.time() - float(item["ts"])) / 3600.0)
+
+    def hours_since_kind(self, key: str, kind: str, default: float = 1e6) -> float:
+        for item in reversed(self.data.get(key) or []):
+            if item.get("kind") == kind and "ts" in item:
+                return max(0.0, (time.time() - float(item["ts"])) / 3600.0)
+        return default
 
     def count_since(self, key: str, hours: float, **match: Any) -> int:
         cutoff = time.time() - hours * 3600.0
