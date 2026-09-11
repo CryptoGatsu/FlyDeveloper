@@ -33,6 +33,7 @@ class WorldSignals:
     launches_today: int = 0
     max_launches_per_day: int = 1
     launch_armed: bool = False
+    genesis_pending: bool = False   # the fly has not launched its own coin yet
 
 
 @dataclass
@@ -88,6 +89,8 @@ def compute_drives(reports: dict[str, SpikeReport], world: WorldSignals, calibra
     appetite_w = 0.5 * _squash(world.unlaunched_memes, 1, 1) + 0.5 * _hours_pressure(world.hours_since_launch, 72.0)
     if world.launches_today >= world.max_launches_per_day:
         appetite_w *= 0.1
+    if world.genesis_pending and world.launch_armed:
+        appetite_w = max(appetite_w, 0.95)   # the urge to hatch its own coin
 
     drives = Drives(
         curiosity=0.5 * curiosity_t + 0.5 * curiosity_w,
@@ -110,8 +113,11 @@ def choose_action(drives: Drives, world: WorldSignals, fingerprint: str, tempera
         "launch": drives.appetite * (0.4 + 0.6 * drives.boldness),
         "rest": drives.fatigue,
     }
-    # Launching needs material: a meme the fly has not launched yet.
-    if world.unlaunched_memes == 0:
+    # Launching needs material: a meme the fly has not launched yet, unless
+    # it is about to hatch its own genesis coin (it draws that meme itself).
+    if world.genesis_pending and world.launch_armed:
+        scores["launch"] = max(scores["launch"], 2.0)
+    elif world.unlaunched_memes == 0:
         scores["launch"] *= 0.15
     if world.launches_today >= world.max_launches_per_day:
         scores.pop("launch")

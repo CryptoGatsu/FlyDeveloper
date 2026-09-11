@@ -194,6 +194,7 @@ class FlyConfig:
     launchpad: LaunchpadConfig = field(default_factory=LaunchpadConfig)
     hosting: HostingConfig = field(default_factory=HostingConfig)
     tick_interval_sec: int = 1800
+    publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
 
     @classmethod
     def from_env(cls, root: Path | None = None) -> "FlyConfig":
@@ -204,6 +205,7 @@ class FlyConfig:
         cfg.memes_dir = Path(_env("FLY_MEMES_DIR", str(root / "memes")))
         cfg.memory_path = Path(_env("FLY_MEMORY_PATH", str(root / "data" / "fly_memory.json")))
         cfg.tick_interval_sec = _env_int("FLY_TICK_INTERVAL_SEC", 1800)
+        cfg.publish = _env("FLY_PUBLISH", "site").strip().lower()
 
         b = cfg.brain
         b.mode = _env("FLY_BRAIN", "connectome")

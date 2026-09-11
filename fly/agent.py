@@ -80,6 +80,7 @@ class Fly:
             launches_today=m.count_since("launches", 24.0, live=True),
             max_launches_per_day=self.cfg.launchpad.max_launches_per_day,
             launch_armed=self.cfg.launchpad.live,
+            genesis_pending=bool(self.cfg.launchpad.genesis_name) and not self.has_launched(),
         )
 
     def perceive(self, seed: int | None = None) -> dict[str, SpikeReport]:
@@ -117,7 +118,10 @@ class Fly:
             action = force
         self.memory.add("drives", {"drives": drives.as_dict(), "action": action, "probs": probs,
                                    "brain": {k: r.describe() for k, r in reports.items()}})
-        self.log(f"fly feels {self.mood(drives)} ({drives.describe()}) -> {action}")
+        mood = self.mood(drives)
+        self.log(f"fly feels {mood} ({drives.describe()}) -> {action}")
+        if action == "launch" and world.genesis_pending and world.launch_armed:
+            self.log("the fly wants to hatch its own coin")
         result = TickResult(action=action, drives=drives, probabilities=probs, reports=reports)
         try:
             if action == "browse":
@@ -136,7 +140,22 @@ class Fly:
             self.memory.note(f"mind refused during {action}: {exc}")
         finally:
             self.memory.save()
+            self._publish(action, mood)
         return result
+
+    def _publish(self, action: str, mood: str) -> None:
+        if self.cfg.publish == "none":
+            return
+        try:
+            from .publish import export_site, publish
+
+            export_site(self.cfg, self.memory, extra={"mood": mood, "wallet": self._launchpad.address if self._launchpad else ""})
+            if self.cfg.publish == "git":
+                last = self.memory.last(action if action in ("builds",) else {"browse": "pages", "build": "builds", "meme": "memes", "launch": "launches"}.get(action, "journal")) or {}
+                what = last.get("title") or last.get("top") or last.get("symbol") or action
+                publish(self.cfg, f"{action}: {what}", log=self.log)
+        except Exception as exc:
+            self.log(f"publish skipped: {exc}")
 
     def run(self, ticks: int | None = None, interval_sec: int | None = None, live: bool = False) -> None:
         interval = interval_sec or self.cfg.tick_interval_sec

@@ -43,3 +43,15 @@ def test_choice_is_deterministic_per_fingerprint():
     a1, _ = choose_action(d, world, "deadbeef")
     a2, _ = choose_action(d, world, "deadbeef")
     assert a1 == a2
+
+
+def test_genesis_urge_makes_launch_dominant():
+    reports, cal = _reports()
+    world = WorldSignals(launch_armed=True, genesis_pending=True, unlaunched_memes=0)
+    d = compute_drives(reports, world, cal)
+    action, probs = choose_action(d, world, "any-fingerprint")
+    assert action == "launch"
+    assert probs["launch"] > 0.8
+    calm = WorldSignals(launch_armed=False, genesis_pending=True, unlaunched_memes=0)
+    _, probs2 = choose_action(compute_drives(reports, calm, cal), calm, "x")
+    assert probs2["launch"] < 0.2      # not armed: no urge, no material

@@ -69,6 +69,24 @@ connectome data? `FLY_BRAIN=phantom` uses a small synthetic network. The
 first connectome run builds `data/fly_connectome_cache.npz` (~50 MB) so later
 loads take under a second.
 
+## The website
+
+`site/` is a static page that shows what the fly is doing: its current mood
+and drives, the pages it read, a gallery of its memes, the coins it launched
+and the things it built. It reads `site/data/state.json`, which the fly
+exports after every tick (`FLY_PUBLISH=site`, the default). With
+`FLY_PUBLISH=git` the fly also commits `site/`, `memes/` and `workshop/` and
+pushes, so a static host redeploys on its own.
+
+```bash
+python fly.py serve            # watch locally at http://127.0.0.1:8642
+python fly.py publish --push   # export + commit + push by hand
+```
+
+Hosting: the repo carries `vercel.json` (serves `site/`) and a GitHub Pages
+workflow (`.github/workflows/pages.yml`, enable Pages → Source: GitHub
+Actions once). Either redeploys whenever the fly pushes.
+
 ## Launching on Pons
 
 Pons V2 (`0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e` on Robinhood Chain,
@@ -93,6 +111,10 @@ the Files "write" scope, copy its JWT into `PINATA_JWT`, and set
 `PINATA_GATEWAY` to your dedicated gateway
 (`https://<name>.mypinata.cloud/ipfs`). Uploads go through the v3 Files
 API with a fallback to the legacy pinning endpoint.
+
+When launches are armed and the fly has not launched its own coin yet, its
+appetite drive is pinned high: the next tick is the genesis launch, done by
+the fly, on camera if you like (`python fly.py live --live`).
 
 The fly's first live launch is always its own coin, **The Fly Dev ($FLYDEV)**
 (`FLY_GENESIS_NAME` / `FLY_GENESIS_SYMBOL`; leave the name empty to

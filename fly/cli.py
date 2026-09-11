@@ -156,6 +156,51 @@ def cmd_fees(args) -> int:
     return 0
 
 
+def cmd_publish(args) -> int:
+    from .memory import Memory
+    from .publish import export_site, publish
+
+    cfg = FlyConfig.from_env()
+    out = export_site(cfg, Memory.load(cfg.memory_path))
+    print(f"exported {out}")
+    if args.push:
+        pushed = publish(cfg, "manual publish")
+        print("pushed" if pushed else "nothing new to push")
+    return 0
+
+
+def cmd_serve(args) -> int:
+    """Serve site/ locally so you can watch (and record) the fly."""
+    import functools
+    import http.server
+    import threading
+
+    from .memory import Memory
+    from .publish import export_site
+
+    cfg = FlyConfig.from_env()
+    export_site(cfg, Memory.load(cfg.memory_path))
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(cfg.root / "site"))
+    handler.log_message = lambda *a, **k: None  # type: ignore[attr-defined]
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", args.port), handler)
+
+    def refresh():
+        while True:
+            __import__("time").sleep(10)
+            try:
+                export_site(cfg, Memory.load(cfg.memory_path))
+            except Exception:
+                pass
+
+    threading.Thread(target=refresh, daemon=True).start()
+    print(f"watching the fly at http://127.0.0.1:{args.port}  (ctrl-c to stop)")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
 def cmd_host_test(args) -> int:
     from .hosting import check_host, host_image, verify_url
     from .memes import render_meme
@@ -232,6 +277,12 @@ def main(argv: list[str] | None = None) -> int:
     fe.add_argument("--min-buyback-out", type=int, default=0, dest="min_buyback_out")
     fe.add_argument("--live", action="store_true")
     fe.set_defaults(fn=cmd_fees)
+    pu = sub.add_parser("publish", help="export site/data/state.json (+ --push to commit and push)")
+    pu.add_argument("--push", action="store_true")
+    pu.set_defaults(fn=cmd_publish)
+    sv = sub.add_parser("serve", help="serve the website locally and keep it refreshed")
+    sv.add_argument("--port", type=int, default=8642)
+    sv.set_defaults(fn=cmd_serve)
     ht = sub.add_parser("host-test", help="upload a test image to the configured host and verify it")
     ht.add_argument("image", nargs="?")
     ht.set_defaults(fn=cmd_host_test)
