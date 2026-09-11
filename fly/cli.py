@@ -156,6 +156,32 @@ def cmd_fees(args) -> int:
     return 0
 
 
+def cmd_website(args) -> int:
+    """The fly designs and writes its own website into site/."""
+    fly = _fly(args)
+    out = fly.act_website(refine=args.refine)
+    fly.memory.save()
+    fly._publish("website", "scheming")
+    print(f"site source: {out['website']}")
+    print("files: " + ", ".join(out["files"]))
+    if out["problems"]:
+        print("problems with the fly's own attempt: " + "; ".join(out["problems"]))
+    print(out["notes"])
+    return 0
+
+
+def cmd_brand(args) -> int:
+    """The fly draws its X profile picture (500x500) and banner (1500x500)."""
+    fly = _fly(args)
+    out = fly.act_brand(seed=args.seed)
+    fly.memory.save()
+    print(f"pfp:    {out['pfp']}")
+    print(f"banner: {out['banner']}")
+    print(f"tagline: {out['tagline']}")
+    print(f"bio:     {out['bio']}")
+    return 0
+
+
 def cmd_publish(args) -> int:
     from .memory import Memory
     from .publish import export_site, publish
@@ -248,7 +274,7 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--seed", type=int)
     b.set_defaults(fn=cmd_brain)
     t = sub.add_parser("tick", help="one heartbeat: perceive, decide, act")
-    t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest"])
+    t.add_argument("--force", choices=["browse", "build", "meme", "launch", "rest", "website"])
     t.add_argument("--seed", type=int)
     t.add_argument("--live", action="store_true", help="allow a real launch (also needs FLY_LIVE_LAUNCH=1)")
     t.set_defaults(fn=cmd_tick)
@@ -277,6 +303,12 @@ def main(argv: list[str] | None = None) -> int:
     fe.add_argument("--min-buyback-out", type=int, default=0, dest="min_buyback_out")
     fe.add_argument("--live", action="store_true")
     fe.set_defaults(fn=cmd_fees)
+    ws = sub.add_parser("website", help="the fly designs and writes its own website into site/")
+    ws.add_argument("--refine", action="store_true", help="keep the current design; only run the look-and-fix loop")
+    ws.set_defaults(fn=cmd_website)
+    bd = sub.add_parser("brand", help="the fly draws its X profile picture and banner into site/brand/")
+    bd.add_argument("--seed", type=int)
+    bd.set_defaults(fn=cmd_brand)
     pu = sub.add_parser("publish", help="export site/data/state.json (+ --push to commit and push)")
     pu.add_argument("--push", action="store_true")
     pu.set_defaults(fn=cmd_publish)

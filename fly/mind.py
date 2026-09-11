@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from pathlib import Path
 from typing import Protocol
 
 from pydantic import BaseModel, Field
@@ -62,6 +63,17 @@ class CoinConcept(BaseModel):
     tagline: str = Field(description="<= 80 chars")
 
 
+class WebsiteFiles(BaseModel):
+    notes: str = Field(description="A sentence or two about the design choices, in the fly's voice")
+    files: list[ProjectFile] = Field(description="index.html, <route>/index.html for every route, style.css, app.js")
+
+
+class BrandCopy(BaseModel):
+    tagline: str = Field(description="Banner tagline, <= 70 chars, in the fly's voice")
+    bio: str = Field(description="X profile bio, <= 160 chars, honest and funny, no financial promises")
+    mood: str = Field(description="one of: curious, hungry, tired, hyped, smug, scheming")
+
+
 class PageDigest(BaseModel):
     gist: str = Field(description="Two sentences on what the page says")
     need_spotted: str = Field(description="A concrete need or annoyance the page reveals, or empty")
@@ -75,6 +87,9 @@ class Mind(Protocol):
     def caption(self, context: str, mood: str, theme: str = "") -> MemeCaption: ...
     def coin(self, meme: MemeCaption, context: str, name: str = "", symbol: str = "") -> CoinConcept: ...
     def digest(self, title: str, url: str, text: str) -> PageDigest: ...
+    def website(self, brief: str, context: str) -> WebsiteFiles: ...
+    def brand(self, context: str) -> BrandCopy: ...
+    def revise_website(self, brief: str, files: list[ProjectFile], problems: list[str], screenshots: list) -> WebsiteFiles: ...
 
 
 class MindRefused(RuntimeError):
@@ -89,8 +104,10 @@ class ClaudeMind:
         self.cfg = cfg
         self.client = anthropic.Anthropic()
 
-    def _ask(self, prompt: str, output_model, max_tokens: int | None = None):
-        response = self.client.with_options(timeout=900.0).beta.messages.parse(
+    def _ask(self, prompt, output_model, max_tokens: int | None = None):
+        """`prompt` is a string or a list of content blocks (text + images)."""
+        content = prompt if isinstance(prompt, list) else prompt
+        response = self.client.with_options(timeout=1200.0).beta.messages.parse(
             model=self.cfg.model,
             max_tokens=max_tokens or self.cfg.max_tokens,
             betas=["server-side-fallback-2026-07-01"],
@@ -98,7 +115,7 @@ class ClaudeMind:
             thinking={"type": "adaptive"},
             output_config={"effort": self.cfg.effort},
             system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": content}],
             output_format=output_model,
         )
         if response.stop_reason == "refusal":
@@ -153,6 +170,51 @@ The ticker must be 2-8 uppercase ascii letters."""
         if symbol:
             concept.symbol = symbol
         return concept
+
+    def website(self, brief: str, context: str) -> WebsiteFiles:
+        prompt = f"""{brief}
+
+What you have done so far (for flavour, do not hard-code it; the page reads state.json):
+{context}
+
+Return every file complete. No placeholders, no TODOs."""
+        return self._ask(prompt, WebsiteFiles, max_tokens=self.cfg.code_max_tokens)
+
+    def brand(self, context: str) -> BrandCopy:
+        prompt = f"""You are making your X (Twitter) profile: a banner tagline and a bio.
+Handle: @TheFlyDev_ · site: flydev.tech · coin: $FLYDEV on Pons (Robinhood Chain).
+What you have done so far:
+{context}
+
+Tagline <= 70 characters, bio <= 160 characters. Your voice: a fruit-fly
+connectome that ships tiny tools and worse jokes. No promises, no hype words."""
+        return self._ask(prompt, BrandCopy, max_tokens=1500)
+
+    def revise_website(self, brief: str, files: list[ProjectFile], problems: list[str], screenshots: list) -> WebsiteFiles:
+        import base64
+
+        listing = "\n\n".join(f"=== {f.path} ===\n{f.content}" for f in files)
+        text = f"""You built your website. Review it and return a corrected, complete set of files.
+
+Problems found: {'; '.join(problems) if problems else 'none reported by the checks'}
+
+Look at the screenshots (desktop and phone). Fix anything wrong: elements that
+do not render (an inline element with a width, an invisible bar), content wider
+than the phone screen, literal escape sequences such as \\u00b7 showing as text,
+unreadable contrast, broken images. Keep your design; keep every requirement from
+the original brief below. Return ALL files again, complete.
+
+Original brief:
+{brief}
+
+Your current files:
+{listing}"""
+        content: list = []
+        for shot in screenshots:
+            data = base64.standard_b64encode(Path(shot).read_bytes()).decode("ascii")
+            content.append({"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": data}})
+        content.append({"type": "text", "text": text})
+        return self._ask(content, WebsiteFiles, max_tokens=self.cfg.code_max_tokens)
 
     def digest(self, title: str, url: str, text: str) -> PageDigest:
         prompt = f"""You are reading a web page.
@@ -300,6 +362,20 @@ def test_tip():
             ),
             tagline=meme.bottom[:80],
         )
+
+    def website(self, brief: str, context: str) -> WebsiteFiles:
+        from .website import template_files
+
+        return WebsiteFiles(notes="The template nest: dark, six rooms, no frameworks. I will redecorate later.",
+                            files=template_files())
+
+    def brand(self, context: str) -> BrandCopy:
+        return BrandCopy(tagline="138,639 neurons. ships tiny tools and worse jokes.",
+                         bio="A fruit-fly connectome that browses, builds tiny tools, draws memes and launches $FLYDEV on Pons. No roadmap. flydev.tech",
+                         mood="smug")
+
+    def revise_website(self, brief: str, files: list[ProjectFile], problems: list[str], screenshots: list) -> WebsiteFiles:
+        return WebsiteFiles(notes="Looked at it. Left it.", files=list(files))
 
     def digest(self, title: str, url: str, text: str) -> PageDigest:
         first = re.sub(r"\s+", " ", text)[:220]

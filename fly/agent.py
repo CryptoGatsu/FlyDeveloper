@@ -123,8 +123,18 @@ class Fly:
         if action == "launch" and world.genesis_pending and world.launch_armed:
             self.log("the fly wants to hatch its own coin")
         result = TickResult(action=action, drives=drives, probabilities=probs, reports=reports)
+        from .website import site_exists
+
+        if action != "website" and not site_exists(self.cfg.root / "site"):
+            self.log("the fly has no website yet; building one first")
+            try:
+                result.outcome["website"] = self.act_website()
+            except MindRefused as exc:
+                self.memory.note(f"mind refused to build the website: {exc}")
         try:
-            if action == "browse":
+            if action == "website":
+                result.outcome = self.act_website()
+            elif action == "browse":
                 result.outcome = self.act_browse(drives)
             elif action == "build":
                 result.outcome = self.act_build(drives)
@@ -171,6 +181,33 @@ class Fly:
     # -- actions ---------------------------------------------------------
     def context(self) -> str:
         return self.memory.summary()
+
+    def act_website(self, refine: bool = False) -> dict[str, Any]:
+        from .website import build_website
+
+        self.log("the fly is polishing its website" if refine else "the fly is designing its website")
+        res = build_website(self.mind, self.cfg.root / "site", context=self.context(), log=self.log, refine=refine)
+        self.memory.add("builds", {"slug": "website", "title": "The Fly Dev website", "ok": res.ok,
+                                   "path": str(self.cfg.root / "site"), "files": res.files,
+                                   "log": f"source={res.source}; " + "; ".join(res.problems)[:800]})
+        self.memory.note(f"built its website ({res.source}): {res.notes}"[:400])
+        return {"website": res.source, "files": res.files, "notes": res.notes, "problems": res.problems}
+
+    def act_brand(self, seed: int | None = None) -> dict[str, Any]:
+        """Profile picture and banner for the fly's X page, plus a bio."""
+        from .brand import render_banner, render_pfp
+
+        copy = self.mind.brand(self.context())
+        seed = seed if seed is not None else int(time.time())
+        out = self.cfg.root / "site" / "brand"
+        pfp = render_pfp(out / "pfp.png", seed=seed, mood=copy.mood)
+        banner = render_banner(out / "banner.png", copy.tagline, seed=seed, mood=copy.mood,
+                               symbol=self.cfg.launchpad.genesis_symbol or "FLYDEV")
+        (out / "bio.txt").write_text(copy.bio + "\n", encoding="utf-8")
+        self.memory.add("builds", {"slug": "brand", "title": "X profile picture and banner", "ok": True,
+                                   "path": str(out), "files": ["pfp.png", "banner.png", "bio.txt"], "log": copy.tagline})
+        self.memory.note(f"drew its X profile: {copy.tagline}")
+        return {"pfp": str(pfp), "banner": str(banner), "tagline": copy.tagline, "bio": copy.bio, "mood": copy.mood}
 
     def act_browse(self, drives: Drives) -> dict[str, Any]:
         topics = list(self.cfg.browser.seeds)

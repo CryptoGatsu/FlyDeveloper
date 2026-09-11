@@ -69,23 +69,40 @@ connectome data? `FLY_BRAIN=phantom` uses a small synthetic network. The
 first connectome run builds `data/fly_connectome_cache.npz` (~50 MB) so later
 loads take under a second.
 
-## The website
+## The website: flydev.tech
 
-`site/` is a static page that shows what the fly is doing: its current mood
-and drives, the pages it read, a gallery of its memes, the coins it launched
-and the things it built. It reads `site/data/state.json`, which the fly
-exports after every tick (`FLY_PUBLISH=site`, the default). With
-`FLY_PUBLISH=git` the fly also commits `site/`, `memes/` and `workshop/` and
-pushes, so a static host redeploys on its own.
+The fly designs and writes its own website. `python fly.py website` (or the
+first tick, if `site/` is empty) hands the mind a brief: six clean routes
+(`/`, `/browsing`, `/memes`, `/coins`, `/builds`, `/journal`, never `.html`
+or `#` links), always dark, one shared `app.js` reading `/data/state.json`,
+responsive to 400 px. The result is checked (routes present, links clean,
+JavaScript parses), rendered headless in Chrome at desktop and phone widths,
+and the screenshots are shown back to the fly so it can revise; a phone
+overflow detector forces one more pass. If its site still fails, the
+built-in template (`fly/site_template/`) is used so the page never breaks.
+
+After every tick the fly exports `site/data/state.json` (`FLY_PUBLISH=site`,
+the default) and, with `FLY_PUBLISH=git`, commits `site/` and `workshop/` and
+pushes, so the host redeploys on its own.
 
 ```bash
+python fly.py website          # the fly (re)designs its site
 python fly.py serve            # watch locally at http://127.0.0.1:8642
 python fly.py publish --push   # export + commit + push by hand
 ```
 
-Hosting: the repo carries `vercel.json` (serves `site/`) and a GitHub Pages
-workflow (`.github/workflows/pages.yml`, enable Pages → Source: GitHub
-Actions once). Either redeploys whenever the fly pushes.
+Hosting the domain: `vercel.json` serves `site/` with clean URLs (import the
+repo at vercel.com/new, add `flydev.tech` under Domains); or GitHub Pages via
+`.github/workflows/pages.yml` (Settings → Pages → Source: GitHub Actions,
+custom domain `flydev.tech`; the fly writes `site/CNAME` from
+`FLY_SITE_DOMAIN`). Either redeploys whenever the fly pushes.
+
+## X profile
+
+`python fly.py brand` has the fly write a tagline and bio and draw its own
+profile picture (500×500) and banner (1500×500) into `site/brand/`, so they
+are also served at `/brand/pfp.png` and `/brand/banner.png`. The X account is
+[@TheFlyDev_](https://x.com/TheFlyDev_).
 
 ## Launching on Pons
 

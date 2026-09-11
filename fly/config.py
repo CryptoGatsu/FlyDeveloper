@@ -91,7 +91,7 @@ class MindConfig:
     model: str = "claude-opus-5"
     effort: str = "high"
     max_tokens: int = 16000
-    code_max_tokens: int = 64000
+    code_max_tokens: int = 24000
 
 
 @dataclass
@@ -125,8 +125,8 @@ class LaunchpadConfig:
     max_initial_buy_eth: float = 0.01
     max_launch_fee_eth: float = 0.01 # refuse to launch if the factory fee exceeds this
     creator_fee_recipient: str = ""  # defaults to the launching wallet
-    website: str = "https://github.com/CryptoGatsu/FlyDeveloper"
-    twitter: str = ""
+    website: str = "https://flydev.tech"
+    twitter: str = "https://x.com/TheFlyDev_"
     telegram: str = ""
     # The fly's own coin: used for its first live launch. Empty name disables.
     genesis_name: str = "The Fly Dev"
@@ -195,6 +195,7 @@ class FlyConfig:
     hosting: HostingConfig = field(default_factory=HostingConfig)
     tick_interval_sec: int = 1800
     publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
+    site_domain: str = "flydev.tech"   # FLY_SITE_DOMAIN: writes site/CNAME for GitHub Pages custom domains
 
     @classmethod
     def from_env(cls, root: Path | None = None) -> "FlyConfig":
@@ -206,6 +207,7 @@ class FlyConfig:
         cfg.memory_path = Path(_env("FLY_MEMORY_PATH", str(root / "data" / "fly_memory.json")))
         cfg.tick_interval_sec = _env_int("FLY_TICK_INTERVAL_SEC", 1800)
         cfg.publish = _env("FLY_PUBLISH", "site").strip().lower()
+        cfg.site_domain = _env("FLY_SITE_DOMAIN", "flydev.tech").strip()
 
         b = cfg.brain
         b.mode = _env("FLY_BRAIN", "connectome")
@@ -252,7 +254,7 @@ class FlyConfig:
         lp.max_launch_fee_eth = _env_float("FLY_MAX_LAUNCH_FEE_ETH", 0.01)
         lp.creator_fee_recipient = _env("FLY_CREATOR_FEE_RECIPIENT", "")
         lp.website = _env("FLY_WEBSITE", lp.website)
-        lp.twitter = _env("FLY_TWITTER", "")
+        lp.twitter = _env("FLY_TWITTER", lp.twitter)
         lp.telegram = _env("FLY_TELEGRAM", "")
         lp.genesis_name = _env("FLY_GENESIS_NAME", lp.genesis_name)
         lp.genesis_symbol = _env("FLY_GENESIS_SYMBOL", lp.genesis_symbol)

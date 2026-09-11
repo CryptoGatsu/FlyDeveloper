@@ -106,6 +106,8 @@ def export_site(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             dst = site / "memes" / src.name
             if not dst.is_file() or dst.stat().st_mtime < src.stat().st_mtime:
                 shutil.copy2(src, dst)
+    if cfg.site_domain:
+        (site / "CNAME").write_text(cfg.site_domain + "\n", encoding="utf-8")
     state = build_state(cfg, mem, extra)
     out = site / "data" / "state.json"
     out.write_text(json.dumps(state, indent=1, default=str), encoding="utf-8")
@@ -115,7 +117,8 @@ def export_site(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
 def publish(cfg: FlyConfig, message: str, log=print) -> bool:
     """git add + commit + push the public artefacts. Returns True on a push."""
     root = cfg.root
-    paths = ["site/data", "site/memes", "workshop"]
+    paths = ["site", "workshop"]
+    shutil.rmtree(root / "site" / "__qa", ignore_errors=True)
     try:
         subprocess.run(["git", "-C", str(root), "add", "-A", *paths], check=True, capture_output=True, text=True)
         diff = subprocess.run(["git", "-C", str(root), "diff", "--cached", "--quiet"])
