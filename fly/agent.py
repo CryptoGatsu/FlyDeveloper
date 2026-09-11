@@ -241,7 +241,7 @@ class Fly:
                                   "pitch": idea.pitch, "why": idea.why_needed})
         for page in self.memory.recent("pages", 20):
             page["used"] = True
-        result = self.workshop.build(idea)
+        result = self.workshop.build(idea, mind=self.mind, log_fn=self.log)
         self.memory.add("builds", {"slug": result.slug, "title": idea.title, "ok": result.ok,
                                    "path": str(result.path), "files": result.files, "log": result.log[-1500:]})
         return {"built": idea.title, "path": str(result.path), "ok": result.ok, "files": result.files,

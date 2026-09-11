@@ -49,6 +49,11 @@ class TechIdea(BaseModel):
     files: list[ProjectFile] = Field(description="Complete, runnable files including README.md and at least one test file")
 
 
+class ProjectFix(BaseModel):
+    diagnosis: str = Field(description="One or two sentences: what was wrong")
+    files: list[ProjectFile] = Field(description="Only the files that change, complete contents")
+
+
 class MemeCaption(BaseModel):
     top: str = Field(description="Top caption, <= 60 chars, uppercase is fine")
     bottom: str = Field(description="Bottom caption, <= 60 chars")
@@ -95,6 +100,7 @@ class Mind(Protocol):
     def website(self, brief: str, context: str) -> WebsiteFiles: ...
     def brand(self, context: str) -> BrandCopy: ...
     def reflect(self, notes: str) -> Learning: ...
+    def fix_project(self, idea: "TechIdea", files: list[ProjectFile], log: str) -> ProjectFix: ...
     def revise_website(self, brief: str, files: list[ProjectFile], problems: list[str], screenshots: list) -> WebsiteFiles: ...
 
 
@@ -185,6 +191,21 @@ What you have done so far (for flavour, do not hard-code it; the page reads stat
 
 Return every file complete. No placeholders, no TODOs."""
         return self._ask(prompt, WebsiteFiles, max_tokens=self.cfg.code_max_tokens)
+
+    def fix_project(self, idea: TechIdea, files: list[ProjectFile], log: str) -> ProjectFix:
+        listing = "\n\n".join(f"=== {f.path} ===\n{f.content}" for f in files)
+        prompt = f"""Your project "{idea.title}" failed its checks. Fix it.
+
+Test / compile output:
+{log[-3000:]}
+
+Current files:
+{listing}
+
+Return only the files that need to change, each complete. Keep the project
+small; fix the code rather than deleting or weakening tests unless a test is
+plainly wrong."""
+        return self._ask(prompt, ProjectFix, max_tokens=self.cfg.code_max_tokens)
 
     def reflect(self, notes: str) -> Learning:
         prompt = f"""You just finished a browsing session. Your notes on each page:
@@ -382,6 +403,9 @@ def test_tip():
 
         return WebsiteFiles(notes="The template nest: dark, six rooms, no frameworks. I will redecorate later.",
                             files=template_files())
+
+    def fix_project(self, idea: TechIdea, files: list[ProjectFile], log: str) -> ProjectFix:
+        return ProjectFix(diagnosis="Offline mind cannot fix code.", files=[])
 
     def reflect(self, notes: str) -> Learning:
         return Learning(summary="Read a few pages. Humans have many small annoyances and few small tools.",

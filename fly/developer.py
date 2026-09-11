@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -51,7 +52,8 @@ class Workshop:
         self.dir = workshop_dir
         self.test_timeout_sec = test_timeout_sec
 
-    def build(self, idea: TechIdea) -> BuildResult:
+    def build(self, idea: TechIdea, mind=None, repair_rounds: int = 2, log_fn=None) -> BuildResult:
+        """Write the project, check it, and let the mind repair failures."""
         slug = safe_slug(idea.slug)
         project = self.dir / slug
         n = 2
@@ -62,6 +64,7 @@ class Workshop:
 
         written: list[str] = []
         log: list[str] = []
+        files = {f.path: f for f in idea.files}
         for f in idea.files:
             target = _safe_relpath(project, f.path)
             if target is None:
@@ -70,6 +73,35 @@ class Workshop:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(f.content, encoding="utf-8")
             written.append(str(target.relative_to(project)))
+        result = self._check(project, written, idea, log)
+        rounds = 0
+        while not result.ok and mind is not None and rounds < repair_rounds:
+            rounds += 1
+            if log_fn:
+                log_fn(f"tests failed; the fly is fixing {idea.title} (round {rounds})")
+            try:
+                fix = mind.fix_project(idea, list(files.values()), result.log)
+            except Exception as exc:
+                log.append(f"repair round {rounds} failed: {exc}")
+                break
+            if not fix.files:
+                break
+            log.append(f"repair round {rounds}: {fix.diagnosis}")
+            for f in fix.files:
+                target = _safe_relpath(project, f.path)
+                if target is None:
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(f.content, encoding="utf-8")
+                files[f.path] = f
+                rel = str(target.relative_to(project))
+                if rel not in written:
+                    written.append(rel)
+            result = self._check(project, written, idea, log)
+        return result
+
+    def _check(self, project: Path, written: list[str], idea: TechIdea, log: list[str]) -> BuildResult:
+        log = list(log)
         if "README.md" not in written:
             (project / "README.md").write_text(
                 f"# {idea.title}\n\n{idea.pitch}\n\nFor: {idea.for_whom}\n\nRun: `{idea.run_hint}`\n",
@@ -80,6 +112,8 @@ class Workshop:
             f"# Why the fly built this\n\n{idea.why_needed}\n\nPitch: {idea.pitch}\n",
             encoding="utf-8",
         )
+        for stale in project.rglob("__pycache__"):
+            shutil.rmtree(stale, ignore_errors=True)
 
         ok = True
         py_files = [project / w for w in written if w.endswith(".py")]

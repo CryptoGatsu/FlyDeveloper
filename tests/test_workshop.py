@@ -35,3 +35,22 @@ def test_slug_collision_gets_suffix(tmp_path):
     b = ws.build(_idea([ProjectFile(path="README.md", content="# b")]))
     assert a.slug == "thing-one" and b.slug == "thing-one-2"
     assert safe_slug("!!!") == "untitled"
+
+
+class FixingMind:
+    calls = 0
+
+    def fix_project(self, idea, files, log):
+        from fly.mind import ProjectFix
+        self.calls += 1
+        assert "assert False" in "".join(f.content for f in files) or "AssertionError" in log
+        return ProjectFix(diagnosis="the test asserted False", files=[ProjectFile(path="test_bad.py", content="def test_ok():\n    assert True\n")])
+
+
+def test_repair_loop_fixes_failing_build(tmp_path):
+    ws = Workshop(tmp_path)
+    mind = FixingMind()
+    res = ws.build(_idea([ProjectFile(path="README.md", content="# x"),
+                          ProjectFile(path="test_bad.py", content="def test_bad():\n    assert False\n")]), mind=mind)
+    assert res.ok is True and mind.calls == 1
+    assert "repair round 1: the test asserted False" in res.log
