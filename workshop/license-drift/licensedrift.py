@@ -54,6 +54,10 @@ _MAX_ATOMS = 6
 _NAME_SEP = re.compile(r"[-_.]+")
 
 
+def _utc_now():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def normalize_name(name):
     """PEP 503 normalised project name.
 
@@ -212,7 +216,7 @@ def read_installed():
 def build_snapshot(packages):
     return {
         "tool": "license-drift",
-        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated": _utc_now(),
         "packages": normalize_names(packages),
     }
 
@@ -233,6 +237,23 @@ def save_snapshot(path, packages):
         fh.write("\n")
 
 
+def _change(kind, name, version, old, new, alarm):
+    """One change record.
+
+    `package` and `version` are kept apart so machine consumers never have to
+    split on `@`; `name` stays as the human display string.
+    """
+    return {
+        "kind": kind,
+        "package": name,
+        "version": version,
+        "name": "%s@%s" % (name, version),
+        "old": old,
+        "new": new,
+        "alarm": alarm,
+    }
+
+
 def diff(old, new):
     """Compare two package maps; return a sorted list of change records."""
     old, new = normalize_names(old), normalize_names(new)
@@ -241,22 +262,20 @@ def diff(old, new):
         before, after = old.get(name), new.get(name)
         if before is None:
             lic = after.get("license", "UNKNOWN")
-            changes.append({
-                "kind": "added", "name": "%s@%s" % (name, after.get("version", "?")),
-                "old": None, "new": lic, "alarm": is_restrictive(lic)})
+            changes.append(_change(
+                "added", name, after.get("version", "?"),
+                None, lic, is_restrictive(lic)))
         elif after is None:
-            changes.append({
-                "kind": "removed", "name": "%s@%s" % (name, before.get("version", "?")),
-                "old": before.get("license", "UNKNOWN"), "new": None, "alarm": False})
+            changes.append(_change(
+                "removed", name, before.get("version", "?"),
+                before.get("license", "UNKNOWN"), None, False))
         else:
             old_lic = before.get("license", "UNKNOWN")
             new_lic = after.get("license", "UNKNOWN")
             if old_lic != new_lic:
-                changes.append({
-                    "kind": "license-change",
-                    "name": "%s@%s" % (name, after.get("version", "?")),
-                    "old": old_lic, "new": new_lic,
-                    "alarm": is_restrictive(new_lic)})
+                changes.append(_change(
+                    "license-change", name, after.get("version", "?"),
+                    old_lic, new_lic, is_restrictive(new_lic)))
     return changes
 
 
@@ -278,6 +297,19 @@ def format_report(changes):
     return "\n".join(lines)
 
 
+def build_report(changes, snapshot_path, updated=False):
+    """The `--json` document: everything a CI annotator needs, nothing else."""
+    return {
+        "tool": "license-drift",
+        "generated": _utc_now(),
+        "snapshot": snapshot_path,
+        "changes": changes,
+        "alarms": sum(1 for ch in changes if ch["alarm"]),
+        "exit_code": exit_code(changes),
+        "snapshot_updated": bool(updated),
+    }
+
+
 def exit_code(changes):
     if any(ch["alarm"] for ch in changes):
         return 2
@@ -293,7 +325,11 @@ def main(argv=None, current=None):
     chk = sub.add_parser("check", help="compare current licenses to a snapshot")
     chk.add_argument("path", nargs="?", default="licenses.json")
     chk.add_argument("--update", action="store_true", help="rewrite snapshot after reporting")
-    sub.add_parser("list", help="print current packages and licenses")
+    chk.add_argument("--json", action="store_true", dest="as_json",
+                     help="print a machine-readable report instead of text")
+    lst = sub.add_parser("list", help="print current packages and licenses")
+    lst.add_argument("--json", action="store_true", dest="as_json",
+                     help="print snapshot-shaped JSON on stdout")
 
     args = parser.parse_args(argv)
     if not args.cmd:
@@ -302,8 +338,12 @@ def main(argv=None, current=None):
 
     packages = current if current is not None else read_installed()
     packages = normalize_names(packages)
+    as_json = getattr(args, "as_json", False)
 
     if args.cmd == "list":
+        if as_json:
+            print(json.dumps(build_snapshot(packages), indent=2, sort_keys=True))
+            return 0
         for name in sorted(packages):
             info = packages[name]
             print("%-32s %-12s %s" % (name, info.get("version", "?"), info.get("license", "UNKNOWN")))
@@ -325,10 +365,16 @@ def main(argv=None, current=None):
         return 3
 
     changes = diff(baseline, packages)
-    print(format_report(changes))
-    if args.update and changes:
+    updated = bool(args.update and changes)
+    if updated:
         save_snapshot(args.path, packages)
-        print("snapshot updated.")
+
+    if as_json:
+        print(json.dumps(build_report(changes, args.path, updated), indent=2, sort_keys=True))
+    else:
+        print(format_report(changes))
+        if updated:
+            print("snapshot updated.")
     return exit_code(changes)
 
 

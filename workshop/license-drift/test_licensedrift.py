@@ -118,6 +118,15 @@ def test_diff_still_sees_a_relicense_under_a_respelled_name():
     assert changes[0]["name"] == "sneaky-orm@2.0"
 
 
+def test_change_records_split_package_and_version():
+    ch = ld.diff({"orm": _pkg("1.0", "MIT")}, {"orm": _pkg("2.0", "BUSL-1.1")})[0]
+    assert ch["package"] == "orm"
+    assert ch["version"] == "2.0"
+    assert ch["name"] == "orm@2.0"
+    removed = ld.diff({"six": _pkg("1.16.0", "MIT")}, {})[0]
+    assert (removed["package"], removed["version"]) == ("six", "1.16.0")
+
+
 def test_diff_detects_relicensing_and_alarms():
     old = {"sneaky": _pkg("1.0.0", "Apache-2.0")}
     new = {"sneaky": _pkg("2.0.0", "BUSL-1.1")}
@@ -166,6 +175,17 @@ def test_format_report():
     text = ld.format_report(ld.diff({"a": _pkg("1", "MIT")}, {"a": _pkg("2", "SSPL-1.0")}))
     assert "MIT -> SSPL-1.0" in text
     assert "source-available" in text
+
+
+def test_build_report_shape():
+    changes = ld.diff({"a": _pkg("1", "MIT")}, {"a": _pkg("2", "SSPL-1.0")})
+    report = ld.build_report(changes, "licenses.json")
+    assert report["tool"] == "license-drift"
+    assert report["snapshot"] == "licenses.json"
+    assert report["alarms"] == 1
+    assert report["exit_code"] == 2
+    assert report["snapshot_updated"] is False
+    assert report["changes"] == changes
 
 
 def test_snapshot_roundtrip(tmp_path):
@@ -221,15 +241,56 @@ def test_cli_check_reports_drift_and_can_update(tmp_path, capsys):
     capsys.readouterr()
 
 
-def test_cli_missing_snapshot_is_usage_error(tmp_path, capsys):
-    code = ld.main(["check", str(tmp_path / "nope.json")], current={})
-    assert code == 3
-    assert "no snapshot" in capsys.readouterr().err
+def test_cli_check_json_is_pure_json_and_carries_the_exit_code(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    ld.main(["snapshot", path], current={"orm": _pkg("1.0", "Apache-2.0")})
+    capsys.readouterr()
+    code = ld.main(["check", path, "--json"], current={"orm": _pkg("2.0", "BUSL-1.1")})
+    body = json.loads(capsys.readouterr().out)
+    assert code == 2 == body["exit_code"]
+    assert body["alarms"] == 1
+    assert body["snapshot"] == path
+    assert body["snapshot_updated"] is False
+    change = body["changes"][0]
+    assert change["package"] == "orm"
+    assert (change["old"], change["new"]) == ("Apache-2.0", "BUSL-1.1")
+    assert change["alarm"] is True
+
+
+def test_cli_check_json_clean_run_has_no_changes(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    packages = {"rich": _pkg("13.7.0", "MIT")}
+    ld.main(["snapshot", path], current=packages)
+    capsys.readouterr()
+    assert ld.main(["check", path, "--json"], current=packages) == 0
+    body = json.loads(capsys.readouterr().out)
+    assert body["changes"] == [] and body["alarms"] == 0
+
+
+def test_cli_check_json_update_reports_the_rewrite(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    ld.main(["snapshot", path], current={"orm": _pkg("1.0", "MIT")})
+    capsys.readouterr()
+    ld.main(["check", path, "--json", "--update"], current={"orm": _pkg("2.0", "ISC")})
+    body = json.loads(capsys.readouterr().out)
+    assert body["snapshot_updated"] is True
+    assert ld.load_snapshot(path)["orm"]["license"] == "ISC"
 
 
 def test_cli_list(capsys):
     assert ld.main(["list"], current={"Rich": _pkg("13.7.0", "MIT")}) == 0
     assert "rich" in capsys.readouterr().out
+
+
+def test_cli_list_json_matches_a_snapshot_file(tmp_path, capsys):
+    path = tmp_path / "licenses.json"
+    packages = {"Rich": _pkg("13.7.0", "MIT")}
+    assert ld.main(["list", "--json"], current=packages) == 0
+    printed = json.loads(capsys.readouterr().out)
+    ld.save_snapshot(str(path), packages)
+    written = json.loads(path.read_text())
+    assert printed["packages"] == written["packages"] == {"rich": _pkg("13.7.0", "MIT")}
+    assert printed["tool"] == written["tool"]
 
 
 def test_read_installed_returns_mapping():

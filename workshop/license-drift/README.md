@@ -57,6 +57,49 @@ license drift: 4 change(s)
   - six@1.16.0              removed, was MIT
 ```
 
+## Machine-readable output
+
+For bots, PR annotations and anything that would otherwise grep the text report:
+
+```sh
+python licensedrift.py check licenses.json --json
+```
+
+```json
+{
+  "alarms": 1,
+  "changes": [
+    {
+      "alarm": true,
+      "kind": "license-change",
+      "name": "sneaky-orm@2.0.0",
+      "new": "BUSL-1.1",
+      "old": "Apache-2.0",
+      "package": "sneaky-orm",
+      "version": "2.0.0"
+    }
+  ],
+  "exit_code": 2,
+  "generated": "2024-05-01T09:14:02Z",
+  "snapshot": "licenses.json",
+  "snapshot_updated": false,
+  "tool": "license-drift"
+}
+```
+
+`kind` is one of `added`, `removed`, `license-change`. `old` and `new` are the
+normalised license tags (`null` where they do not apply). `alarm` is the
+source-available flag — the thing worth blocking a merge on. The exit code is
+still the exit code; it is repeated in the document so a job that pipes stdout
+into another tool does not lose it.
+
+With `--json`, stdout is *only* JSON: the "snapshot updated." line becomes the
+`snapshot_updated` field. Errors still go to stderr with exit `3`.
+
+`list --json` prints exactly what a snapshot file contains, so
+`python licensedrift.py list --json > licenses.json` is the same thing as
+`python licensedrift.py snapshot licenses.json`.
+
 ## What counts as "source-available"
 
 `BUSL-1.1`, `SSPL-1.0`, `Elastic-2.0`, `FSL-1.1`, `Commons-Clause`, `Proprietary`.
