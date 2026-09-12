@@ -75,3 +75,15 @@ def test_replies_draft_for_mentions_not_self(tmp_path):
     assert len(replies) == 1 and replies[0]["to"] == "sam" and replies[0]["live"] is False
     assert fly.act_replies(live=False) == "no new mentions" or "0" in fly.act_replies(live=False) or True
     assert len([p for p in fly.memory.data["posts"] if p["kind"] == "reply"]) == 1   # not answered twice
+
+
+def test_promo_mentions_are_recognised():
+    from fly.x import looks_like_promo
+
+    assert looks_like_promo("@TheFlyDev_ Let's take your project to the next level! \U0001F680 DM me and follow me back")
+    assert looks_like_promo("Hey \U0001F44B!! Your project is really Amazing\U0001F680\U0001F680 Send me DM to discuss. I have a very attractive proposal for you !!")
+    assert looks_like_promo("@TheFlyDev_ we offer marketing packages, check the pricing in our telegram")
+    assert looks_like_promo("@TheFlyDev_ \U0001F680\U0001F680\U0001F525") == "emoji hype with nothing asked"
+    assert looks_like_promo("@TheFlyDev_ what did you build today?") == ""
+    assert looks_like_promo("@TheFlyDev_ lol a fly with a ticker, love it") == ""
+    assert looks_like_promo("@TheFlyDev_ is the ripeness clock open source? can I DM you a bug?") == ""   # a question with one hit survives

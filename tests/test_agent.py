@@ -239,3 +239,38 @@ def test_rest_answers_mentions_between_ticks(tmp_path, monkeypatch):
     assert answered == 1 and len(calls) >= 2                 # polled more than once during one rest
     reply = [p for p in fly.memory.data["posts"] if p.get("kind") == "reply"][-1]
     assert reply["mention_id"] == "77" and reply["to"] == "tyler" and reply["text"]
+
+
+def test_promo_mentions_are_ignored_and_never_published(tmp_path):
+    from fly.publish import build_state
+
+    fly = _fly(tmp_path)
+    fly.cfg.publish = "none"
+
+    class FakeX:
+        configured = True
+        armed = False
+
+        def mentions(self, since_id=""):
+            return [{"id": "2", "text": "@TheFlyDev_ what are you building?", "author": "real", "author_id": "8"},
+                    {"id": "1", "text": "Let's take your project to the next level! DM me and follow me back", "author": "bot", "author_id": "9"}]
+
+        def me(self):
+            return "1"
+
+    fly.x = FakeX()
+    assert fly.act_replies(live=False) == "1 mention(s) answered"
+    replies = [p for p in fly.memory.data["posts"] if p.get("kind") == "reply"]
+    assert {r["to"]: bool(r.get("skipped")) for r in replies} == {"bot": True, "real": False}
+    assert fly.act_replies(live=False) == "no new mentions"           # both remembered, the bot is not re-judged
+    assert all(p["text"] for p in build_state(fly.cfg, fly.memory)["posts"])   # the skip never shows on the site
+
+
+def test_post_cap_ignores_replies(tmp_path):
+    fly = _fly(tmp_path)
+    fly.cfg.x.max_posts_per_day = 1
+    for i in range(3):
+        fly.memory.add("posts", {"kind": "reply", "text": "hi", "live": True})
+    assert "cap" not in fly.act_post("hype", "own coin")                # replies do not eat the cap
+    fly.memory.add("posts", {"kind": "hype", "text": "x", "live": True})
+    assert "cap" in fly.act_post("hype", "own coin")

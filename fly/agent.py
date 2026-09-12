@@ -18,7 +18,7 @@ from .memes import render_meme
 from .memory import Memory
 from .mind import Mind, MindRefused, build_mind
 from .neurons import Sense, load_senses
-from .x import Post, XClient, XError, engagement_score, post_problems
+from .x import Post, XClient, XError, engagement_score, looks_like_promo, post_problems
 
 Logger = Callable[[str], None]
 
@@ -276,7 +276,21 @@ class Fly:
                 break
             if any(p.get("mention_id") == m["id"] for p in self.memory.data.get("posts", [])):
                 continue
-            draft = self.mind.reply(m.get("author") or "someone", m["text"], self.context(), mood)
+            author = m.get("author") or "someone"
+            why = looks_like_promo(m["text"])
+            if not why and self.memory.count_since("posts", 24.0, kind="reply", live=True, to=author) >= self.cfg.x.max_replies_per_account_per_day:
+                why = f"already answered @{author} today"
+            draft = None
+            if not why:
+                draft = self.mind.reply(author, m["text"], self.context(), mood)
+                if draft.ignore or not draft.text.strip():
+                    why = draft.why or "nothing worth answering"
+            if why:
+                self.memory.add("posts", {"kind": "reply", "text": "", "id": "", "url": "", "live": False, "skipped": why,
+                                          "mention_id": m["id"], "to": author, "asked": m["text"][:280],
+                                          "problems": [], "metrics": {}, "score": 0.0})
+                self.log(f"ignored @{author}: {why} :: {m['text'][:100]}")
+                continue
             post = Post(text=draft.text.strip(), kind="reply")
             post.problems = post_problems(post.text)
             if not post.problems and live and self.x.armed:
@@ -289,7 +303,8 @@ class Fly:
         return f"{answered} mention(s) answered" if answered else "no new mentions"
 
     def act_post(self, kind: str, material: str, media: str = "", live: bool = False) -> str:
-        today = self.memory.count_since("posts", 24.0, live=True)
+        today = sum(1 for x in self.memory.data.get("posts", [])
+                    if x.get("live") and x.get("kind") != "reply" and float(x.get("ts", 0)) >= time.time() - 86400)
         if today >= self.cfg.x.max_posts_per_day:
             return f"{kind}: daily post cap reached"
         draft = self.mind.compose_post(kind, material, self.context(), self.playbook_text())

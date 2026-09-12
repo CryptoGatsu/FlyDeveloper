@@ -136,7 +136,7 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
     posts = [{"at": x.get("at"), "kind": x.get("kind"), "text": x.get("text"), "url": x.get("url") or "", "live": bool(x.get("live")),
               "media": _meme_public_path(x["media"]) if x.get("media") and str(x["media"]).endswith(".png") else "",
               "metrics": x.get("metrics") or {}, "score": x.get("score", 0), "why": x.get("why", "")}
-             for x in d.get("posts", []) if not x.get("problems")]
+             for x in d.get("posts", []) if not x.get("problems") and not x.get("skipped")]
     pb = mem.last("playbook") or {}
     playbook = {"at": pb.get("at"), "what_works": pb.get("what_works") or [], "what_flops": pb.get("what_flops") or [],
                 "next_bets": pb.get("next_bets") or []}

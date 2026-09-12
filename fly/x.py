@@ -50,6 +50,39 @@ class Post:
     problems: list[str] = field(default_factory=list)
 
 
+PROMO_PATTERNS = (
+    r"\bdm\b", r"\bdms\b", r"direct message", r"follow (me )?back", r"send (me )?(a )?(dm|message)",
+    r"attractive proposal", r"\bproposal\b", r"\bcollab(oration)?\b", r"\bpartnership\b", r"partner with",
+    r"next level", r"\bpromot(e|ion|ing)\b", r"\bmarketing\b", r"\bshill\b", r"\bboost (your|the)\b",
+    r"\blisting\b", r"\bkol\b", r"\binfluencer\b", r"grow your (project|community|account)",
+    r"\bwhitelist\b", r"\bairdrop\b", r"\bgiveaway\b", r"check (out )?my\b", r"\bpump\b",
+    r"\bcall channel\b", r"\btrending\b", r"\bpaid\b", r"\bpackage\b", r"\bpricing\b",
+    r"\bwe (offer|provide)\b", r"\bour services?\b", r"\btelegram\b", r"\bt\.me/",
+)
+_PROMO_RE = re.compile("|".join(PROMO_PATTERNS), re.IGNORECASE)
+
+
+def looks_like_promo(text: str) -> str:
+    """Why a mention looks like promo spam / bot outreach, or "" if it does not.
+    Cheap and deliberately broad: a real question survives it, a pitch does not."""
+    t = (text or "").strip()
+    body = re.sub(r"@\w+", "", t).strip()
+    if not body:
+        return "empty mention"
+    hits = [m.group(0).lower() for m in _PROMO_RE.finditer(body)]
+    rockets = body.count("\U0001F680") + body.count("\U0001F525") + body.count("\U0001F4B0")
+    has_question = "?" in body
+    if len(set(hits)) >= 2:
+        return "promo pitch (" + ", ".join(sorted(set(hits))[:3]) + ")"
+    if hits and not has_question:
+        return f"promo pitch ({hits[0]})"
+    if rockets >= 2 and not has_question and len(body) < 160:
+        return "emoji hype with nothing asked"
+    if re.fullmatch(r"[\W\d_]+", body):
+        return "no words"
+    return ""
+
+
 def post_problems(text: str) -> list[str]:
     out = []
     low = text.lower()
