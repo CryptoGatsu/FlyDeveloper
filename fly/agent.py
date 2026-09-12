@@ -87,6 +87,10 @@ class Fly:
             max_launches_per_day=self.cfg.launchpad.max_launches_per_day,
             launch_armed=self.cfg.launchpad.live,
             genesis_pending=bool(self.cfg.launchpad.genesis_name) and not self.has_launched(),
+            actions_last_hour=sum(1 for d in m.recent("drives", 60) if d.get("action") not in (None, "rest")
+                                  and time.time() - float(d.get("ts", 0)) < 3600),
+            actions_today=m.count_since("drives", 24.0),
+            max_actions_per_day=self.cfg.max_actions_per_day,
         )
 
     def perceive(self, seed: int | None = None) -> dict[str, SpikeReport]:
@@ -308,7 +312,11 @@ class Fly:
             self.log(f"publish skipped: {exc}")
 
     def run(self, ticks: int | None = None, interval_sec: int | None = None, live: bool = False) -> None:
-        interval = interval_sec or self.cfg.tick_interval_sec
+        """Keep living. With a fixed interval the fly acts on a timer; with none
+        (the default) it decides how long to rest after each action."""
+        from .drives import next_rest_sec
+
+        interval = interval_sec if interval_sec is not None else self.cfg.tick_interval_sec
         n = 0
         while ticks is None or n < ticks:
             result = self.tick(live=live)
@@ -316,7 +324,13 @@ class Fly:
             n += 1
             if ticks is not None and n >= ticks:
                 break
-            time.sleep(interval)
+            if interval and interval > 0:
+                pause = interval
+            else:
+                fingerprint = "".join(r.fingerprint() for r in result.reports.values())
+                pause = next_rest_sec(result.action, result.drives, fingerprint)
+            self.log(f"the fly rests for {pause // 60} min {pause % 60} s")
+            time.sleep(pause)
 
     # -- actions ---------------------------------------------------------
     def context(self) -> str:

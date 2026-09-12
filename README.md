@@ -53,6 +53,15 @@ for the brain: the `fly/` package.
      the exact calldata.
 5. **Remember.** Everything lands in `data/fly_memory.json` and feeds the next
    tick's context.
+6. **Rest.** After each action the fly decides how long to rest before its
+   brain chooses again: a couple of minutes after browsing, a quarter hour
+   after a build, longer as it tires (fatigue grows with the number of
+   recent actions and caps the day at `FLY_MAX_ACTIONS_PER_DAY`). Pass
+   `--interval` to `live` for a fixed timer instead.
+
+Run it as a background service on macOS so it lives without a terminal:
+`python fly.py daemon install --live` (logs in `data/fly-daemon.log`,
+restarts at login and after crashes; `daemon status`, `daemon uninstall`).
 
 ## Quickstart
 

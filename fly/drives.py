@@ -34,6 +34,9 @@ class WorldSignals:
     max_launches_per_day: int = 1
     launch_armed: bool = False
     genesis_pending: bool = False   # the fly has not launched its own coin yet
+    actions_last_hour: int = 0      # how busy it has been; feeds fatigue
+    actions_today: int = 0
+    max_actions_per_day: int = 80
 
 
 @dataclass
@@ -92,13 +95,16 @@ def compute_drives(reports: dict[str, SpikeReport], world: WorldSignals, calibra
     if world.genesis_pending and world.launch_armed:
         appetite_w = max(appetite_w, 0.95)   # the urge to hatch its own coin
 
+    fatigue = min(0.9, 0.12 + 0.09 * world.actions_last_hour)
+    if world.actions_today >= world.max_actions_per_day:
+        fatigue = 0.95                      # out of budget for today: it will mostly rest
     drives = Drives(
         curiosity=0.5 * curiosity_t + 0.5 * curiosity_w,
         craft=0.5 * craft_t + 0.5 * craft_w,
         humor=0.5 * humor_t + 0.5 * humor_w,
         appetite=0.5 * appetite_t + 0.5 * appetite_w,
         boldness=boldness_t,
-        fatigue=0.15,
+        fatigue=fatigue,
     )
     return drives
 
@@ -133,3 +139,18 @@ def choose_action(drives: Drives, world: WorldSignals, fingerprint: str, tempera
     rng = np.random.default_rng(seed)
     action = str(rng.choice(names, p=probs))
     return action, {n: round(float(p), 4) for n, p in zip(names, probs)}
+
+
+# How long the fly rests after an action, in seconds, before its brain decides
+# again. Light actions come back quickly; heavy ones earn a longer nap. Fatigue
+# stretches every rest; the spike fingerprint adds jitter so it is never metronomic.
+BASE_REST_SEC = {"browse": 150, "meme": 240, "build": 900, "repair": 600, "improve": 600,
+                 "launch": 1800, "website": 3600, "rest": 420, "brand": 900}
+
+
+def next_rest_sec(action: str, drives: Drives, fingerprint: str = "", floor: int = 60, ceiling: int = 3600) -> int:
+    base = BASE_REST_SEC.get(action, 300)
+    stretch = 0.6 + 1.8 * drives.fatigue                    # 0.6x when fresh, ~2.2x when worn out
+    seed = int(hashlib.sha256((fingerprint or action).encode()).hexdigest()[:8], 16)
+    jitter = 0.75 + (seed % 1000) / 2000.0                  # 0.75x .. 1.25x
+    return int(max(floor, min(ceiling, base * stretch * jitter)))

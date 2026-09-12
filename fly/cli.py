@@ -286,6 +286,52 @@ def cmd_x_status(args) -> int:
     return 0
 
 
+def cmd_daemon(args) -> int:
+    """Run the fly as a background service on macOS (launchd), so it lives
+    without a terminal open. Logs go to data/fly-daemon.log."""
+    import plistlib
+    import subprocess
+    import sys as _sys
+    from pathlib import Path as _P
+
+    cfg = FlyConfig.from_env()
+    label = "tech.flydev.fly"
+    plist = _P.home() / "Library" / "LaunchAgents" / f"{label}.plist"
+    log = cfg.root / "data" / "fly-daemon.log"
+    if args.action == "status":
+        r = subprocess.run(["launchctl", "list"], capture_output=True, text=True)
+        print("installed" if plist.is_file() else "not installed", "|", "running" if label in r.stdout else "not running", "|", f"log: {log}")
+        return 0
+    if args.action == "uninstall":
+        subprocess.run(["launchctl", "unload", str(plist)], capture_output=True)
+        plist.unlink(missing_ok=True)
+        print("uninstalled")
+        return 0
+    if _sys.platform != "darwin":
+        print("daemon install is macOS-only for now; on Linux use a systemd unit or tmux")
+        return 1
+    argv = ["/usr/bin/caffeinate", "-i", _sys.executable, str(cfg.root / "fly.py"), "live"]
+    if args.live:
+        argv.append("--live")
+    data = {
+        "Label": label, "ProgramArguments": argv, "WorkingDirectory": str(cfg.root),
+        "RunAtLoad": True, "KeepAlive": True, "StandardOutPath": str(log), "StandardErrorPath": str(log),
+        "EnvironmentVariables": {"PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin", "PYTHONUNBUFFERED": "1"},
+    }
+    plist.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["launchctl", "unload", str(plist)], capture_output=True)
+    with plist.open("wb") as fh:
+        plistlib.dump(data, fh)
+    r = subprocess.run(["launchctl", "load", str(plist)], capture_output=True, text=True)
+    if r.returncode != 0:
+        print("launchctl load failed:", (r.stderr or r.stdout).strip())
+        return 1
+    print(f"installed and started ({'live' if args.live else 'dry-run launches/posts'}); it restarts on crash and at login")
+    print(f"follow it with:  tail -f {log}")
+    print("stop it with:    python fly.py daemon uninstall")
+    return 0
+
+
 def cmd_publish(args) -> int:
     from .memory import Memory
     from .publish import export_site, publish
@@ -382,9 +428,9 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--seed", type=int)
     t.add_argument("--live", action="store_true", help="allow real launches (FLY_LIVE_LAUNCH=1) and real X posts (FLY_X_POST=1)")
     t.set_defaults(fn=cmd_tick)
-    l = sub.add_parser("live", help="keep ticking")
+    l = sub.add_parser("live", help="keep living: the fly paces itself (or --interval for a fixed timer)")
     l.add_argument("--ticks", type=int)
-    l.add_argument("--interval", type=int)
+    l.add_argument("--interval", type=int, help="seconds between actions; omit for free will")
     l.add_argument("--live", action="store_true")
     l.set_defaults(fn=cmd_live)
     br = sub.add_parser("browse", help="watch the fly browse: search, read, digest")
@@ -415,6 +461,10 @@ def main(argv: list[str] | None = None) -> int:
     bd.add_argument("--seed", type=int)
     bd.set_defaults(fn=cmd_brand)
     sub.add_parser("sync", help="git pull without conflicts on the fly's generated state file").set_defaults(fn=cmd_sync)
+    dm = sub.add_parser("daemon", help="run the fly as a background service on macOS (install | uninstall | status)")
+    dm.add_argument("action", choices=["install", "uninstall", "status"])
+    dm.add_argument("--live", action="store_true", help="install with real launches and posts enabled")
+    dm.set_defaults(fn=cmd_daemon)
     po = sub.add_parser("post", help="compose one X post (dry run unless --live with FLY_X_POST=1)")
     po.add_argument("--kind", choices=["hype", "build", "meme", "launch", "learning"], default="hype")
     po.add_argument("--material", help="what the post is about (default: the latest of that kind)")

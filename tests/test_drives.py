@@ -55,3 +55,16 @@ def test_genesis_urge_makes_launch_dominant():
     calm = WorldSignals(launch_armed=False, genesis_pending=True, unlaunched_memes=0)
     _, probs2 = choose_action(compute_drives(reports, calm, cal), calm, "x")
     assert probs2["launch"] < 0.2      # not armed: no urge, no material
+
+
+def test_fatigue_grows_with_activity_and_rest_scales():
+    from fly.drives import Drives, next_rest_sec
+    reports, cal = _reports()
+    fresh = compute_drives(reports, WorldSignals(actions_last_hour=0), cal)
+    busy = compute_drives(reports, WorldSignals(actions_last_hour=6), cal)
+    spent = compute_drives(reports, WorldSignals(actions_today=80, max_actions_per_day=80), cal)
+    assert fresh.fatigue < busy.fatigue < spent.fatigue
+    assert next_rest_sec("browse", fresh, "a") < next_rest_sec("build", fresh, "a")
+    assert next_rest_sec("browse", fresh, "a") < next_rest_sec("browse", spent, "a")
+    for a in ("browse", "build", "launch", "website", "rest", "unknown"):
+        assert 60 <= next_rest_sec(a, busy, "x") <= 3600
