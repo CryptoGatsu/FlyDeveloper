@@ -68,3 +68,16 @@ def test_fatigue_grows_with_activity_and_rest_scales():
     assert next_rest_sec("browse", fresh, "a") < next_rest_sec("browse", spent, "a")
     for a in ("browse", "build", "launch", "website", "rest", "unknown"):
         assert 60 <= next_rest_sec(a, busy, "x") <= 300                  # never more than five minutes
+
+
+def test_an_hour_off_the_web_makes_browsing_win():
+    from fly.drives import Drives, WorldSignals, choose_action
+
+    tired_builder = Drives(curiosity=0.25, craft=0.7, humor=0.2, appetite=0.3, boldness=0.5, fatigue=0.66)
+    fresh = WorldSignals(hours_since_browse=0.2, unlaunched_memes=0)
+    stale = WorldSignals(hours_since_browse=2.0, unlaunched_memes=0)
+    _, p_fresh = choose_action(tired_builder, fresh, "same-spikes")
+    _, p_stale = choose_action(tired_builder, stale, "same-spikes")
+    assert p_fresh["browse"] < p_fresh["build"]
+    assert p_stale["browse"] > max(p_stale["build"], p_stale["rest"])
+    assert p_stale["browse"] > 0.7

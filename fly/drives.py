@@ -86,7 +86,7 @@ def compute_drives(reports: dict[str, SpikeReport], world: WorldSignals, calibra
     boldness_t = _squash(burst, 1.0, 0.4)
 
     # Pressure from the world.
-    curiosity_w = _hours_pressure(world.hours_since_browse, 6.0)
+    curiosity_w = _hours_pressure(world.hours_since_browse, 1.0)   # a fly gets itchy antennae within the hour
     craft_w = 0.6 * _hours_pressure(world.hours_since_build, 24.0) + 0.4 * _squash(world.unread_notes, 3, 2)
     humor_w = _hours_pressure(world.hours_since_meme, 12.0)
     appetite_w = 0.5 * _squash(world.unlaunched_memes, 1, 1) + 0.5 * _hours_pressure(world.hours_since_launch, 72.0)
@@ -119,10 +119,14 @@ def choose_action(drives: Drives, world: WorldSignals, fingerprint: str, tempera
         "launch": drives.appetite * (0.4 + 0.6 * drives.boldness),
         "rest": drives.fatigue,
     }
+    # Itchy antennae: past an hour without browsing the urge grows until it
+    # wins outright, so the fly is never off the web for long.
+    if world.hours_since_browse >= 1.0:
+        scores["browse"] += min(1.5, 0.8 * (world.hours_since_browse - 1.0) + 0.4)
     # Launching needs material: a meme the fly has not launched yet, unless
     # it is about to hatch its own genesis coin (it draws that meme itself).
     if world.genesis_pending and world.launch_armed:
-        scores["launch"] = max(scores["launch"], 2.0)
+        scores["launch"] = max(scores.values()) + 1.5      # nothing outranks hatching its own coin
     elif world.unlaunched_memes == 0:
         scores["launch"] *= 0.15
     if world.launches_today >= world.max_launches_per_day:
