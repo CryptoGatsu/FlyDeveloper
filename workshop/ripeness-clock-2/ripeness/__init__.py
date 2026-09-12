@@ -3,12 +3,14 @@
 from .model import (
     BASE_C,
     CAP_C,
+    CHILL_SAFE_C,
     FRUITS,
     FUTURE_STAGES,
     ROOM_C,
     STAGES,
     UnknownFruit,
     accumulate,
+    chill_floor,
     daily_rate,
     days_until,
     forecast,
@@ -21,12 +23,14 @@ from .model import (
 __all__ = [
     "BASE_C",
     "CAP_C",
+    "CHILL_SAFE_C",
     "FRUITS",
     "FUTURE_STAGES",
     "ROOM_C",
     "STAGES",
     "UnknownFruit",
     "accumulate",
+    "chill_floor",
     "daily_rate",
     "days_until",
     "forecast",
@@ -35,4 +39,4 @@ __all__ = [
     "target_for",
     "thresholds",
 ]
-__version__ = "1.2.0"
+__version__ = "1.3.0"

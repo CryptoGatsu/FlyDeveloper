@@ -44,6 +44,45 @@ python -m ripeness mango --days 2 --temp 30 --json
 - `--temp`            : also the temperature used for the forecast ahead.
 - `--fridge`          : forecast at 4°C, where ripening effectively stalls.
 
+## Cold is not free: chill lines
+
+Degree-days say cold is a pause button. For some fruit that is a lie. A firm
+banana, mango or tomato held below its **chill line** takes chilling injury:
+the ripening machinery breaks, and it stays hard, mealy and flavourless even
+after it warms back up. So the clock does not just stop — it snaps.
+
+```bash
+python -m ripeness banana --days 1 --temp 21 --fridge
+```
+
+```
+banana at 4.0°C
+  soak      17.0 °C·days  ▓░░░░░░░░░░░░░░░
+  stage     firm
+  ripe       never at this temperature (ripening stalled)
+  fly-feast  never at this temperature (ripening stalled)
+  compost    never at this temperature (ripening stalled)
+  chill     4.0°C is under banana's 13°C chill line: while it is still
+            firm, this cold can stop ripening for good, even back on the counter.
+  Humans: wait. Flies: come back later, bring friends.
+```
+
+Once the fruit is **already ripe**, cold is fine — a fridged ripe banana goes
+black in the peel and stays perfectly good inside — so the warning softens to
+a one-liner instead of nagging you.
+
+Current chill lines (see `CHILL_SAFE_C` in `ripeness/model.py`): banana 13°C,
+mango 12°C, tomato 12°C, avocado 7°C, peach 7°C. Apples, pears and
+strawberries are fridge-safe at any stage. `--list` shows this:
+
+```
+banana       ripe     55  fly-feast     90  compost    140  °C·days   (keep above 13°C until ripe)
+strawberry   ripe     20  fly-feast     45  compost     70  °C·days   (fridge-safe any time)
+```
+
+In JSON, every forecast carries `chill_safe_c` and `chill_risk` (true only
+when the fruit is still firm *and* the temperature is under the line).
+
 ## Running the clock backwards: "ripe by Saturday"
 
 The question people actually ask is not "when will it be ready?" but "how do I
@@ -75,6 +114,24 @@ python -m ripeness banana --ready-in 6 --counter 26
 If the counter is too cold to make the deadline, that line is simply left out
 and you are back to "find somewhere warmer".
 
+When the deadline is far away, the single-temperature answer can land under
+the fruit's chill line — arithmetically right, kitchen-wrong. The plan says so
+and points at the two-step, where the cold only arrives after ripening:
+
+```bash
+python -m ripeness banana --ready-in 8
+```
+
+```
+banana: 0.0 °C·days soaked, want ripe in 8 days
+  hold it at 10.9°C  (a cold pantry, cellar, or unheated hall)
+  but that is under banana's 13°C chill line: firm fruit held that cold
+  may never ripen. Use the two-step below instead — cold after ripening is fine.
+  or, in a real kitchen: 3.2 days out at 21.0°C, then 4.8 days in the fridge
+  soonest possible, at 35°C: 1.8 days
+  Fly: put it in your calendar. Bring exactly one friend.
+```
+
 If it cannot be done at all, it says so instead of pretending:
 
 ```bash
@@ -93,8 +150,8 @@ banana: 0.0 °C·days soaked, want ripe in 1 days
   `fly-feast`, or `compost` (you do you).
 - `--json`          : the plan is machine readable too, with a `status` of
   `ok`, `passed` (already there) or `too-late`, plus `temp_c`, `counter_c`,
-  `counter_days` and `fridge_days` (the last three are `null` when no
-  counter-then-fridge plan exists).
+  `counter_days`, `fridge_days` (the last three are `null` when no
+  counter-then-fridge plan exists) and `chill_safe_c` / `chill_risk`.
 
 The single-temperature answer assumes one steady temperature from now on,
 which is a lie your kitchen tells too — but it is the right kind of lie: a cool
@@ -102,9 +159,10 @@ shelf really does buy you days.
 
 ## Accuracy
 
-It's a model, not a mango. Thresholds are rough field numbers tuned to "feels
-right on a kitchen counter". Adjust `FRUITS` in `ripeness/model.py` to taste —
-literally. A fly's palate is not a calibration standard.
+It's a model, not a mango. Thresholds and chill lines are rough field numbers
+tuned to "feels right on a kitchen counter". Adjust `FRUITS` and
+`CHILL_SAFE_C` in `ripeness/model.py` to taste — literally. A fly's palate is
+not a calibration standard.
 
 ## Tests
 

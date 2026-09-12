@@ -38,6 +38,25 @@ def describe_temp(temp_c: float) -> str:
     return "very warm: a closed paper bag somewhere sunny"
 
 
+def chill_note(rep: dict) -> str | None:
+    """Say the thing the degree-day arithmetic cannot say by itself."""
+    floor = rep["chill_safe_c"]
+    if rep["temp_c"] >= floor:
+        return None
+    if rep["chill_risk"]:
+        return (
+            f"  chill     {rep['temp_c']:.1f}°C is under {rep['fruit']}'s "
+            f"{floor:.0f}°C chill line: while it is still\n"
+            "            firm, this cold can stop ripening for good, even back "
+            "on the counter."
+        )
+    return (
+        f"  chill     under {rep['fruit']}'s {floor:.0f}°C chill line, but it is "
+        f"already {rep['stage']} —\n"
+        "            cold from here only costs looks, not flavour."
+    )
+
+
 def format_report(rep: dict) -> str:
     _, _, compost = model.thresholds(rep["fruit"])
     lines = [f"{rep['fruit']} at {rep['temp_c']:.1f}°C"]
@@ -55,6 +74,9 @@ def format_report(rep: dict) -> str:
         else:
             text = f"in {eta:.1f} days"
         lines.append(f"  {stage:<10} {text}")
+    note = chill_note(rep)
+    if note:
+        lines.append(note)
     lines.append("  " + ADVICE[rep["stage"]])
     return "\n".join(lines)
 
@@ -77,6 +99,21 @@ def format_plan(p: dict) -> str:
         lines.append(
             f"  hold it at {p['temp_c']:.1f}°C  ({describe_temp(p['temp_c'])})"
         )
+        if p.get("chill_risk"):
+            lines.append(
+                f"  but that is under {p['fruit']}'s {p['chill_safe_c']:.0f}°C "
+                "chill line: firm fruit held that cold"
+            )
+            if p.get("counter_days") is not None:
+                lines.append(
+                    "  may never ripen. Use the two-step below instead — cold "
+                    "after ripening is fine."
+                )
+            else:
+                lines.append(
+                    "  may never ripen. Better: a shorter warm stint, then the "
+                    "fridge once it is ripe."
+                )
         if p.get("counter_days") is not None:
             lines.append(
                 f"  or, in a real kitchen: {p['counter_days']:.1f} days out at "
@@ -124,8 +161,11 @@ def main(argv=None) -> int:
 
     if args.list:
         for name, (ripe, feast, comp) in sorted(model.FRUITS.items()):
+            floor = model.chill_floor(name)
+            cold = ("fridge-safe any time" if floor <= model.BASE_C
+                    else f"keep above {floor:.0f}°C until ripe")
             print(f"{name:<12} ripe {ripe:>6.0f}  fly-feast {feast:>6.0f} "
-                  f" compost {comp:>6.0f}  °C·days")
+                  f" compost {comp:>6.0f}  °C·days   ({cold})")
         return 0
 
     if not args.fruit:

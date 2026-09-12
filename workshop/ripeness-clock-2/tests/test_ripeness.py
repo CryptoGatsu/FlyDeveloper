@@ -65,6 +65,37 @@ def test_forecast_shape():
     assert set(rep["eta_days"]) == set(model.FUTURE_STAGES)
 
 
+# --- chill lines: cold is not a pause button for everything -------------
+
+
+def test_chill_floor_defaults_and_overrides():
+    assert model.chill_floor("banana") == 13.0
+    assert model.chill_floor(" Mango ") == 12.0
+    assert model.chill_floor("Apple") == model.BASE_C
+    assert model.chill_floor("strawberry") == model.BASE_C
+    with pytest.raises(model.UnknownFruit):
+        model.chill_floor("moon rock")
+
+
+def test_forecast_flags_chilling_injury_only_while_firm():
+    firm = model.forecast("banana", 0.0, model.BASE_C)
+    assert firm["chill_safe_c"] == 13.0
+    assert firm["chill_risk"] is True
+
+    ripe = model.forecast("banana", 60.0, model.BASE_C)
+    assert ripe["chill_risk"] is False  # cold after ripening is only cosmetic
+
+
+def test_forecast_does_not_cry_chill_for_fridge_safe_fruit():
+    rep = model.forecast("strawberry", 0.0, model.BASE_C)
+    assert rep["chill_safe_c"] == model.BASE_C
+    assert rep["chill_risk"] is False
+
+
+def test_forecast_warm_enough_is_never_a_chill_risk():
+    assert model.forecast("banana", 0.0, 21.0)["chill_risk"] is False
+
+
 # --- the clock, run backwards -------------------------------------------
 
 
@@ -108,6 +139,27 @@ def test_plan_rejects_nonsense():
         model.plan("banana", 0.0, 3.0, "firm")
     with pytest.raises(model.UnknownFruit):
         model.plan("moon rock", 0.0, 3.0)
+
+
+def test_plan_flags_a_hold_below_the_chill_line():
+    p = model.plan("banana", 0.0, 8.0)     # 55/8 = 6.9/day -> 10.9C
+    assert p["status"] == "ok"
+    assert p["temp_c"] < p["chill_safe_c"]
+    assert p["chill_risk"] is True
+    # ...and the safe way out is still offered
+    assert p["counter_days"] is not None
+
+
+def test_plan_is_quiet_when_the_hold_is_warm_enough():
+    p = model.plan("banana", 0.0, 5.0)     # 15C, above the 13C line
+    assert p["chill_risk"] is False
+    p2 = model.plan("apple", 0.0, 20.0)    # 6C hold, but apples don't mind
+    assert p2["chill_risk"] is False
+
+
+def test_plan_carries_chill_fields_in_every_status():
+    assert model.plan("banana", 200.0, 3.0)["chill_risk"] is False
+    assert model.plan("banana", 0.0, 1.0)["chill_safe_c"] == 13.0
 
 
 # --- counter, then fridge -----------------------------------------------
@@ -164,6 +216,7 @@ def test_cli_human_output(capsys):
     out = capsys.readouterr().out
     assert "banana at 24.0" in out
     assert "fly-feast" in out
+    assert "chill" not in out
 
 
 def test_cli_json_output(capsys):
@@ -186,6 +239,34 @@ def test_cli_fridge_stops_the_clock(capsys):
     assert data["eta_days"]["compost"] is None
 
 
+def test_cli_warns_before_fridging_a_firm_banana(capsys):
+    assert main(["banana", "--days", "1", "--temp", "21", "--fridge"]) == 0
+    out = capsys.readouterr().out
+    assert "13°C chill line" in out
+    assert "stop ripening for good" in out
+
+
+def test_cli_softens_the_chill_note_once_it_is_ripe(capsys):
+    assert main(["banana", "--days", "4", "--temp", "21", "--fridge"]) == 0
+    out = capsys.readouterr().out
+    assert "already ripe" in out
+    assert "only costs looks" in out
+    assert "stop ripening for good" not in out
+
+
+def test_cli_no_chill_note_for_fridge_safe_fruit(capsys):
+    assert main(["strawberry", "--days", "1", "--temp", "20", "--fridge"]) == 0
+    assert "chill" not in capsys.readouterr().out
+
+
+def test_cli_json_carries_the_chill_fields(capsys):
+    assert main(["banana", "--days", "1", "--temp", "21", "--fridge",
+                 "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["chill_safe_c"] == 13.0
+    assert data["chill_risk"] is True
+
+
 def test_cli_ready_in_plans_a_temperature(capsys):
     assert main(["banana", "--ready-in", "5", "--json"]) == 0
     data = json.loads(capsys.readouterr().out)
@@ -193,6 +274,14 @@ def test_cli_ready_in_plans_a_temperature(capsys):
     assert data["temp_c"] == pytest.approx(15.0)
     assert data["counter_c"] == pytest.approx(model.ROOM_C)
     assert data["fridge_days"] > 0
+
+
+def test_cli_ready_in_warns_about_a_chilly_hold(capsys):
+    assert main(["banana", "--ready-in", "8"]) == 0
+    out = capsys.readouterr().out
+    assert "13°C chill line" in out
+    assert "two-step" in out
+    assert "in the fridge" in out
 
 
 def test_cli_counter_flag_overrides_the_split_temperature(capsys):
@@ -231,7 +320,10 @@ def test_cli_ready_in_rejects_zero_days(capsys):
 
 def test_cli_list_and_errors(capsys):
     assert main(["--list"]) == 0
-    assert "banana" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "banana" in out
+    assert "keep above 13°C until ripe" in out
+    assert "fridge-safe any time" in out
     assert main(["moon rock"]) == 2
     assert "unknown fruit" in capsys.readouterr().err
     assert main(["moon rock", "--ready-in", "3"]) == 2
