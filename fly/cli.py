@@ -185,6 +185,7 @@ def cmd_brand(args) -> int:
 def cmd_sync(args) -> int:
     """Pull the repo without fighting over the fly's generated files."""
     import subprocess
+    import sys as _sys
 
     from .memory import Memory
     from .publish import export_site
@@ -204,6 +205,9 @@ def cmd_sync(args) -> int:
         return 1
     export_site(cfg, Memory.load(cfg.memory_path))
     print("state.json regenerated from your memory; run `python fly.py publish --push` to publish it")
+    if "requirements-fly.txt" in (r.stdout + r.stderr):
+        print("requirements changed: installing")
+        subprocess.run([_sys.executable, "-m", "pip", "install", "-q", "-r", str(cfg.root / "requirements-fly.txt")])
     return 0
 
 

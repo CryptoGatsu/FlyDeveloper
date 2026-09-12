@@ -70,7 +70,10 @@ class XClient:
         self.cfg = cfg
         self._session = None
         if cfg.api_key and cfg.api_secret and cfg.access_token and cfg.access_secret:
-            from requests_oauthlib import OAuth1Session
+            try:
+                from requests_oauthlib import OAuth1Session
+            except ImportError as exc:
+                raise XError("X posting needs requests-oauthlib: run  pip install -r requirements-fly.txt") from exc
 
             self._session = OAuth1Session(cfg.api_key, cfg.api_secret, cfg.access_token, cfg.access_secret)
 
