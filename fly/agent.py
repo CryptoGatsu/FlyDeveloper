@@ -184,7 +184,17 @@ class Fly:
             result.outcome = {"error": f"{type(exc).__name__}: {exc}"}
             self.memory.note(f"{action} failed: {type(exc).__name__}: {str(exc)[:200]}")
             self.log(f"{action} failed: {type(exc).__name__}: {str(exc)[:200]}")
-            if self.health.failed(action, f"{type(exc).__name__}: {exc}"):
+            msg = str(exc).lower()
+            if "credit balance" in msg or "billing" in msg or "authentication" in msg or "invalid x-api-key" in msg:
+                # the mind is unavailable for reasons a fly cannot fix: rest, do not thrash
+                self.health.incident("mind", f"{type(exc).__name__}: {str(exc)[:200]}",
+                                     fixed="resting an hour; top up credits or fix ANTHROPIC_API_KEY")
+                for a in ("browse", "build", "meme", "launch", "website", "repair", "improve"):
+                    b = self.health.state.breakers.setdefault(a, __import__("fly.health", fromlist=["Breaker"]).Breaker())
+                    b.open_until = max(b.open_until, time.time() + 3600)
+                self.health.save()
+                self.log("the mind is unavailable (credits or key); resting an hour")
+            elif self.health.failed(action, f"{type(exc).__name__}: {exc}"):
                 self.log(f"{action} suspended for a while")
             self._last_exception = exc
         try:

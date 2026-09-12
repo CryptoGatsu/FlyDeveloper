@@ -102,3 +102,27 @@ def test_screenshot_url_when_chrome_available(tmp_path):
     assert out and out.stat().st_size > 1000
     from PIL import Image
     assert Image.open(out).width <= 720
+
+
+def test_house_panels_injected_once():
+    from fly.website import ensure_house_panels
+    html = "<html><head></head><body><main><h1>x</h1></main></body></html>"
+    out = ensure_house_panels(html, "index.html")
+    assert 'id="flybrain"' in out and '/brain.js' in out
+    assert ensure_house_panels(out, "index.html") == out
+    assert ensure_house_panels(html, "memes/index.html") == html
+
+
+def test_refine_keeps_site_when_mind_fails(tmp_path):
+    class DeadMind(OfflineMind):
+        def website(self, brief, context):
+            raise RuntimeError("credit balance is too low")
+        def revise_website(self, brief, files, problems, screenshots):
+            raise RuntimeError("credit balance is too low")
+
+    site = tmp_path / "site"
+    install_site(site, template_files())
+    (site / "index.html").write_text((site / "index.html").read_text().replace("The Fly Dev", "MY OWN DESIGN"))
+    res = build_website(DeadMind(), site, log=lambda s: None, visual_qa=False, refine=True, changes=["add a thing"])
+    assert res.source == "kept"
+    assert "MY OWN DESIGN" in (site / "index.html").read_text()

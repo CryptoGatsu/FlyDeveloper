@@ -30,3 +30,9 @@ workshop/*/.pytest_cache
 # node (serverless functions)
 node_modules/
 .vercel/
+data/fly_health.json
+data/fly_health.tmp
+data/fly_heartbeat
+data/fly_memory.bak.json
+data/self-repair/
+data/fly-daemon.log

@@ -181,7 +181,7 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
         if site_dir.resolve() not in target.parents:
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
-        content = ensure_head_tags(f.content) if rel.endswith(".html") else f.content
+        content = ensure_house_panels(ensure_head_tags(f.content), rel) if rel.endswith(".html") else f.content
         target.write_text(content, encoding="utf-8")
         written.append(rel)
     (site_dir / "robots.txt").write_text("User-agent: *\nAllow: /\n", encoding="utf-8")
@@ -192,6 +192,32 @@ HEAD_TAGS = (
     '<link rel="icon" href="/favicon.png">',
     '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
 )
+
+
+# House-provided live panels: the connectome raster on "/", the fly cam on
+# /browsing. They are injected if the fly's page does not already mount them.
+HOUSE_PANELS = {
+    "index.html": ("flybrain", "/brain.js"),
+    "browsing/index.html": ("flycam", "/cam.js"),
+}
+
+
+def ensure_house_panels(html: str, rel: str) -> str:
+    spec = HOUSE_PANELS.get(rel)
+    if not spec:
+        return html
+    div_id, script = spec
+    out = html
+    if f'id="{div_id}"' not in out and f"id='{div_id}'" not in out:
+        m = re.search(r"<main\b[^>]*>", out)
+        if m:
+            out = out[: m.end()] + f'\n<div id="{div_id}"></div>' + out[m.end():]
+        elif "<body" in out:
+            m2 = re.search(r"<body\b[^>]*>", out)
+            out = out[: m2.end()] + f'\n<div id="{div_id}"></div>' + out[m2.end():]
+    if script not in out and "</body>" in out:
+        out = out.replace("</body>", f'<script src="{script}"></script>\n</body>', 1)
+    return out
 
 
 def ensure_head_tags(html: str) -> str:
@@ -268,6 +294,7 @@ def build_website(mind, site_dir: Path, context: str = "", log=print, visual_qa:
     try:
         if refine and site_exists(site_dir):
             files = load_site_files(site_dir)
+            source = "refined"
             log("the fly is polishing its existing site")
             if changes:
                 log("with changes: " + "; ".join(changes)[:200])
@@ -293,8 +320,14 @@ def build_website(mind, site_dir: Path, context: str = "", log=print, visual_qa:
             log(f"visual QA skipped: {exc}")
 
     if problems:
-        log("the fly's own site did not pass checks: " + "; ".join(problems[:4]))
-        files, source = template_files(), "template"
+        if site_exists(site_dir):
+            # a working site beats a template: keep what is live, just re-apply house rules
+            log("the fly's attempt failed (" + "; ".join(problems[:2]) + "); keeping the current site")
+            files, source = load_site_files(site_dir), "kept"
+            problems = problems[:4]
+        else:
+            log("the fly's own site did not pass checks: " + "; ".join(problems[:4]))
+            files, source = template_files(), "template"
     written = install_site(site_dir, files)
     return WebsiteResult(ok=True, source=source, files=written, problems=problems, notes=notes)
 
