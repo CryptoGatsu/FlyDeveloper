@@ -158,7 +158,10 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "chain": cfg.launchpad.chain_id, "factory": cfg.launchpad.factory,
             "armed": bool(cfg.launchpad.live), "wallet": wallet,
             "factory_name": "Pons V2 launch factory (contract)",
-            "repo": REPO_URL, "branch": branch, "site": cfg.launchpad.website, "x": cfg.launchpad.twitter,
+            "repo": REPO_URL, "branch": branch, "site": cfg.site_url or cfg.launchpad.website, "x": cfg.launchpad.twitter,
+            "genesis": next(({"symbol": c["symbol"], "name": c["name"], "token": c["token"], "curve": c["curve"],
+                              "pons": c["pons"], "explorer_token": c["explorer_token"], "pair": c["pair"]}
+                             for c in reversed(coins) if c["genesis"] and c["live"] and c["token"]), None),
         },
         "now": {
             "at": last_drives.get("at"), "mood": mood,

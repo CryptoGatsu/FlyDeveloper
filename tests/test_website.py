@@ -109,6 +109,8 @@ def test_house_panels_injected_once():
     html = "<html><head></head><body><main><h1>x</h1></main></body></html>"
     out = ensure_house_panels(html, "index.html")
     assert 'id="flybrain"' in out and '/brain.js' in out
+    assert 'id="flycoin"' in out and '/coin.js' in out
+    assert ensure_house_panels(out, "index.html") == out                 # idempotent
     assert ensure_house_panels(out, "index.html") == out
     assert ensure_house_panels(html, "memes/index.html") == html
 

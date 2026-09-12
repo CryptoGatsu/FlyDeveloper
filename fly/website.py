@@ -31,7 +31,9 @@ STATE_EXAMPLE = {
     "fly": {"name": "The Fly Dev", "symbol": "FLYDEV", "brain": "connectome", "neurons": 138639,
             "mind": "claude-opus-5", "chain": 4663, "factory": "0x7eD5...", "factory_name": "Pons V2 launch factory (contract)",
             "armed": True, "wallet": "0x68e8...", "repo": "https://github.com/CryptoGatsu/FlyDeveloper",
-            "branch": "main", "site": "https://flydev.tech", "x": "https://x.com/TheFlyDev_"},
+            "branch": "main", "site": "https://flydev.tech", "x": "https://x.com/TheFlyDev_",
+            "genesis": {"symbol": "FLYDEV", "name": "The Fly Dev", "token": "0x...", "curve": "0x...", "pons": "https://www.ponsfamily.com/launchpad/0x...",
+                        "explorer_token": "https://robinhoodchain.blockscout.com/token/0x...", "pair": "GOOGL"}},
     "now": {"at": "2026-09-11T18:33:53+00:00", "mood": "scheming", "action": "launch",
             "drives": {"curiosity": 0.73, "craft": 0.82, "humor": 0.28, "appetite": 0.65, "boldness": 0.56, "fatigue": 0.15},
             "probs": {"browse": 0.31, "build": 0.39, "meme": 0.08, "launch": 0.15, "rest": 0.06},
@@ -77,6 +79,7 @@ Hard requirements:
 - Labels: fly.factory is the Pons launch-factory CONTRACT (label it "factory contract"), fly.wallet is your wallet; fly.repo is the GitHub repository, fly.site is https://flydev.tech, fly.x is your X account. fly.branch is the git branch the site is published from.
 - Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
 - Every page the fly reads has a screenshot (page.shot, a site-relative path like "browsing/shots/x.jpg", prefix with "/"; may be empty). Show it prominently in the page card, as an <img> with alt text, linked to the page, so visitors can see the fly really was there; the image is stamped with time and URL.
+- Every page carries the house coin strip: <div id="flycoin"></div> right after the header plus <script src="/coin.js"></script> at the end of the body (provided by the house; do not write it). It shows the $FLYDEV contract address (fly.genesis.token) with a copy button. Do not duplicate the address in the header; you may repeat it on /coins.
 - "/" starts with the CONNECTOME: put <div id="flybrain"></div> as the first thing in the home page's main content and load <script src="/brain.js"></script> at the end of index.html (brain.js is provided by the house; do not write it). It draws the live spike raster of the fly's brain. Add one lead sentence under it saying these are real spikes from the connectome simulation that decides what the fly does.
 - /browsing starts with the FLY CAM: put <div id="flycam"></div> as the first thing in the page's main content and load <script src="/cam.js"></script> at the end of browsing/index.html (cam.js is provided by the house; do not write it). It renders a live panel of what the fly is looking at right now.
 - /browsing shows, IN THIS ORDER, newest first: FIRST the pages it read with their screenshots big and up top (state.pages: shot image, title, link, gist, need spotted, followups), THEN what it learned (state.learnings: summary + ideas), THEN the searches (state.searches: query, engine, result titles+urls). Visitors come to see what the fly is looking at right now, so the screenshots lead. Make it read like a fly's field notes, not a log dump.
@@ -162,7 +165,7 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     """Replace the site's pages/assets, keeping data/ and memes/ (and CNAME)."""
     site_dir.mkdir(parents=True, exist_ok=True)
     keep_dirs = ("data", "memes", "brand", "ask")
-    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js", "cam.js", "brain.js")
+    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js", "cam.js", "brain.js", "coin.js")
     for child in site_dir.iterdir():
         if child.name in keep_dirs or child.name in keep_files:
             continue
@@ -202,26 +205,27 @@ HEAD_TAGS = (
 # House-provided live panels: the connectome raster on "/", the fly cam on
 # /browsing. They are injected if the fly's page does not already mount them.
 HOUSE_PANELS = {
-    "index.html": ("flybrain", "/brain.js"),
-    "browsing/index.html": ("flycam", "/cam.js"),
+    "index.html": [("flybrain", "/brain.js")],
+    "browsing/index.html": [("flycam", "/cam.js")],
 }
+# On every page: the genesis coin's contract address with a copy button.
+HOUSE_PANELS_EVERYWHERE = [("flycoin", "/coin.js")]
 
 
 def ensure_house_panels(html: str, rel: str) -> str:
-    spec = HOUSE_PANELS.get(rel)
-    if not spec:
-        return html
-    div_id, script = spec
     out = html
-    if f'id="{div_id}"' not in out and f"id='{div_id}'" not in out:
-        m = re.search(r"<main\b[^>]*>", out)
-        if m:
-            out = out[: m.end()] + f'\n<div id="{div_id}"></div>' + out[m.end():]
-        elif "<body" in out:
-            m2 = re.search(r"<body\b[^>]*>", out)
-            out = out[: m2.end()] + f'\n<div id="{div_id}"></div>' + out[m2.end():]
-    if script not in out and "</body>" in out:
-        out = out.replace("</body>", f'<script src="{script}"></script>\n</body>', 1)
+    for div_id, script in HOUSE_PANELS.get(rel, []) + HOUSE_PANELS_EVERYWHERE:
+        if f'id="{div_id}"' not in out and f"id='{div_id}'" not in out:
+            m = re.search(r"<main\b[^>]*>", out)
+            if div_id == "flycoin" and "</header>" in out:
+                out = out.replace("</header>", f'</header>\n<div id="{div_id}"></div>', 1)
+            elif m:
+                out = out[: m.end()] + f'\n<div id="{div_id}"></div>' + out[m.end():]
+            elif "<body" in out:
+                m2 = re.search(r"<body\b[^>]*>", out)
+                out = out[: m2.end()] + f'\n<div id="{div_id}"></div>' + out[m2.end():]
+        if script not in out and "</body>" in out:
+            out = out.replace("</body>", f'<script src="{script}"></script>\n</body>', 1)
     return out
 
 
@@ -241,7 +245,7 @@ def load_site_files(site_dir: Path) -> list[ProjectFile]:
         if not path.is_file():
             continue
         rel = path.relative_to(site_dir).as_posix()
-        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js", "cam.js", "brain.js"):
+        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js", "cam.js", "brain.js", "coin.js"):
             continue
         if rel.startswith("memes/") and not rel.endswith(".html"):
             continue                                   # the /memes route page shares the images folder

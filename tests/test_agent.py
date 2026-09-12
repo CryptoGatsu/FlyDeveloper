@@ -192,6 +192,8 @@ def test_state_exports_pons_link_for_live_coins(tmp_path):
     coins = {c["symbol"]: c for c in state["coins"]}
     assert coins["FLYDEV"]["pons"] == "https://www.ponsfamily.com/launchpad/0x" + "ab" * 20
     assert coins["FLYDEV"]["pair"] == ""                         # old records carry no pair
+    assert state["fly"]["genesis"]["token"] == "0x" + "ab" * 20   # the coin strip reads this
+    assert state["fly"]["genesis"]["pons"].endswith("0x" + "ab" * 20)
     assert "DRY" not in coins                                   # rehearsals never reach the coins page
 
 
