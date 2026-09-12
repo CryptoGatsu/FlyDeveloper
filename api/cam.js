@@ -10,12 +10,18 @@ const F = require("./_fly");
 const PREFIX = "live/";
 const KEEP = 3;
 
-// Accept BLOB_READ_WRITE_TOKEN or a prefixed variant (e.g. FLY_DEVELOPER_BLOB_READ_WRITE_TOKEN).
-function blobToken() {
+// Auth, in order: a long-lived BLOB_READ_WRITE_TOKEN (any prefix), else the
+// Vercel OIDC token + BLOB_STORE_ID that a connected store injects on Vercel.
+function staticToken() {
   const name = Object.keys(process.env).find((k) => k === "BLOB_READ_WRITE_TOKEN") || Object.keys(process.env).find((k) => k.endsWith("BLOB_READ_WRITE_TOKEN"));
   return name ? process.env[name] : "";
 }
-const TOKEN = blobToken();
+const TOKEN = staticToken();
+const OIDC = () => process.env.VERCEL_OIDC_TOKEN || "";
+const STORE_ID = process.env.BLOB_STORE_ID || "";
+const authed = () => Boolean(TOKEN || (OIDC() && STORE_ID));
+const sdkOpts = () => (TOKEN ? { token: TOKEN } : {});           // SDK uses OIDC + store id itself
+const bearer = () => TOKEN || OIDC();
 let accessMode = process.env.FLY_BLOB_ACCESS || "";   // "public" | "private", learned on first put
 
 function authorized(req) {
@@ -27,11 +33,11 @@ function authorized(req) {
 
 async function putAny(pathname, body, contentType, maxAge) {
   const opts = { addRandomSuffix: false, contentType, cacheControlMaxAge: maxAge };
-  const modes = accessMode ? [accessMode] : ["public", "private"];
+  const modes = accessMode ? [accessMode] : (TOKEN ? ["public", "private"] : ["private", "public"]);
   let lastErr;
   for (const access of modes) {
     try {
-      const blob = await put(pathname, body, { ...opts, access, token: TOKEN });
+      const blob = await put(pathname, body, { ...opts, access, ...sdkOpts() });
       accessMode = access;
       return blob;
     } catch (err) { lastErr = err; }
@@ -40,11 +46,11 @@ async function putAny(pathname, body, contentType, maxAge) {
 }
 
 async function readBlob(url) {
-  return fetch(url, { cache: "no-store", headers: { authorization: `Bearer ${TOKEN}` } });
+  return fetch(url, { cache: "no-store", headers: { authorization: `Bearer ${bearer()}` } });
 }
 
 async function listLive() {
-  const { blobs } = await list({ prefix: PREFIX, limit: 200, token: TOKEN });
+  const { blobs } = await list({ prefix: PREFIX, limit: 200, ...sdkOpts() });
   return blobs;
 }
 
@@ -60,14 +66,14 @@ async function prune(blobs) {
   const stamps = [...new Set(blobs.map((b) => b.pathname.slice(PREFIX.length).split(".")[0]))].sort().reverse();
   const drop = new Set(stamps.slice(KEEP));
   const urls = blobs.filter((b) => drop.has(b.pathname.slice(PREFIX.length).split(".")[0])).map((b) => b.url);
-  if (urls.length) await del(urls, { token: TOKEN });
+  if (urls.length) await del(urls, sdkOpts());
 }
 
 module.exports = async function handler(req, res) {
   try {
-    if (!TOKEN) {
-      const seen = Object.keys(process.env).filter((k) => /BLOB|VERCEL_ENV|FLY_/.test(k)).map((k) => (k === "FLY_CAM_SECRET" || k === "FLY_CHAT_SECRET" ? k + "(set)" : k));
-      return F.sendJson(res, 503, { error: "no blob token in this deployment", env: process.env.VERCEL_ENV || "?", seen });
+    if (!authed()) {
+      const seen = Object.keys(process.env).filter((k) => /BLOB|VERCEL_ENV|VERCEL_OIDC/.test(k));
+      return F.sendJson(res, 503, { error: "blob store not reachable: need BLOB_READ_WRITE_TOKEN, or VERCEL_OIDC_TOKEN + BLOB_STORE_ID", env: process.env.VERCEL_ENV || "?", seen });
     }
     const q = new URL(req.url || "/", "http://x").searchParams;
 
