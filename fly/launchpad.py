@@ -156,6 +156,12 @@ class LaunchError(RuntimeError):
     pass
 
 
+def hex0x(value) -> str:
+    """A tx hash as 0x-prefixed text whatever the web3 version returns."""
+    h = value.hex() if hasattr(value, "hex") else str(value)
+    return h if h.startswith("0x") else "0x" + h
+
+
 @dataclass
 class TokenParams:
     name: str
@@ -438,7 +444,7 @@ class PonsLaunchpad:
             fn = self.factory.functions.launchToken(plan.params.as_abi_tuple(), plan.launch_config_id, plan.pair_token)
             tx = self._build_tx(fn, value=int(plan.fee_wei or 0))
             signed = self._account.sign_transaction(tx)
-            plan.tx_hash = w3.eth.send_raw_transaction(_raw(signed)).hex()
+            plan.tx_hash = hex0x(w3.eth.send_raw_transaction(_raw(signed)))
             plan.status = "sent"
             receipt = w3.eth.wait_for_transaction_receipt(plan.tx_hash, timeout=240)
             if receipt.get("status") != 1:
@@ -488,10 +494,10 @@ class PonsLaunchpad:
             if token.functions.allowance(self.address, curve_addr).call() < amount:
                 approve = self._build_tx(token.functions.approve(curve_addr, amount), value=0)
                 self.w3.eth.wait_for_transaction_receipt(
-                    self.w3.eth.send_raw_transaction(_raw(self._account.sign_transaction(approve))).hex(), timeout=240)
+                    hex0x(self.w3.eth.send_raw_transaction(_raw(self._account.sign_transaction(approve)))), timeout=240)
         tx = self._build_tx(curve.functions.buy(amount, min_tokens_out, recipient), value=amount if native else 0)
         signed = self._account.sign_transaction(tx)
-        tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
+        tx_hash = self.hex0x(w3.eth.send_raw_transaction(_raw(signed)))
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
         return tx_hash
 
@@ -544,7 +550,7 @@ class PonsLaunchpad:
             return curve.encode_abi("sweepFees", args=[min_buyback_tokens_out])
         tx = self._build_tx(curve.functions.sweepFees(min_buyback_tokens_out), value=0)
         signed = self._account.sign_transaction(tx)
-        tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
+        tx_hash = self.hex0x(w3.eth.send_raw_transaction(_raw(signed)))
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
         return tx_hash
 
@@ -565,7 +571,7 @@ class PonsLaunchpad:
             return encoded
         tx = self._build_tx(fn, value=0)
         signed = self._account.sign_transaction(tx)
-        tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
+        tx_hash = self.hex0x(w3.eth.send_raw_transaction(_raw(signed)))
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
         return tx_hash
 

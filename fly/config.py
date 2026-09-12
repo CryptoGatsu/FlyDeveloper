@@ -195,6 +195,10 @@ class HostingConfig:
 def config_warnings(cfg: "FlyConfig") -> list[str]:
     """Human-readable problems with the loaded configuration."""
     out: list[str] = []
+    site = cfg.site_url.rstrip("/")
+    if site and cfg.launchpad.website.rstrip("/") != site:
+        out.append(f"FLY_WEBSITE={cfg.launchpad.website} is stamped on every coin as its website; "
+                   f"it differs from the site ({site}). Set FLY_WEBSITE={site} unless that is intended.")
     key = cfg.launchpad.private_key.strip()
     if key:
         hexpart = key[2:] if key.lower().startswith("0x") else key

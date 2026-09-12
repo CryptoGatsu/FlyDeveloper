@@ -227,17 +227,20 @@ class Fly:
         posted: list[str] = []
         if action == "build" and outcome.get("ok") and outcome.get("built"):
             posted.append(self.act_post("build", f"{outcome['built']}: {outcome.get('pitch', '')} "
-                                         f"{self.cfg.launchpad.website.rstrip('/')}/builds", live=live))
+                                         f"{(self.cfg.site_url or self.cfg.launchpad.website).rstrip('/')}/builds", live=live))
         elif action == "build" and outcome.get("improved") and outcome.get("what"):
             posted.append(self.act_post("build", f"Improved {outcome['improved']}: {outcome['what']} "
-                                         f"{self.cfg.launchpad.website.rstrip('/')}/builds", live=live))
+                                         f"{(self.cfg.site_url or self.cfg.launchpad.website).rstrip('/')}/builds", live=live))
         elif action == "meme" and outcome.get("meme"):
             posted.append(self.act_post("meme", f"{outcome.get('top')} / {outcome.get('bottom')}", media=outcome["meme"], live=live))
         elif action == "launch" and outcome.get("status") == "confirmed":
             last = self.memory.last("launches") or {}
+            site = (self.cfg.site_url or self.cfg.launchpad.website).rstrip("/")
             posted.append(self.act_post("launch", f"{last.get('name')} (${last.get('symbol')}) "
-                                         f"{'genesis, my own coin' if last.get('genesis') else 'another joke with a ticker'}; "
-                                         f"tx {last.get('tx')}; {self.cfg.launchpad.website.rstrip('/')}/coins",
+                                         f"{'genesis, my own coin' if last.get('genesis') else 'another joke with a ticker'}, "
+                                         f"paired with {last.get('pair') or 'ETH'} on Pons. "
+                                         f"Links you may use: buy it at {last.get('pons_url') or site + '/coins'}; "
+                                         f"my coins page {site}/coins. Do not link anything else.",
                                          media=last.get("meme") or "", live=live))
         elif action == "browse" and outcome.get("learned"):
             posted.append(self.act_post("learning", outcome["learned"], live=live))
@@ -604,7 +607,7 @@ class Fly:
         """After a launch the fly goes to look at its coin: the Pons page and the
         transaction on the explorer, on the fly cam and in the browsing feed."""
         stops = [(pons_token_url(token), f"{name} (${symbol}) on Pons", "the fly checks on its own coin"),
-                 (f"{self.cfg.launchpad.explorer}/tx/{tx}" if tx else "", f"launch transaction for ${symbol}",
+                 (f"{self.cfg.launchpad.explorer}/tx/{tx if tx.startswith('0x') else '0x' + tx}" if tx else "", f"launch transaction for ${symbol}",
                   "the launch transaction on the explorer")]
         seen: list[str] = []
         for url, title, note in stops:

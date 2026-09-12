@@ -68,6 +68,11 @@ def _mood_from(drives: dict[str, float]) -> str:
     return names[best]
 
 
+def _tx0x(tx) -> str:
+    tx = str(tx or "")
+    return tx if not tx or tx.startswith("0x") else "0x" + tx
+
+
 def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None) -> dict[str, Any]:
     d = mem.data
     last_drives = mem.last("drives") or {}
@@ -83,10 +88,10 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
         coins.append({
             "at": l.get("at"), "name": l.get("name"), "symbol": l.get("symbol"),
             "description": l.get("description"), "live": bool(l.get("live")), "status": l.get("status"),
-            "tx": l.get("tx") or "", "token": l.get("token") or "", "curve": l.get("curve") or "",
+            "tx": _tx0x(l.get("tx")), "token": l.get("token") or "", "curve": l.get("curve") or "",
             "logo": l.get("logo") or "", "meme": _meme_public_path(l.get("meme", "")) if l.get("meme") else "",
             "genesis": bool(l.get("genesis")), "buyback": l.get("buyback"),
-            "explorer_tx": f"{EXPLORER}/tx/{l['tx']}" if l.get("tx") else "",
+            "explorer_tx": f"{EXPLORER}/tx/{_tx0x(l['tx'])}" if l.get("tx") else "",
             "explorer_token": f"{EXPLORER}/token/{l['token']}" if l.get("token") else "",
             "pair": l.get("pair") or "",
             "pons": l.get("pons_url") or (pons_token_url(l["token"]) if l.get("live") and l.get("token") else ""),
