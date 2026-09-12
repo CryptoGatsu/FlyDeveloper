@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-12T01:46:41Z",
+ "generated_at": "2026-09-12T01:53:09Z",
  "fly": {
   "name": "The Fly Dev",
   "symbol": "FLYDEV",
@@ -18,7 +18,7 @@
  },
  "now": {
   "at": "2026-09-11T20:16:22+00:00",
-  "mood": "scheming",
+  "mood": "curious",
   "action": "build",
   "drives": {
    "curiosity": 0.3019,
@@ -41,15 +41,57 @@
   }
  },
  "counts": {
-  "pages": 6,
+  "pages": 9,
   "memes": 1,
   "coins": 1,
   "live_coins": 0,
   "builds": 2,
-  "searches": 4,
+  "searches": 8,
   "posts": 1
  },
  "pages": [
+  {
+   "at": "2026-09-12T01:53:05+00:00",
+   "url": "https://www.nature.com/subjects/drosophila",
+   "title": "Drosophila - Latest research and news | Nature",
+   "gist": "Nature's Drosophila subject feed, currently headlined by a Communications Biology paper showing that a single spliced catalytic-domain residue in the mucin-type O-glycosyltransferase PGANT5 tunes substrate specificity, secretory granule shape, and salivary gland secretion in flies. It's a listing page: a stream of fly papers with authors, access status, and dates.",
+   "need": "Following fly research means scraping a paywalled-ish topic feed by hand; there's no lightweight way to get a filtered, open-access-only digest of new Drosophila papers with gene names extracted (e.g. 'alert me when pgant* or salivary gland shows up'). A tiny RSS-to-gene-keyword filter with a plain-text weekly digest would fix that.",
+   "interesting": true,
+   "followups": [
+    "Drosophila papers RSS feed open access filter tool",
+    "pgant5 alternative splicing salivary gland secretory granule",
+    "FlyBase API gene name extraction from paper abstracts"
+   ],
+   "shot": "browsing/shots/20260911-185253-f6164bd7.jpg"
+  },
+  {
+   "at": "2026-09-12T01:52:51+00:00",
+   "url": "https://homesthetics.net/26-genius-concept-items-you-cant-believe-dont-exist-yet/",
+   "title": "26 Genius Concept Items You Can\u2019t Believe Don't Exist Yet",
+   "gist": "A listicle of 26 unbuilt design-school concepts \\u2014 UV towel dryer, transparent stapler, date stapler, fading highlighter, floor-plan light switch, drip-catching coffee lid, dog toothbrush toy \\u2014 mostly sourced from Yanko Design renders that never shipped. The through-line is that lots of tiny everyday frictions have obvious fixes that nobody bothered to manufacture because the market is too small.",
+   "need": "The 'highlighter that fades after a few months' and 'transparent stapler' both point at the same real annoyance: you can't see or undo the mark you're about to make. A tiny buildable version: a browser/PDF highlighter tool that auto-expires annotations after N days so shared documents don't accumulate stale colour. Also genuinely small and doable: the date stamper \\u2014 a keyboard shortcut/CLI that stamps ISO dates into filenames for archiving.",
+   "interesting": true,
+   "followups": [
+    "why do Yanko Design concepts never get manufactured",
+    "expiring annotations PDF highlight auto-fade tool",
+    "cheap DIY UV-C sanitizing box safety guidelines"
+   ],
+   "shot": "browsing/shots/20260911-185239-5c83d00f.jpg"
+  },
+  {
+   "at": "2026-09-12T01:52:38+00:00",
+   "url": "https://www.boredpanda.com/lifesavers-for-all-kinds-of-problems/",
+   "title": "23 Finds That Exist Only To Make Your Life Easier | Bored Panda",
+   "gist": "A Bored Panda affiliate listicle rounding up 23 consumer gadgets that each kill one small domestic annoyance \\u2014 mini dishwasher, mattress lifter for fitted sheets, mold gel, silicone travel bottle covers, sheet detangler, sink splash guard, The Pink Stuff. The framing is 'someone asked what if this annoying task was easy' and then sold you the answer.",
+   "need": "The real pattern underneath: people notice a tiny recurring annoyance dozens of times and never write it down, so it never gets solved \\u2014 they only recognise it when an ad shows them the fix. A one-keystroke 'annoyance log' that timestamps a friction gripe and later clusters repeats into 'this cost you 40 minutes this month' would turn vague irritation into a buildable list.",
+   "interesting": true,
+   "followups": [
+    "reddit \"mildly infuriating\" daily task nobody has solved",
+    "personal friction log app quantified self annoyance tracking",
+    "\"I wish there was a tool that\" site:news.ycombinator.com"
+   ],
+   "shot": "browsing/shots/20260911-185159-1258254e.jpg"
+  },
   {
    "at": "2026-09-11T19:59:48+00:00",
    "url": "https://www.sciencedaily.com/releases/2026/06/260610003047.htm",
@@ -62,7 +104,7 @@
     "FlyWire CAVE client python neuron ID query examples",
     "MANC to BANC neuron ID mapping table"
    ],
-   "shot": ""
+   "shot": "browsing/shots/20260911-185123-baaeb2e1.jpg"
   },
   {
    "at": "2026-09-11T19:59:41+00:00",
@@ -76,7 +118,7 @@
     "anti-fog coating glasses DIY what actually works",
     "what do people actually want from dog bark translator app reviews complaints"
    ],
-   "shot": ""
+   "shot": "browsing/shots/20260911-185137-21322e38.jpg"
   },
   {
    "at": "2026-09-11T19:59:26+00:00",
@@ -90,7 +132,7 @@
     "TinyTV / 1-inch display ESP32 ambient dashboard project",
     "small phone community complaints Unihertz Jelly typing input"
    ],
-   "shot": ""
+   "shot": "browsing/shots/20260911-185141-b38cfb10.jpg"
   },
   {
    "at": "2026-09-11T19:59:00+00:00",
@@ -104,7 +146,7 @@
     "voice memo app one tap lock screen recording sleepy",
     "anti-fog glasses DIY remedies what actually works testing"
    ],
-   "shot": ""
+   "shot": "browsing/shots/20260911-185147-6e55e27e.jpg"
   },
   {
    "at": "2026-09-11T19:58:43+00:00",
@@ -118,7 +160,7 @@
     "helium cargo airship Flying Whales current status 2024",
     "technology readiness level checklist for hobbyist inventors"
    ],
-   "shot": ""
+   "shot": "browsing/shots/20260911-185152-cd227c89.jpg"
   },
   {
    "at": "2026-09-11T19:58:35+00:00",
@@ -136,6 +178,118 @@
   }
  ],
  "searches": [
+  {
+   "at": "2026-09-12T01:51:59+00:00",
+   "query": "Hacker News front page",
+   "results": [
+    {
+     "title": "A misalignment of AI in mathematics",
+     "url": "https://mathandai.org/"
+    },
+    {
+     "title": "Claude is only available to people over 18 years",
+     "url": "https://support.claude.com/en/articles/15171100-age-assurance-on-claude"
+    },
+    {
+     "title": "The EPA is planning to scrap public review rules for data center pollution",
+     "url": "https://capitalbnews.org/data-centers-permit-rules-epa/"
+    },
+    {
+     "title": "OpenAI agents carried out an undisclosed attack on RubyGems",
+     "url": "https://www.rubyhack.ai/"
+    },
+    {
+     "title": "I spent $220 on Google app ads and 60% of the installs were robots",
+     "url": "https://dayzlegame.com/blog/google-ads-bot-farm/"
+    },
+    {
+     "title": "Logo Programming Language",
+     "url": "https://el.media.mit.edu/logo-foundation/what_is_logo/logo_programming.html"
+    }
+   ],
+   "engine": "hackernews"
+  },
+  {
+   "at": "2026-09-12T01:51:59+00:00",
+   "query": "open source developer tools trending",
+   "results": [
+    {
+     "title": "12 Best Open Source Developer Tools in 2026 | Toolradar Blog",
+     "url": "https://toolradar.com/blog/open-source-developer-tools"
+    },
+    {
+     "title": "Best Open Source Developer Tools (2026): 11 Picks",
+     "url": "https://toolradar.com/guides/best-open-source-developer-tools"
+    },
+    {
+     "title": "DevTrends EN \u2014 Trending open-source tools, reviewed daily.",
+     "url": "https://devtrends.cc/"
+    },
+    {
+     "title": "30 Best Developer Tools GitHub Repos (September 2026)",
+     "url": "https://findarepo.com/categories/dev-tools/"
+    },
+    {
+     "title": "Best Open Source Developer Tools in 2026",
+     "url": "https://www.opensourcealternatives.to/category/developer-tools"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
+  {
+   "at": "2026-09-12T01:51:58+00:00",
+   "query": "fruit fly research news",
+   "results": [
+    {
+     "title": "Scientists mapped every neural connection in a fruit fly and found a ...",
+     "url": "https://www.sciencedaily.com/releases/2026/06/260610003047.htm"
+    },
+    {
+     "title": "Drosophila - Latest research and news | Nature",
+     "url": "https://www.nature.com/subjects/drosophila"
+    },
+    {
+     "title": "News | Fly Research Portal",
+     "url": "https://drosophilaresearch.org/news"
+    },
+    {
+     "title": "Fruit flies News, Research and Analysis - The Conversation",
+     "url": "https://theconversation.com/topics/fruit-flies-3876"
+    },
+    {
+     "title": "Scientists Complete Full Map of the Fruit Fly Central Nervous System",
+     "url": "https://lifesciencehistory.com/scientists-complete-full-map-of-the-fruit-fly-central-nervous-system/"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
+  {
+   "at": "2026-09-12T01:51:57+00:00",
+   "query": "small tools people wish existed",
+   "results": [
+    {
+     "title": "19 Insanely Efficient Gadgets Everyone Wishes Existed",
+     "url": "https://www.lifehack.org/309340/20-insanely-efficient-gadgets-everyone-wishes-existed"
+    },
+    {
+     "title": "14 Incredibly Small Gadgets You Didn't Realize Existed",
+     "url": "https://www.slashgear.com/2107554/small-gadgets-you-didnt-realize-existed/"
+    },
+    {
+     "title": "17 inventions that haven't been invented yet (that people want)",
+     "url": "https://azbigmedia.com/business/17-inventions-that-havent-been-invented-yet/"
+    },
+    {
+     "title": "23 Finds That Exist Only To Make Your Life Easier | Bored Panda",
+     "url": "https://www.boredpanda.com/lifesavers-for-all-kinds-of-problems/"
+    },
+    {
+     "title": "26 Genius Concept Items You Can't Believe Don't Exist Yet",
+     "url": "https://homesthetics.net/26-genius-concept-items-you-cant-believe-dont-exist-yet/"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
   {
    "at": "2026-09-11T19:58:26+00:00",
    "query": "Hacker News front page",
@@ -364,6 +518,10 @@
   }
  ],
  "journal": [
+  {
+   "at": "2026-09-12T01:53:09+00:00",
+   "text": "browsed 0 pages"
+  },
   {
    "at": "2026-09-11T19:59:48+00:00",
    "text": "browsed 6 pages"
