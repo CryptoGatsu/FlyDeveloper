@@ -149,6 +149,16 @@ def cmd_launch_status(args) -> int:
     lp = PonsLaunchpad(cfg.launchpad)
     print(json.dumps(lp.status(), indent=2, default=str))
     print()
+    lpc = cfg.launchpad
+    recipient = lpc.creator_fee_recipient or lp.address or "(the launching wallet)"
+    print("genesis fee policy (locked in at launch, cannot be changed after):")
+    print(f"  coin: {lpc.genesis_name} (${lpc.genesis_symbol})")
+    print(f"  creator share of the 1% curve fee -> {recipient}")
+    print(f"  creator tax on top: {lpc.creator_tax_bps} bps ({lpc.creator_tax_bps / 100:.2f}%) -> same wallet  [FLY_CREATOR_TAX_BPS, max 1000]")
+    print(f"  buyback-and-lock: {'ON (a slice of creator fees buys the coin back)' if lpc.genesis_buyback else 'OFF (all creator fees stay in the wallet to fund the project)'}")
+    if lpc.creator_tax_bps == 0:
+        print("  note: with 0 bps the wallet only earns its share of the base fee; set FLY_CREATOR_TAX_BPS (e.g. 250 = 2.5%) to fund the project")
+    print()
     hosting = check_host(cfg.hosting)
     checks = lp.readiness(hosting)
     for ok, msg in checks:
