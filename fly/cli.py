@@ -76,8 +76,12 @@ def cmd_browse(args) -> int:
     """A browsing session you can watch: search, read, digest, remember."""
     fly = _fly(args)
     topics = args.topics or list(fly.cfg.browser.seeds)
-    fly.browser.backfill_shots(fly.memory)
-    notes = fly.browser.explore(fly.mind, fly.memory, topics, budget=args.pages)
+    notes = []
+    try:
+        fly.browser.backfill_shots(fly.memory)
+        notes = fly.browser.explore(fly.mind, fly.memory, topics, budget=args.pages)
+    except KeyboardInterrupt:
+        print("\nstopped early; keeping what was read so far")
     fly.memory.note(f"browsed {len(notes)} pages", topics=topics[:3])
     fly.memory.save()
     fly._publish("browse", "curious")

@@ -60,6 +60,8 @@ def test_build_links_point_at_github_branch(tmp_path):
 def test_prune_shots(tmp_path):
     from fly.publish import _prune_shots
     d = tmp_path / "shots"; d.mkdir()
-    (d / "keep.jpg").write_bytes(b"1"); (d / "old.jpg").write_bytes(b"1")
+    import os, time
+    (d / "keep.jpg").write_bytes(b"1"); (d / "old.jpg").write_bytes(b"1"); (d / "fresh.jpg").write_bytes(b"1")
+    os.utime(d / "old.jpg", (time.time() - 3 * 86400, time.time() - 3 * 86400))
     _prune_shots(d, {"browsing/shots/keep.jpg"})
-    assert (d / "keep.jpg").is_file() and not (d / "old.jpg").exists()
+    assert (d / "keep.jpg").is_file() and not (d / "old.jpg").exists() and (d / "fresh.jpg").is_file()

@@ -67,6 +67,15 @@ def _clean_text(html: str, max_chars: int) -> tuple[str, str, list[str]]:
     return title, text[:max_chars], links[:200]
 
 
+def _save(memory) -> None:
+    save = getattr(memory, "save", None)
+    if callable(save):
+        try:
+            save()
+        except Exception:
+            pass
+
+
 class Browser:
     def __init__(self, cfg: BrowserConfig, log=None, shots_dir: Path | None = None):
         self.cfg = cfg
@@ -190,6 +199,7 @@ class Browser:
                 page["shot"] = shot
                 done += 1
                 self.log(f"  backfilled screenshot for {page.get('title') or page['url']}")
+                _save(memory)
         return done
 
     # -- a browsing session --------------------------------------------------
@@ -206,6 +216,7 @@ class Browser:
             self.log(f"  {len(found)} results" + (f" via {self.last_engine}" if found else " (every engine failed or blocked)"))
             memory.add("searches", {"query": topic, "engine": self.last_engine,
                                     "results": [{"title": f.title, "url": f.url} for f in found[:5]]})
+            _save(memory)
             candidates.extend(found)
         self.log("checking the Hacker News front page")
         hn = self.hn_front(6)
@@ -248,6 +259,7 @@ class Browser:
                 "need": note.need_spotted, "interesting": note.interesting, "followups": note.followups,
                 "shot": shot,
             })
+            _save(memory)                               # survive a Ctrl-C mid-session
         return notes
 
     _warned_no_chrome = False

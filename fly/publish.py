@@ -193,8 +193,9 @@ def _prune_shots(shots_dir: Path, keep: set[str]) -> None:
     if not shots_dir.is_dir():
         return
     keep_names = {Path(k).name for k in keep}
+    cutoff = time.time() - 2 * 86400            # never prune anything under two days old
     for f in shots_dir.glob("*.jpg"):
-        if f.name not in keep_names:
+        if f.name not in keep_names and f.stat().st_mtime < cutoff:
             f.unlink(missing_ok=True)
 
 
