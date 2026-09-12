@@ -190,7 +190,46 @@ class Fly:
         # unprompted $FLYDEV hype on a cadence
         if self.memory.hours_since_kind("posts", "hype") >= self.cfg.x.hype_every_hours:
             posted.append(self.act_post("hype", "your own coin $FLYDEV, your brain, your builds; pick a fresh angle", live=live))
+        if self.x.configured:
+            posted.append(self.act_replies(live=live, mood=(self.memory.last("drives") or {}).get("action", "curious")))
         return "; ".join(p for p in posted if p) or "nothing to say"
+
+    def act_replies(self, live: bool = False, mood: str = "curious") -> str:
+        """Answer new mentions on X (the fly as a chat you can @)."""
+        if not self.x.configured:
+            return "x not configured"
+        state = self.memory.data.setdefault("journal", [])
+        since = ""
+        for item in reversed(self.memory.data.get("posts", [])):
+            if item.get("kind") == "reply" and item.get("mention_id"):
+                since = item["mention_id"]
+                break
+        try:
+            mentions = self.x.mentions(since_id=since)
+        except XError as exc:
+            self.memory.note(f"could not read mentions: {exc}")
+            return f"mentions unavailable ({str(exc)[:60]})"
+        me = self.x.me()
+        answered = 0
+        for m in reversed(mentions):                   # oldest first
+            if m.get("author_id") == me or not m.get("text"):
+                continue
+            if self.memory.count_since("posts", 24.0, kind="reply", live=True) >= self.cfg.x.max_replies_per_day:
+                self.memory.note("reply cap reached for today")
+                break
+            if any(p.get("mention_id") == m["id"] for p in self.memory.data.get("posts", [])):
+                continue
+            draft = self.mind.reply(m.get("author") or "someone", m["text"], self.context(), mood)
+            post = Post(text=draft.text.strip(), kind="reply")
+            post.problems = post_problems(post.text)
+            if not post.problems and live and self.x.armed:
+                post = self.x.reply(post.text, m["id"])
+            self.memory.add("posts", {"kind": "reply", "text": post.text, "id": post.id, "url": post.url, "live": post.live,
+                                      "mention_id": m["id"], "to": m.get("author", ""), "asked": m["text"][:280],
+                                      "problems": post.problems, "metrics": {}, "score": 0.0})
+            self.log(f"{'replied' if post.live else 'drafted reply'} to @{m.get('author')}: {post.text}")
+            answered += 1
+        return f"{answered} mention(s) answered" if answered else "no new mentions"
 
     def act_post(self, kind: str, material: str, media: str = "", live: bool = False) -> str:
         today = self.memory.count_since("posts", 24.0, live=True)

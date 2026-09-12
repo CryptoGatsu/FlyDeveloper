@@ -3,7 +3,7 @@
 html{color-scheme:dark;background:var(--bg);-webkit-text-size-adjust:100%;overflow-x:hidden}
 body{margin:0 auto;width:100%;max-width:960px;min-height:100vh;padding:0 14px;display:flex;flex-direction:column;
   overflow-x:hidden;background:var(--bg);color:var(--ink);
-  font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:break-word;word-wrap:break-word}
+  font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:break-word}
 a{color:var(--acc)}
 a:hover{color:#fff}
 img{max-width:100%;height:auto;display:block}
@@ -23,7 +23,7 @@ main{flex:1 0 auto;padding:18px 0 22px;max-width:100%}
 main>h1:first-child{margin-top:0}
 h1{font-size:1.35rem;margin:.2em 0}
 h2{font-size:1rem;margin:0 0 .6em;color:var(--acc);letter-spacing:.04em}
-h3{font-size:1rem;margin:0 0 .3em;line-height:1.5}
+h3{font-size:1rem;margin:0 0 .3em;line-height:1.5;overflow-wrap:anywhere}
 p{margin:.4em 0}
 .muted{color:var(--dim);font-size:.85rem}
 .gap{margin-top:26px;padding-top:14px;border-top:1px dashed var(--line)}
@@ -34,11 +34,11 @@ p{margin:.4em 0}
 .grid2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));margin:0 0 14px}
 .grid3{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));margin:0 0 14px}
 .grid2>*,.grid3>*{margin:0;min-width:0}
-.kicker{font-size:.78rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin:0}
+.kicker{font-size:.78rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin:0;overflow-wrap:anywhere}
 .mood{color:var(--warm)}
 .bad{color:var(--bad)}
 
-/* drive bars: grid + block children, so nothing depends on inline widths */
+/* drive bars: grid + block children, so nothing depends on inline-element widths */
 .bar{display:grid;grid-template-columns:minmax(0,5.8em) minmax(0,1fr) 3.2em;gap:8px;align-items:center;margin:6px 0;font-size:.85rem}
 .bar .lab{display:block;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bar .track{display:block;width:100%;background:#0a0c0b;border:1px solid var(--line);border-radius:99px;height:11px;overflow:hidden}
@@ -47,7 +47,7 @@ p{margin:.4em 0}
 .bar.warm .track i{background:linear-gradient(90deg,#7d5f1e,var(--warm))}
 
 .chips{display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:.5em 0 0;list-style:none}
-.chips li{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:.8rem;color:var(--dim);max-width:100%;overflow-wrap:break-word}
+.chips li{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:.8rem;color:var(--dim);max-width:100%;overflow-wrap:anywhere}
 .chips b{color:var(--ink);font-weight:700}
 .chips li.key{border-color:var(--acc)}
 .hex{overflow-wrap:anywhere}
@@ -62,15 +62,17 @@ pre{margin:0;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word
 figure{margin:0;max-width:100%}
 .shot{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--line);background:#000;margin:0 0 8px}
 .coinmeme{max-width:420px;margin:10px 0 4px}
+/* the hero meme on / should not become a skyscraper */
+.capped .shot{max-height:min(52vh,420px);object-fit:contain;background:#0a0c0b}
 /* if a picture 404s, keep the alt text readable instead of a broken-icon hole */
-img.broken{border-style:dashed;background:#0a0c0b;color:var(--dim);font-size:.8rem;padding:12px;min-height:52px}
+img.broken{border-style:dashed;background:#0a0c0b;color:var(--dim);font-size:.8rem;padding:12px;min-height:52px;object-fit:contain}
 .noshot{font-size:.8rem;color:var(--dim);background:#0a0c0b;border:1px dashed var(--line);border-radius:8px;padding:14px;text-align:center;margin:0 0 8px}
 
-/* proof-of-visit screenshots on /browsing: the screenshot is the hero */
+/* proof-of-visit screenshots on /browsing: the screenshot is the hero, uncropped */
 .proof{margin:0 0 10px}
 .shotlink{display:block;max-width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#000}
 .shotlink:hover{border-color:var(--acc)}
-.shot.big{width:100%;max-height:440px;object-fit:cover;object-position:top center;border:0;border-radius:0;margin:0}
+.shot.big{width:100%;max-height:min(70vh,520px);object-fit:contain;object-position:center;border:0;border-radius:0;margin:0}
 .stamp{font-size:.76rem;color:var(--dim);margin:6px 0 0;overflow-wrap:anywhere}
 .stamp b{color:var(--ink);font-weight:400}
 
@@ -98,7 +100,7 @@ ul.plain li:first-child{border-top:0}
 .chg .when{color:var(--dim);font-size:.76rem}
 
 noscript{display:block;padding:0 0 10px}
-.bot{flex:0 0 auto;border-top:1px dashed var(--line);padding:14px 0 26px;font-size:.85rem}
+.bot{flex:0 0 auto;border-top:1px dashed var(--line);padding:14px 0 26px;font-size:.85rem;overflow-wrap:anywhere}
 .bot strong{color:var(--warm)}
 .err{border-color:var(--bad)}
 .err h2{color:var(--bad)}
@@ -117,5 +119,6 @@ noscript{display:block;padding:0 0 10px}
   .grid2,.grid3,.gal{grid-template-columns:1fr}
   h1{font-size:1.2rem}
   .kicker{letter-spacing:.04em}
-  .shot.big{max-height:290px}
+  .shot.big{max-height:min(60vh,340px)}
+  .capped .shot{max-height:min(48vh,320px)}
 }

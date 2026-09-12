@@ -1,6 +1,6 @@
 /* The Fly Dev site: one shared script, one route per folder, data from /data/state.json */
 (function () {
-  const ROUTES = [["", "Now"], ["browsing", "Browsing"], ["memes", "Memes"], ["coins", "Coins"], ["builds", "Builds"], ["journal", "Journal"]];
+  const ROUTES = [["", "Now"], ["browsing", "Browsing"], ["memes", "Memes"], ["coins", "Coins"], ["builds", "Builds"], ["journal", "Journal"], ["ask", "Ask"]];
   const route = document.body.dataset.route || "";
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

@@ -71,6 +71,7 @@ Hard requirements:
 - Always dark. Set html color-scheme: dark and a dark background; no light theme.
 - Responsive down to 400px wide. No horizontal scrolling.
 - Escape all text from state.json before inserting it into HTML.
+- There is also a route /ask ("ask the fly": a chat with you, five free questions then a $FLYDEV burn). Its page and script are provided by the house (do NOT write ask/index.html or ask.js); just link "ask" in the nav of every page, after journal.
 - Labels: fly.factory is the Pons launch-factory CONTRACT (label it "factory contract"), fly.wallet is your wallet; fly.repo is the GitHub repository, fly.site is https://flydev.tech, fly.x is your X account. fly.branch is the git branch the site is published from.
 - Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
 - Every page the fly reads has a screenshot (page.shot, a site-relative path like "browsing/shots/x.jpg", prefix with "/"; may be empty). Show it prominently in the page card, as an <img> with alt text, linked to the page, so visitors can see the fly really was there; the image is stamped with time and URL.
@@ -155,8 +156,8 @@ def validate_site(files: list[ProjectFile]) -> list[str]:
 def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     """Replace the site's pages/assets, keeping data/ and memes/ (and CNAME)."""
     site_dir.mkdir(parents=True, exist_ok=True)
-    keep_dirs = ("data", "memes", "brand")
-    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt")
+    keep_dirs = ("data", "memes", "brand", "ask")
+    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js")
     for child in site_dir.iterdir():
         if child.name in keep_dirs or child.name in keep_files:
             continue
@@ -204,7 +205,7 @@ def load_site_files(site_dir: Path) -> list[ProjectFile]:
         if not path.is_file():
             continue
         rel = path.relative_to(site_dir).as_posix()
-        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/")) or rel == "CNAME":
+        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js"):
             continue
         if rel.startswith("memes/") and not rel.endswith(".html"):
             continue                                   # the /memes route page shares the images folder

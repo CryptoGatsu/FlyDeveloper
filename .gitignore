@@ -26,3 +26,7 @@ memes/*.png
 workshop/*/__pycache__
 workshop/*/.pytest_cache
 .pytest_cache
+
+# node (serverless functions)
+node_modules/
+.vercel/

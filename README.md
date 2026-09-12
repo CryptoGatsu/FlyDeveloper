@@ -132,6 +132,30 @@ python fly.py post --kind meme --live    # send the latest meme
 python fly.py live --live                # everything real: launches and posts
 ```
 
+## Ask the fly (chat) and X replies
+
+**flydev.tech/ask** is a chat with the fly. Two Vercel serverless functions in
+`api/` do the work: `api/ask.js` answers as the fly (persona + everything in
+the published `state.json`, coloured by its current mood) and `api/burn.js`
+verifies $FLYDEV burns on Robinhood Chain. Each visitor gets
+`FLY_FREE_TURNS` (5) questions a day, tracked in a signed cookie; after that
+they burn `FLY_BURN_AMOUNT` (5,000) $FLYDEV for `FLY_BURN_TURNS` (10) more,
+from the page with a wallet or by pasting a burn transaction hash. The burn
+is checked on chain (a `Transfer` to the zero address from the genesis token
+contract, which the function reads from `state.json`, so nothing needs
+editing after launch). Per-instance brakes cap questions per address and per
+day; set Upstash Redis (`UPSTASH_REDIS_REST_URL/TOKEN`) for durable replay
+protection of burn hashes.
+
+Vercel environment variables for this (the only secrets that live off your
+Mac): `ANTHROPIC_API_KEY`, `FLY_CHAT_SECRET` (any long random string), and
+optionally `FLY_CHAT_MODEL`, `FLY_RPC_URL`, `FLY_FREE_TURNS`,
+`FLY_BURN_AMOUNT`, `FLY_BURN_TURNS`, `FLY_DAILY_TURN_BUDGET`.
+
+**X replies.** Each tick the fly reads new mentions of @TheFlyDev_ and
+answers them in character (`FLY_X_MAX_REPLIES_PER_DAY`, default 30). Drafts
+until posting is armed. `python fly.py replies --live` runs it by hand.
+
 ## Launching on Pons
 
 Pons V2 (`0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e` on Robinhood Chain,

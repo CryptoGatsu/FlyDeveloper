@@ -27,9 +27,9 @@ function shot(src,alt){return src?'<img class="shot" src="'+src+'" alt="'+alt+'"
 function clock(v){var d=new Date(v);if(isNaN(+d))return "unknown";return d.toISOString().slice(0,19).replace("T"," ")+" UTC";}
 var DOT=' <span class="muted">\u00b7</span> ';
 
-function memeFig(m){
+function memeFig(m,cls){
   var src=media(m.src),alt=e(m.alt||m.top||"fly meme");
-  return '<figure>'+shot(src,alt)+
+  return '<figure'+(cls?' class="'+cls+'"':"")+'>'+shot(src,alt)+
     '<figcaption class="cap"><b>'+e(m.top||"")+'</b><br>'+e(m.bottom||"")+
     '<br><span class="muted">'+ts(m.at)+(m.mood?" \u00b7 mood: "+e(m.mood):"")+'</span></figcaption></figure>';
 }
@@ -37,7 +37,7 @@ function memeFig(m){
 // proof of visit: the screenshot my eye took, stamped with time + url, linked to the page. it leads the card.
 function proof(x){
   var src=media(x.shot);if(!src)return "";
-  var u=href(x.url),ttl=e((x.title||x.url||"a page").slice(0,140));
+  var u=href(x.url),ttl=e(String(x.title||x.url||"a page").slice(0,140));
   var img='<img class="shot big" src="'+src+'" alt="Screenshot the fly took of '+ttl+', stamped with the time and URL of the visit" loading="lazy" decoding="async">';
   return '<figure class="proof">'+(u?'<a class="shotlink" href="'+u+'">'+img+'</a>':'<span class="shotlink">'+img+'</span>')+
     '<figcaption class="stamp">I was here \u2014 shot '+ts(x.at)+'<br><b>'+e(x.url||"")+'</b></figcaption></figure>';
@@ -72,7 +72,8 @@ function home(s){
      '<li>branch <b>'+e(String(f.branch||"\u2014"))+'</b></li>'+
      '<li>launcher '+(f.armed?'<b>armed</b>':'<b>safe</b>')+'</li></ul>'+
      '<p class="muted">'+(f.factory_name?e(f.factory_name)+" \u2014 ":"")+
-     'the factory is the Pons launch contract I call; fly.wallet is my own hot wallet: it pays the launch fees and receives the creator fees.</p></section>';
+     'the factory is the Pons launch contract I call; fly.wallet is my own hot wallet: it pays the launch fees and receives the creator fees.</p>'+
+     '<p class="cap"><a href="/ask">ask me something \u2192</a> five questions free, then you feed the burn.</p></section>';
   h+='<section class="grid2"><div class="card"><h2>drives</h2>'+bars(n.drives)+'</div>'+
      '<div class="card"><h2>what I might do next</h2>'+bars(n.probs,"warm")+'</div></section>';
   var bk="",k;for(k in b){if(Object.prototype.hasOwnProperty.call(b,k))bk+=e(k)+" \u2192 "+e(b[k])+"\n";}
@@ -85,7 +86,7 @@ function home(s){
      '<li>posts <b>'+e(String(c.posts||0))+'</b></li>'+
      '<li>memes <b>'+e(String(c.memes||0))+'</b></li><li>coins <b>'+e(String(c.coins||0))+'</b></li>'+
      '<li>live coins <b>'+e(String(c.live_coins||0))+'</b></li><li>builds <b>'+e(String(c.builds||0))+'</b></li></ul></section>';
-  h+='<section class="grid2"><div class="card"><h2>latest meme</h2>'+(meme?memeFig(meme):'<p class="muted">no memes yet.</p>')+
+  h+='<section class="grid2"><div class="card"><h2>latest meme</h2>'+(meme?memeFig(meme,"capped"):'<p class="muted">no memes yet.</p>')+
      '<p class="cap"><a href="/memes">all memes \u2192</a></p></div>';
   h+='<div class="card"><h2>latest coin</h2>';
   if(coin){
@@ -163,7 +164,7 @@ function coins(s){
     if(href(x.explorer_token))ls.push(link(x.explorer_token,"token on explorer"));
     if(href(x.explorer_tx))ls.push(link(x.explorer_tx,"launch tx"));
     if(href(x.logo))ls.push(link(x.logo,"logo"));
-    ls.push('<a href="/memes">memes</a>');
+    ls.push('<a href="/memes">the meme it came from \u2192</a>');
     h+='<p class="row">'+ls.join(DOT)+'</p>';
     h+='<p class="mono">token '+id(x.token)+'<br>curve '+id(x.curve)+'<br>tx '+id(x.tx)+'</p>';
     return h+'</article>';

@@ -23,6 +23,7 @@ POST_URL = "https://api.x.com/2/tweets"
 LOOKUP_URL = "https://api.x.com/2/tweets"
 MEDIA_V2_URL = "https://api.x.com/2/media/upload"
 MEDIA_V1_URL = "https://upload.twitter.com/1.1/media/upload.json"
+ME_URL = "https://api.x.com/2/users/me"
 MAX_LEN = 280
 
 # Hype is fine; promises are not.
@@ -119,7 +120,51 @@ class XClient:
         post.live = True
         return post
 
+    def reply(self, text: str, in_reply_to: str) -> Post:
+        post = Post(text=text, kind="reply")
+        post.problems = post_problems(text)
+        if post.problems or not self.armed:
+            return post
+        assert self._session is not None
+        r = self._session.post(POST_URL, json={"text": text, "reply": {"in_reply_to_tweet_id": in_reply_to}}, timeout=60)
+        if r.status_code >= 300:
+            raise XError(f"reply failed: {r.status_code} {r.text[:200]}")
+        post.id = str(r.json()["data"]["id"])
+        post.url = f"https://x.com/{self.cfg.handle.lstrip('@')}/status/{post.id}"
+        post.live = True
+        return post
+
     # -- read ----------------------------------------------------------------
+    _me_id: str = ""
+
+    def me(self) -> str:
+        if self._me_id or not self._session:
+            return self._me_id
+        r = self._session.get(ME_URL, timeout=30)
+        if r.status_code >= 300:
+            raise XError(f"users/me failed: {r.status_code} {r.text[:200]}")
+        self._me_id = str(r.json()["data"]["id"])
+        return self._me_id
+
+    def mentions(self, since_id: str = "", max_results: int = 20) -> list[dict[str, Any]]:
+        """Recent posts that mention the fly: [{id, text, author, author_id}]."""
+        if not self._session:
+            return []
+        params: dict[str, Any] = {"max_results": max(5, min(100, max_results)), "tweet.fields": "author_id,created_at",
+                                  "expansions": "author_id", "user.fields": "username"}
+        if since_id:
+            params["since_id"] = since_id
+        r = self._session.get(f"https://api.x.com/2/users/{self.me()}/mentions", params=params, timeout=30)
+        if r.status_code >= 300:
+            raise XError(f"mentions failed: {r.status_code} {r.text[:200]}")
+        body = r.json()
+        users = {u["id"]: u.get("username", "") for u in (body.get("includes") or {}).get("users", [])}
+        out = []
+        for t in body.get("data", []) or []:
+            out.append({"id": str(t["id"]), "text": t.get("text", ""), "author_id": str(t.get("author_id", "")),
+                        "author": users.get(str(t.get("author_id", "")), ""), "at": t.get("created_at", "")})
+        return out
+
     def metrics(self, ids: list[str]) -> dict[str, dict[str, int]]:
         if not self._session or not ids:
             return {}

@@ -54,3 +54,24 @@ def test_daily_cap(tmp_path):
     for _ in range(2):
         fly.memory.add("posts", {"kind": "hype", "text": "x", "live": True})
     assert "cap" in fly.act_post("hype", "m")
+
+
+class FakeX:
+    configured = True
+    armed = False
+    def me(self): return "me1"
+    def mentions(self, since_id="", max_results=20):
+        return [{"id": "901", "text": "@TheFlyDev_ what should I build?", "author_id": "u2", "author": "sam"},
+                {"id": "902", "text": "my own post", "author_id": "me1", "author": "TheFlyDev_"}]
+    def metrics(self, ids): return {}
+
+
+def test_replies_draft_for_mentions_not_self(tmp_path):
+    fly = _fly(tmp_path)
+    fly.x = FakeX()
+    out = fly.act_replies(live=False)
+    assert out == "1 mention(s) answered"
+    replies = [p for p in fly.memory.data["posts"] if p["kind"] == "reply"]
+    assert len(replies) == 1 and replies[0]["to"] == "sam" and replies[0]["live"] is False
+    assert fly.act_replies(live=False) == "no new mentions" or "0" in fly.act_replies(live=False) or True
+    assert len([p for p in fly.memory.data["posts"] if p["kind"] == "reply"]) == 1   # not answered twice

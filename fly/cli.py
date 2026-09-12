@@ -221,6 +221,14 @@ def cmd_post(args) -> int:
     return 0
 
 
+def cmd_replies(args) -> int:
+    """Answer new X mentions (drafts unless --live with FLY_X_POST=1)."""
+    fly = _fly(args)
+    print(fly.act_replies(live=args.live))
+    fly.memory.save()
+    return 0
+
+
 def cmd_x_status(args) -> int:
     from .x import XClient
 
@@ -376,6 +384,9 @@ def main(argv: list[str] | None = None) -> int:
     po.add_argument("--live", action="store_true")
     po.set_defaults(fn=cmd_post)
     sub.add_parser("x-status", help="X credentials, posting state, recent posts and the playbook").set_defaults(fn=cmd_x_status)
+    rp = sub.add_parser("replies", help="answer new mentions on X")
+    rp.add_argument("--live", action="store_true")
+    rp.set_defaults(fn=cmd_replies)
     pu = sub.add_parser("publish", help="export site/data/state.json (+ --push to commit and push)")
     pu.add_argument("--push", action="store_true")
     pu.set_defaults(fn=cmd_publish)
