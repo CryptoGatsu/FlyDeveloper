@@ -17,11 +17,22 @@ function staticToken() {
   return name ? process.env[name] : "";
 }
 const TOKEN = staticToken();
-const OIDC = () => process.env.VERCEL_OIDC_TOKEN || "";
 const STORE_ID = process.env.BLOB_STORE_ID || "";
-const authed = () => Boolean(TOKEN || (OIDC() && STORE_ID));
-const sdkOpts = () => (TOKEN ? { token: TOKEN } : {});           // SDK uses OIDC + store id itself
-const bearer = () => TOKEN || OIDC();
+// On Vercel the OIDC token is delivered per request (x-vercel-oidc-token header /
+// request context), not as an env var; the SDK fetches it itself via @vercel/oidc.
+async function oidc(req) {
+  const fromHeader = req && req.headers && req.headers["x-vercel-oidc-token"];
+  if (fromHeader) return String(fromHeader);
+  if (process.env.VERCEL_OIDC_TOKEN) return process.env.VERCEL_OIDC_TOKEN;
+  try {
+    const { getVercelOidcToken } = require("@vercel/oidc");
+    return await getVercelOidcToken();
+  } catch { return ""; }
+}
+const authed = () => Boolean(TOKEN || STORE_ID);
+const sdkOpts = () => (TOKEN ? { token: TOKEN } : {});           // else the SDK uses OIDC + BLOB_STORE_ID
+let currentBearer = TOKEN;
+const bearer = () => currentBearer;
 let accessMode = process.env.FLY_BLOB_ACCESS || "";   // "public" | "private", learned on first put
 
 function authorized(req) {
@@ -71,9 +82,10 @@ async function prune(blobs) {
 
 module.exports = async function handler(req, res) {
   try {
+    if (!TOKEN) currentBearer = await oidc(req);
     if (!authed()) {
       const seen = Object.keys(process.env).filter((k) => /BLOB|VERCEL_ENV|VERCEL_OIDC/.test(k));
-      return F.sendJson(res, 503, { error: "blob store not reachable: need BLOB_READ_WRITE_TOKEN, or VERCEL_OIDC_TOKEN + BLOB_STORE_ID", env: process.env.VERCEL_ENV || "?", seen });
+      return F.sendJson(res, 503, { error: "blob store not connected: need BLOB_READ_WRITE_TOKEN or BLOB_STORE_ID", env: process.env.VERCEL_ENV || "?", seen });
     }
     const q = new URL(req.url || "/", "http://x").searchParams;
 
@@ -91,6 +103,7 @@ module.exports = async function handler(req, res) {
       return;
     }
     if (req.method === "GET") {
+      if (!TOKEN && !currentBearer) return F.sendJson(res, 503, { error: "no OIDC token on this request: enable Secure Backend Access with OIDC Federation in the project's Settings > Security, then redeploy" });
       const status = await newest(await listLive());
       if (!status) return F.sendJson(res, 200, { phase: "idle", at: null });
       const ageSec = (Date.now() - new Date(status.at).getTime()) / 1000;
@@ -98,6 +111,7 @@ module.exports = async function handler(req, res) {
     }
     if (req.method !== "POST") return F.sendJson(res, 405, { error: "POST a frame" });
     if (!authorized(req)) return F.sendJson(res, 401, { error: "bad cam secret" });
+    if (!TOKEN && !currentBearer) return F.sendJson(res, 503, { error: "no OIDC token on this request: enable Secure Backend Access with OIDC Federation in the project's Settings > Security, then redeploy" });
 
     const body = await F.readJson(req);
     const at = new Date().toISOString();

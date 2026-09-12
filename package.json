@@ -5,7 +5,8 @@
   "description": "flydev.tech: static site written by the fly, plus serverless chat and burn verification",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.0",
-    "@vercel/blob": "^2.8.0"
+    "@vercel/blob": "^2.8.0",
+    "@vercel/oidc": "^3.6.1"
   },
   "engines": {
     "node": ">=20"
