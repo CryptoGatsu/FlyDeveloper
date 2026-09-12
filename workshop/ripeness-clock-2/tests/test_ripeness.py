@@ -162,6 +162,30 @@ def test_plan_carries_chill_fields_in_every_status():
     assert model.plan("banana", 0.0, 1.0)["chill_safe_c"] == 13.0
 
 
+def test_plan_reports_where_the_fruit_is_now():
+    assert model.plan("banana", 0.0, 5.0)["current_stage"] == "firm"
+    assert model.plan("banana", 68.0, 5.0, "fly-feast")["current_stage"] == "ripe"
+    assert model.plan("banana", 200.0, 3.0)["current_stage"] == "compost"
+    assert model.plan("banana", 0.0, 1.0)["current_stage"] == "firm"
+
+
+def test_plan_does_not_cry_chill_once_the_fruit_is_ripe():
+    # 68 dd banana is already ripe; coasting it to fly-feast over 6 days needs
+    # a 7.7C hold, under the 13C line -- but chilling injury needs firm fruit.
+    p = model.plan("banana", 68.0, 6.0, "fly-feast")
+    assert p["status"] == "ok"
+    assert p["temp_c"] < p["chill_safe_c"]
+    assert p["current_stage"] == "ripe"
+    assert p["chill_risk"] is False
+
+
+def test_plan_still_cries_chill_for_firm_fruit_aimed_past_ripe():
+    p = model.plan("banana", 0.0, 20.0, "fly-feast")
+    assert p["current_stage"] == "firm"
+    assert p["temp_c"] < p["chill_safe_c"]
+    assert p["chill_risk"] is True
+
+
 # --- counter, then fridge -----------------------------------------------
 
 
@@ -282,6 +306,19 @@ def test_cli_ready_in_warns_about_a_chilly_hold(capsys):
     assert "13°C chill line" in out
     assert "two-step" in out
     assert "in the fridge" in out
+
+
+def test_cli_ready_in_stays_quiet_for_a_cold_hold_of_ripe_fruit(capsys):
+    assert main(["banana", "--days", "4", "--temp", "21",
+                 "--ready-in", "6", "--stage", "fly-feast", "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["current_stage"] == "ripe"
+    assert data["temp_c"] < data["chill_safe_c"]
+    assert data["chill_risk"] is False
+
+    assert main(["banana", "--days", "4", "--temp", "21",
+                 "--ready-in", "6", "--stage", "fly-feast"]) == 0
+    assert "chill line" not in capsys.readouterr().out
 
 
 def test_cli_counter_flag_overrides_the_split_temperature(capsys):

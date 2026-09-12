@@ -156,10 +156,14 @@ def plan(
     The two-step plan is omitted (``None``) when the counter is too cold to
     make it in time, or when it is so cold that nothing ripens at all.
 
-    ``chill_risk`` is True when the single steady temperature is under the
-    fruit's ``chill_safe_c``: that hold would chill a firm fruit for the whole
-    stretch, which it may never recover from. The counter-then-fridge plan is
-    the safe way out, because the cold only arrives *after* it is ripe.
+    ``current_stage`` is where the fruit is right now, and ``chill_risk`` is
+    True only when that stage is ``"firm"`` *and* the single steady
+    temperature is under the fruit's ``chill_safe_c``: that hold would chill a
+    firm fruit for the whole stretch, which it may never recover from. Fruit
+    that is already ripe has nothing left to break -- cold from there costs
+    looks, not flavour -- so the plan stays quiet, exactly like ``forecast``.
+    When the risk is real, the counter-then-fridge plan is the safe way out,
+    because the cold only arrives *after* it is ripe.
     """
     name = str(fruit).strip().lower()
     target = target_for(name, stage)
@@ -169,9 +173,11 @@ def plan(
 
     soaked = float(degree_days)
     floor = chill_floor(name)
+    current_stage = stage_of(name, soaked)
     out = {
         "fruit": name,
         "stage": stage,
+        "current_stage": current_stage,
         "days": days,
         "degree_days": round(soaked, 1),
         "target_degree_days": target,
@@ -198,7 +204,8 @@ def plan(
         return out
 
     out["temp_c"] = round(temp, 1)
-    out["chill_risk"] = bool(temp < floor)
+    # Only firm fruit can take chilling injury; a ripe one is past caring.
+    out["chill_risk"] = bool(current_stage == "firm" and temp < floor)
 
     # The version you can actually do: counter, then fridge.
     counter_rate = daily_rate(counter_c)

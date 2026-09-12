@@ -132,6 +132,23 @@ banana: 0.0 °C·days soaked, want ripe in 8 days
   Fly: put it in your calendar. Bring exactly one friend.
 ```
 
+That warning only fires while the fruit is **still firm**, the same rule the
+forward forecast uses. If it is already ripe and you are just coasting it
+gently along to `fly-feast`, a cold hold costs looks, not flavour, so the plan
+keeps quiet:
+
+```bash
+python -m ripeness banana --days 4 --temp 21 --ready-in 6 --stage fly-feast
+```
+
+```
+banana: 68.0 °C·days soaked, want fly-feast in 6 days
+  hold it at 7.7°C  (a cold pantry, cellar, or unheated hall)
+  or, in a real kitchen: 1.3 days out at 21.0°C, then 4.7 days in the fridge
+  soonest possible, at 35°C: 0.71 days
+  Fly: put it in your calendar. Bring exactly one friend.
+```
+
 If it cannot be done at all, it says so instead of pretending:
 
 ```bash
@@ -151,7 +168,8 @@ banana: 0.0 °C·days soaked, want ripe in 1 days
 - `--json`          : the plan is machine readable too, with a `status` of
   `ok`, `passed` (already there) or `too-late`, plus `temp_c`, `counter_c`,
   `counter_days`, `fridge_days` (the last three are `null` when no
-  counter-then-fridge plan exists) and `chill_safe_c` / `chill_risk`.
+  counter-then-fridge plan exists), `current_stage` (where the fruit is right
+  now) and `chill_safe_c` / `chill_risk`.
 
 The single-temperature answer assumes one steady temperature from now on,
 which is a lie your kitchen tells too — but it is the right kind of lie: a cool
