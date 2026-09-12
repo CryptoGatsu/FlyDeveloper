@@ -401,15 +401,72 @@ def cmd_x_status(args) -> int:
     return 0
 
 
+SYSTEMD_UNIT = "flydev"
+
+
+def systemd_unit(root, python: str, live: bool, user: str, log) -> str:
+    """A systemd service that keeps the fly alive on a Linux host: restarts on
+    any exit (the supervisor exits 0 on a self-update, so that restarts too),
+    starts at boot, logs to data/fly-daemon.log."""
+    return (
+        "[Unit]\nDescription=The Fly Dev agent (flydev.tech)\nAfter=network-online.target\nWants=network-online.target\n\n"
+        f"[Service]\nType=simple\nUser={user}\nWorkingDirectory={root}\n"
+        f"ExecStart={python} {root}/fly.py live{' --live' if live else ''}\n"
+        "Restart=always\nRestartSec=10\nEnvironment=PYTHONUNBUFFERED=1\n"
+        f"StandardOutput=append:{log}\nStandardError=append:{log}\n\n"
+        "[Install]\nWantedBy=multi-user.target\n"
+    )
+
+
+def _daemon_linux(args, cfg) -> int:
+    """systemd flavour of `fly daemon` (install/uninstall need sudo)."""
+    import getpass
+    import os as _os
+    import subprocess
+    import sys as _sys
+    from pathlib import Path as _P
+
+    unit = _P("/etc/systemd/system") / f"{SYSTEMD_UNIT}.service"
+    log = cfg.root / "data" / "fly-daemon.log"
+    if args.action == "status":
+        r = subprocess.run(["systemctl", "is-active", SYSTEMD_UNIT], capture_output=True, text=True)
+        print("installed" if unit.is_file() else "not installed", "|", r.stdout.strip() or "unknown", "|", f"log: {log}")
+        return 0
+    if _os.geteuid() != 0:
+        print(f"run this with sudo (it writes {unit}):  sudo -E $(which python) fly.py daemon {args.action}"
+              + (" --live" if getattr(args, "live", False) else ""))
+        return 1
+    if args.action == "uninstall":
+        subprocess.run(["systemctl", "disable", "--now", SYSTEMD_UNIT], capture_output=True)
+        unit.unlink(missing_ok=True)
+        subprocess.run(["systemctl", "daemon-reload"], capture_output=True)
+        print("uninstalled")
+        return 0
+    user = _os.environ.get("SUDO_USER") or getpass.getuser()
+    (cfg.root / "data").mkdir(parents=True, exist_ok=True)
+    unit.write_text(systemd_unit(cfg.root, _sys.executable, args.live, user, log), encoding="utf-8")
+    subprocess.run(["systemctl", "daemon-reload"], check=False)
+    r = subprocess.run(["systemctl", "enable", "--now", SYSTEMD_UNIT], capture_output=True, text=True)
+    if r.returncode != 0:
+        print("systemctl enable failed:", (r.stderr or r.stdout).strip())
+        return 1
+    print(f"installed and started ({'live' if args.live else 'dry-run launches/posts'}) as {user}; it restarts on crash and at boot")
+    print(f"follow it with:  tail -F {log}")
+    print("stop it with:    sudo -E $(which python) fly.py daemon uninstall")
+    return 0
+
+
 def cmd_daemon(args) -> int:
-    """Run the fly as a background service on macOS (launchd), so it lives
-    without a terminal open. Logs go to data/fly-daemon.log."""
+    """Run the fly as a background service (launchd on macOS, systemd on
+    Linux) so it lives without a terminal open. Logs go to data/fly-daemon.log."""
     import plistlib
     import subprocess
     import sys as _sys
     from pathlib import Path as _P
 
     cfg = FlyConfig.from_env()
+    if _sys.platform.startswith("linux"):
+        return _daemon_linux(args, cfg)
     label = "tech.flydev.fly"
     plist = _P.home() / "Library" / "LaunchAgents" / f"{label}.plist"
     log = cfg.root / "data" / "fly-daemon.log"
@@ -423,7 +480,7 @@ def cmd_daemon(args) -> int:
         print("uninstalled")
         return 0
     if _sys.platform != "darwin":
-        print("daemon install is macOS-only for now; on Linux use a systemd unit or tmux")
+        print("daemon install supports macOS (launchd) and Linux (systemd)")
         return 1
     argv = ["/usr/bin/caffeinate", "-i", _sys.executable, str(cfg.root / "fly.py"), "live"]
     if args.live:

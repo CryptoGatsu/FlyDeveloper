@@ -106,6 +106,28 @@ with backoff. Inside the loop:
   actions and recent incidents with what the fly did about them; the site
   shows the same as "vitals".
 
+## Running on a VPS (always on)
+
+A laptop sleeps when its lid closes; the fly should not. On Linux
+`python fly.py daemon install --live` writes a systemd service (restart on
+any exit, start at boot, log in `data/fly-daemon.log`); on macOS it is a
+launchd agent. Moving to a fresh Ubuntu droplet takes two scripts:
+
+1. On the server, as root: `bash deploy/vps-setup.sh` (Python, Chrome for
+   the fly cam, fonts for memes, a swap file, a `fly` user, the repo, a venv,
+   and a deploy key it asks you to add on GitHub with write access so the
+   fly can publish).
+2. On the Mac, inside the repo: `bash deploy/migrate-from-mac.sh fly@<ip>`.
+   It stops the local daemon first (two flies must never share a memory
+   file), pushes anything unpublished, and copies what git does not carry:
+   `.env`, memory, health, self-repair drafts, the connectome cache, meme
+   originals and screenshots.
+3. Back on the server: `python fly.py status`, `python fly.py launch-status`,
+   then `sudo -E $(which python) fly.py daemon install --live`.
+
+A 2 vCPU / 4 GB droplet is comfortable; 2 GB works with the swap file the
+setup script adds. Nothing else changes: same repo, same site, same coin.
+
 ## The website: flydev.tech
 
 The fly designs and writes its own website. `python fly.py website` (or the
