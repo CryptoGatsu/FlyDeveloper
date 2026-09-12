@@ -76,6 +76,11 @@ async function newest(blobs) {
 async function prune(blobs) {
   const stamps = [...new Set(blobs.map((b) => b.pathname.slice(PREFIX.length).split(".")[0]))].sort().reverse();
   const drop = new Set(stamps.slice(KEEP));
+  try {
+    const cur = await newest(blobs);
+    const m = cur && cur.frame && /live%2F(\d{17})\.jpg/.exec(cur.frame);
+    if (m) drop.delete(m[1]);
+  } catch {}
   const urls = blobs.filter((b) => drop.has(b.pathname.slice(PREFIX.length).split(".")[0])).map((b) => b.url);
   if (urls.length) await del(urls, sdkOpts());
 }
@@ -126,6 +131,9 @@ module.exports = async function handler(req, res) {
       const pathname = `${PREFIX}${stamp}.jpg`;
       await putAny(pathname, buf, "image/jpeg", 3600);
       status.frame = `/api/cam?frame=${encodeURIComponent(pathname)}`;   // served by this function
+    } else {
+      // no new picture (searching / idle): keep showing the last one
+      try { const prev = await newest(await listLive()); if (prev && prev.frame) status.frame = prev.frame; } catch {}
     }
     await putAny(`${PREFIX}${stamp}.json`, JSON.stringify(status), "application/json", 60);
     listLive().then(prune).catch(() => {});
