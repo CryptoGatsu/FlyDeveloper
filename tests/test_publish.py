@@ -65,3 +65,10 @@ def test_prune_shots(tmp_path):
     os.utime(d / "old.jpg", (time.time() - 3 * 86400, time.time() - 3 * 86400))
     _prune_shots(d, {"browsing/shots/keep.jpg"})
     assert (d / "keep.jpg").is_file() and not (d / "old.jpg").exists() and (d / "fresh.jpg").is_file()
+
+
+def test_literal_unicode_escapes_are_decoded():
+    from fly.mind import unescape_text, unescape_model, PageDigest
+    assert unescape_text("a \\u2014 b") == "a \u2014 b"
+    m = unescape_model(PageDigest(gist="x \\u2019 y", need_spotted="", interesting=True, followups=["\\u00e9"]))
+    assert m.gist == "x \u2019 y" and m.followups == ["\u00e9"]

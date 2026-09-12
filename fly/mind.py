@@ -106,6 +106,27 @@ class PageDigest(BaseModel):
     followups: list[str] = Field(description="Up to 3 search queries worth exploring next")
 
 
+_ESC = re.compile(r"\\\\u([0-9a-fA-F]{4})")
+
+
+def unescape_text(value):
+    """Turn literal '\\u2014' sequences the model sometimes emits into characters."""
+    if isinstance(value, str):
+        return _ESC.sub(lambda m: chr(int(m.group(1), 16)), value)
+    if isinstance(value, list):
+        return [unescape_text(v) for v in value]
+    if isinstance(value, dict):
+        return {k: unescape_text(v) for k, v in value.items()}
+    return value
+
+
+def unescape_model(model):
+    try:
+        return type(model).model_validate(unescape_text(model.model_dump()))
+    except Exception:
+        return model
+
+
 # --- interface ---------------------------------------------------------------
 class Mind(Protocol):
     def ideate(self, context: str) -> TechIdea: ...
@@ -155,7 +176,7 @@ class ClaudeMind:
         parsed = response.parsed_output
         if parsed is None:
             raise MindRefused("model returned no structured output")
-        return parsed
+        return unescape_model(parsed)
 
     def ideate(self, context: str) -> TechIdea:
         prompt = f"""Here is what you have recently seen and done:

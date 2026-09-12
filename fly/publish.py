@@ -183,8 +183,10 @@ def export_site(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             pass
     state = build_state(cfg, mem, extra)
     _prune_shots(site / "browsing" / "shots", {p["shot"] for p in state["pages"] if p.get("shot")})
+    from .mind import unescape_text
+
     out = site / "data" / "state.json"
-    out.write_text(json.dumps(state, indent=1, default=str), encoding="utf-8")
+    out.write_text(json.dumps(unescape_text(state), indent=1, default=str, ensure_ascii=False), encoding="utf-8")
     return out
 
 
