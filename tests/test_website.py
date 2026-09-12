@@ -69,7 +69,7 @@ def test_refine_reloads_existing_site(tmp_path):
     files = load_site_files(site)
     assert {f.path for f in files} == {f.path for f in template_files()}
     res = build_website(OfflineMind(), site, log=lambda s: None, visual_qa=False, refine=True)
-    assert res.source == "mind" and site_exists(site)
+    assert res.source == "refined" and site_exists(site)
 
 
 def test_head_tags_injected_and_kept_on_install(tmp_path):
