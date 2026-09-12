@@ -106,7 +106,7 @@ class PageDigest(BaseModel):
     followups: list[str] = Field(description="Up to 3 search queries worth exploring next")
 
 
-_ESC = re.compile(r"\\\\u([0-9a-fA-F]{4})")
+_ESC = re.compile(r"\\u([0-9a-fA-F]{4})")
 
 
 def unescape_text(value):
