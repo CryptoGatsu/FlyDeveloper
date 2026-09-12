@@ -417,12 +417,44 @@ class Fly:
             else:
                 pause = min(1800, 60 * (2 ** min(crashes, 5)))   # crash backoff: 2, 4, 8 ... 30 min
             self.log(f"the fly rests for {pause // 60} min {pause % 60} s")
-            self.health.beat("resting")
             try:
-                time.sleep(pause)
+                self.rest(pause, live=live)
             except KeyboardInterrupt:
                 return 2
         return 2
+
+    _mention_backoff: int = 0
+
+    def rest(self, pause: int, live: bool = False, sleep=time.sleep) -> int:
+        """Rest for `pause` seconds, but keep one antenna up: every few minutes
+        look for @mentions on X and answer them straight away. Returns how
+        many mentions were answered."""
+        answered = 0
+        end = time.time() + pause
+        every = max(60, int(self.cfg.x.mentions_every_sec))
+        next_check = time.time() + every
+        while True:
+            self.health.beat("resting")
+            now = time.time()
+            if now >= end:
+                break
+            if self.x.configured and now >= next_check:
+                next_check = now + every + self._mention_backoff
+                try:
+                    out = self.act_replies(live=live, mood=(self.memory.last("drives") or {}).get("action", "curious"))
+                except Exception as exc:                # never let a poll take the loop down
+                    out = f"mentions failed: {exc}"
+                if out.startswith(("mentions unavailable", "mentions failed")):
+                    self._mention_backoff = min(1800, (self._mention_backoff or every) * 2)
+                    self.log(f"  {out}; checking again in {(every + self._mention_backoff) // 60} min")
+                else:
+                    self._mention_backoff = 0
+                if out.endswith("answered"):
+                    answered += int(out.split()[0])
+                    self.memory.save()
+                    self._publish("reply", (self.memory.last("drives") or {}).get("action", "curious"))
+            sleep(min(60, max(1, end - time.time())))
+        return answered
 
     # -- actions ---------------------------------------------------------
     def context(self) -> str:

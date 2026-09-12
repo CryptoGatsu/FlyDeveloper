@@ -178,6 +178,7 @@ class XConfig:
     max_replies_per_day: int = 30
     hype_every_hours: float = 8.0   # at most one unprompted $FLYDEV post per this many hours
     metrics_every_hours: float = 3.0
+    mentions_every_sec: int = 180   # while resting, look for mentions this often and answer them
 
 
 @dataclass
@@ -324,6 +325,7 @@ class FlyConfig:
         xc.max_posts_per_day = _env_int("FLY_X_MAX_POSTS_PER_DAY", 6)
         xc.max_replies_per_day = _env_int("FLY_X_MAX_REPLIES_PER_DAY", 30)
         xc.hype_every_hours = _env_float("FLY_X_HYPE_EVERY_HOURS", 8.0)
+        xc.mentions_every_sec = max(60, _env_int("FLY_X_MENTIONS_EVERY_SEC", 180))
 
         h = cfg.hosting
         h.provider = _env("FLY_IMAGE_HOST", "none")

@@ -207,3 +207,33 @@ def test_dry_runs_are_not_coins_and_can_be_forgotten(tmp_path):
     assert [l["symbol"] for l in gone] == ["HATCHED"]
     assert fly.memory.forget_launches(symbol="FLYDEV") == []          # live launches stay
     assert [l["symbol"] for l in fly.memory.data["launches"]] == ["FLYDEV"]
+
+
+def test_rest_answers_mentions_between_ticks(tmp_path, monkeypatch):
+    fly = _fly(tmp_path)
+    fly.cfg.publish = "none"
+    fly.cfg.x.mentions_every_sec = 60
+    calls = []
+
+    class FakeX:
+        configured = True
+        armed = False
+
+        def mentions(self, since_id=""):
+            calls.append(since_id)
+            return [{"id": "77", "text": "@TheFlyDev_ what are you building?", "author": "tyler", "author_id": "9"}] if len(calls) == 1 else []
+
+        def me(self):
+            return "1"
+
+    fly.x = FakeX()
+    clock = {"t": 1000.0}
+    monkeypatch.setattr("fly.agent.time.time", lambda: clock["t"])
+
+    def fake_sleep(s):
+        clock["t"] += s
+
+    answered = fly.rest(200, live=False, sleep=fake_sleep)
+    assert answered == 1 and len(calls) >= 2                 # polled more than once during one rest
+    reply = [p for p in fly.memory.data["posts"] if p.get("kind") == "reply"][-1]
+    assert reply["mention_id"] == "77" and reply["to"] == "tyler" and reply["text"]
