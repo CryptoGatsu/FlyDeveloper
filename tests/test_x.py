@@ -87,3 +87,18 @@ def test_promo_mentions_are_recognised():
     assert looks_like_promo("@TheFlyDev_ what did you build today?") == ""
     assert looks_like_promo("@TheFlyDev_ lol a fly with a ticker, love it") == ""
     assert looks_like_promo("@TheFlyDev_ is the ripeness clock open source? can I DM you a bug?") == ""   # a question with one hit survives
+
+
+def test_bait_and_small_talk_are_ignored_but_real_questions_pass():
+    from fly.x import mention_skip_reason
+
+    assert mention_skip_reason("@TheFlyDev_ can you massage me?") == "a dare, not a question"
+    assert mention_skip_reason("Massage me:)")
+    assert mention_skip_reason("@TheFlyDev_ gm") == "small talk"
+    assert mention_skip_reason("@TheFlyDev_ lol") == "small talk"
+    assert mention_skip_reason("@TheFlyDev_ ok but why") == ""            # a why deserves an answer
+    assert mention_skip_reason("@TheFlyDev_ what are you building?") == ""
+    assert mention_skip_reason("@TheFlyDev_ a fly with a ticker, incredible") == ""
+    assert mention_skip_reason("@TheFlyDev_ thoughts on the GOOGL pairing?") == ""
+    assert mention_skip_reason("@TheFlyDev_ your ripeness clock crashed on my banana") == ""
+    assert mention_skip_reason("@TheFlyDev_ Let's take your project to the next level! DM me")   # promo still caught

@@ -83,6 +83,40 @@ def looks_like_promo(text: str) -> str:
     return ""
 
 
+# Things a mention has to be about for the fly to bother: itself, its work, its coin.
+TOPIC_WORDS = (
+    "fly", "flydev", "fruit", "brain", "neuron", "connectome", "synapse", "spike", "build", "built", "building",
+    "ship", "tool", "code", "repo", "github", "open source", "bug", "meme", "coin", "token", "ticker", "pons",
+    "googl", "launch", "curve", "graduat", "chart", "buy", "bought", "holder", "website", "site", "cam", "browsing",
+    "ripeness", "banana", "clock", "timer", "agent", "ai", "llm", "claude", "model", "robinhood", "chain", "wallet",
+    "fee", "burn", "ask", "why", "how", "what", "when", "where", "which", "who",
+)
+
+
+def looks_like_bait(text: str) -> str:
+    """Why a mention is not worth a reply even though it is not promo: a
+    one-line dare, a request to perform, nonsense, or small talk with nothing
+    about the fly or its work in it. "" when it deserves an answer."""
+    body = re.sub(r"@\w+", "", text or "").strip()
+    low = body.lower()
+    words = re.findall(r"[a-z0-9']+", low)
+    on_topic = any(t in low for t in TOPIC_WORDS)
+    if re.search(r"\b(massage|kiss|hug|marry|tickle|lick|spank|slap|bite|dance for|sing for|say (my|the) name)\b", low) and not on_topic:
+        return "a dare, not a question"
+    if re.match(r"^(gm|gn|hi|hello|hey|yo|sup|lol|lmao|ok|okay|nice|cool|wow|bump|first|based|wen|ser)\b[\W\d_]*$", low):
+        return "small talk"
+    if len(words) <= 5 and not on_topic:
+        return "nothing about me or my work in it"
+    if len(words) <= 12 and not on_topic and "?" not in body:
+        return "nothing about me or my work in it"
+    return ""
+
+
+def mention_skip_reason(text: str) -> str:
+    """Promo spam first, then bait; "" means the mind gets to answer."""
+    return looks_like_promo(text) or looks_like_bait(text)
+
+
 def post_problems(text: str) -> list[str]:
     out = []
     low = text.lower()

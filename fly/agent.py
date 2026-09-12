@@ -18,7 +18,7 @@ from .memes import render_meme
 from .memory import Memory
 from .mind import Mind, MindRefused, build_mind
 from .neurons import Sense, load_senses
-from .x import Post, XClient, XError, engagement_score, looks_like_promo, post_problems
+from .x import Post, XClient, XError, engagement_score, mention_skip_reason, post_problems
 
 Logger = Callable[[str], None]
 
@@ -277,7 +277,7 @@ class Fly:
             if any(p.get("mention_id") == m["id"] for p in self.memory.data.get("posts", [])):
                 continue
             author = m.get("author") or "someone"
-            why = looks_like_promo(m["text"])
+            why = mention_skip_reason(m["text"])
             if not why and self.memory.count_since("posts", 24.0, kind="reply", live=True, to=author) >= self.cfg.x.max_replies_per_account_per_day:
                 why = f"already answered @{author} today"
             draft = None
