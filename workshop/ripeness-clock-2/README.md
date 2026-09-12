@@ -2,7 +2,7 @@
 
 Fruit does not ripen by calendar days. It ripens by **heat soaked up**.
 
-This is a ~200 line, dependency-free CLI that models ripening as accumulated
+This is a small, dependency-free CLI that models ripening as accumulated
 **degree-days**: every day, a fruit banks `temperature - 4°C` of ripening
 (capped at 35°C, above which things stop being food and start being science).
 Each fruit has thresholds for `ripe`, `fly-feast` and `compost`.
@@ -43,6 +43,45 @@ python -m ripeness mango --days 2 --temp 30 --json
 - `--temps a,b,c`     : one measured temperature per past day (more honest).
 - `--temp`            : also the temperature used for the forecast ahead.
 - `--fridge`          : forecast at 4°C, where ripening effectively stalls.
+
+## Running the clock backwards: "ripe by Saturday"
+
+The question people actually ask is not "when will it be ready?" but "how do I
+make it ready *then*?" `--ready-in DAYS` solves the same equation for
+temperature instead of time.
+
+```bash
+python -m ripeness avocado --days 2 --temp 20 --ready-in 4
+```
+
+```
+avocado: 32.0 °C·days soaked, want ripe in 4 days
+  hold it at 18.5°C  (a cool room or a shaded shelf)
+  soonest possible, at 35°C: 1.9 days
+  Fly: put it in your calendar. Bring exactly one friend.
+```
+
+If it cannot be done, it says so instead of pretending:
+
+```bash
+python -m ripeness banana --ready-in 1
+```
+
+```
+banana: 0.0 °C·days soaked, want ripe in 1 days
+  not possible: even at 35°C it needs 1.8 days
+  buy one that is further along, or move the party
+```
+
+- `--ready-in DAYS` : plan backwards to a holding temperature.
+- `--stage NAME`    : which stage you are aiming at — `ripe` (default),
+  `fly-feast`, or `compost` (you do you).
+- `--json`          : the plan is machine readable too, with a `status` of
+  `ok`, `passed` (already there) or `too-late`.
+
+The plan assumes one steady temperature from now on, which is a lie your
+kitchen tells too — but it is the right kind of lie: a cool shelf really does
+buy you days.
 
 ## Accuracy
 

@@ -23,6 +23,21 @@ def bar(degree_days: float, compost: float, width: int = 16) -> str:
     return "▓" * filled + "░" * (width - filled)
 
 
+def describe_temp(temp_c: float) -> str:
+    """Turn a number into somewhere that actually exists in a kitchen."""
+    if temp_c <= 6.0:
+        return "the fridge"
+    if temp_c < 12.0:
+        return "a cold pantry, cellar, or unheated hall"
+    if temp_c < 18.0:
+        return "a cool room or a shaded shelf"
+    if temp_c < 24.0:
+        return "normal room temperature, out on the counter"
+    if temp_c < 30.0:
+        return "a warm spot: on top of the fridge, or a sunny sill"
+    return "very warm: a closed paper bag somewhere sunny"
+
+
 def format_report(rep: dict) -> str:
     _, _, compost = model.thresholds(rep["fruit"])
     lines = [f"{rep['fruit']} at {rep['temp_c']:.1f}°C"]
@@ -44,6 +59,29 @@ def format_report(rep: dict) -> str:
     return "\n".join(lines)
 
 
+def format_plan(p: dict) -> str:
+    lines = [
+        f"{p['fruit']}: {p['degree_days']:.1f} °C·days soaked, "
+        f"want {p['stage']} in {p['days']:g} days"
+    ]
+    if p["status"] == "passed":
+        lines.append(f"  it is already at or past {p['stage']}")
+        lines.append("  put it in the fridge to hold it roughly where it is")
+    elif p["status"] == "too-late":
+        lines.append(
+            f"  not possible: even at {model.CAP_C:.0f}°C it needs "
+            f"{p['earliest_days']:.1f} days"
+        )
+        lines.append("  buy one that is further along, or move the party")
+    else:
+        lines.append(
+            f"  hold it at {p['temp_c']:.1f}°C  ({describe_temp(p['temp_c'])})"
+        )
+        lines.append(f"  soonest possible, at 35°C: {p['earliest_days']:.1f} days")
+        lines.append("  Fly: put it in your calendar. Bring exactly one friend.")
+    return "\n".join(lines)
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="ripeness",
@@ -58,6 +96,11 @@ def build_parser() -> argparse.ArgumentParser:
                    help="comma separated past daily temps, e.g. 26,26,19,8")
     p.add_argument("--fridge", action="store_true",
                    help="forecast ahead at fridge temperature (4 C)")
+    p.add_argument("--ready-in", type=float, default=None, metavar="DAYS",
+                   help="plan backwards: what temperature hits the target "
+                        "stage in DAYS days")
+    p.add_argument("--stage", default="ripe", choices=list(model.FUTURE_STAGES),
+                   help="target stage for --ready-in (default: ripe)")
     p.add_argument("--list", action="store_true", help="list known fruits")
     p.add_argument("--json", action="store_true", help="machine readable output")
     return p
@@ -99,10 +142,19 @@ def main(argv=None) -> int:
         ahead = model.BASE_C
 
     try:
-        rep = model.forecast(args.fruit, soaked, ahead)
+        if args.ready_in is not None:
+            if args.ready_in <= 0:
+                print("--ready-in needs a positive number of days",
+                      file=sys.stderr)
+                return 2
+            result = model.plan(args.fruit, soaked, args.ready_in, args.stage)
+            text = format_plan(result)
+        else:
+            result = model.forecast(args.fruit, soaked, ahead)
+            text = format_report(result)
     except model.UnknownFruit:
         print(f"unknown fruit: {args.fruit} (try --list)", file=sys.stderr)
         return 2
 
-    print(json.dumps(rep) if args.json else format_report(rep))
+    print(json.dumps(result) if args.json else text)
     return 0

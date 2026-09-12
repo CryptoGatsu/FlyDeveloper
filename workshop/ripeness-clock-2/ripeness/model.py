@@ -37,6 +37,13 @@ def thresholds(fruit: str):
         raise UnknownFruit(fruit) from None
 
 
+def target_for(fruit: str, stage: str) -> float:
+    """Degree-days at which `fruit` enters `stage`."""
+    if stage not in FUTURE_STAGES:
+        raise ValueError(f"stage must be one of {FUTURE_STAGES}, got {stage!r}")
+    return dict(zip(FUTURE_STAGES, thresholds(fruit)))[stage]
+
+
 def daily_rate(temp_c: float) -> float:
     """Degree-days banked per day at a steady temperature."""
     return max(0.0, min(float(temp_c), CAP_C) - BASE_C)
@@ -64,9 +71,7 @@ def days_until(fruit: str, degree_days: float, temp_c: float, stage: str):
     Returns 0.0 if already past it, or None if it will never get there
     (too cold to accumulate anything).
     """
-    if stage not in FUTURE_STAGES:
-        raise ValueError(f"stage must be one of {FUTURE_STAGES}, got {stage!r}")
-    target = dict(zip(FUTURE_STAGES, thresholds(fruit)))[stage]
+    target = target_for(fruit, stage)
     if degree_days >= target:
         return 0.0
     rate = daily_rate(temp_c)
@@ -88,3 +93,47 @@ def forecast(fruit: str, degree_days: float, temp_c: float) -> dict:
             s: days_until(name, degree_days, temp_c, s) for s in FUTURE_STAGES
         },
     }
+
+
+def plan(fruit: str, degree_days: float, days: float, stage: str = "ripe") -> dict:
+    """Solve the clock backwards: what steady temperature hits `stage` in `days`?
+
+    Returns a dict with a ``status``:
+
+    * ``"ok"``       -- hold it at ``temp_c`` and it lands on time.
+    * ``"passed"``   -- it is already at or past that stage; nothing to plan.
+    * ``"too-late"`` -- even at CAP_C it cannot get there in time;
+      ``earliest_days`` says the soonest it could possibly arrive.
+    """
+    name = str(fruit).strip().lower()
+    target = target_for(name, stage)
+    days = float(days)
+    if days <= 0:
+        raise ValueError("days must be greater than 0")
+
+    soaked = float(degree_days)
+    out = {
+        "fruit": name,
+        "stage": stage,
+        "days": days,
+        "degree_days": round(soaked, 1),
+        "target_degree_days": target,
+        "temp_c": None,
+        "earliest_days": None,
+        "status": "ok",
+    }
+
+    if soaked >= target:
+        out["status"] = "passed"
+        out["earliest_days"] = 0.0
+        return out
+
+    out["earliest_days"] = round((target - soaked) / daily_rate(CAP_C), 2)
+    needed_rate = (target - soaked) / days
+    temp = BASE_C + needed_rate
+    if temp > CAP_C:
+        out["status"] = "too-late"
+        return out
+
+    out["temp_c"] = round(temp, 1)
+    return out
