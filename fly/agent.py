@@ -389,9 +389,28 @@ class Fly:
             except MindRefused as exc:
                 self.memory.note(f"playbook refused: {exc}")
 
+    _market = None
+
+    def market_snapshot(self) -> dict[str, Any] | None:
+        """Price / market cap / 24 h move of the genesis coin, remembered in memory."""
+        coin = next((l for l in reversed(self.memory.data.get("launches") or [])
+                     if l.get("live") and l.get("genesis") and l.get("token")), None)
+        if not coin or not self._launchpad:
+            return None
+        try:
+            if self._market is None:
+                from .market import Market
+
+                self._market = Market(self.memory)
+            return self._market.snapshot(self._launchpad, coin["token"], coin.get("curve") or "", coin.get("pair") or self.cfg.launchpad.quote)
+        except Exception as exc:
+            self.log(f"  market readout failed: {exc}")
+            return None
+
     def _publish(self, action: str, mood: str) -> None:
         if self.cfg.publish == "none":
             return
+        self.market_snapshot()
         try:
             from .publish import export_site, publish
 

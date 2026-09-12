@@ -119,6 +119,8 @@ CURVE_ABI: list[dict[str, Any]] = [
     {"type": "function", "name": "creatorTaxBalance", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
     {"type": "function", "name": "buybackEnabled", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
     {"type": "function", "name": "readyToGraduate", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
+    {"type": "function", "name": "realQuoteReserve", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "graduationThreshold", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
     {"type": "function", "name": "graduated", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
 ]
 

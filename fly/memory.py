@@ -58,7 +58,7 @@ class Memory:
     # -- writes ------------------------------------------------------------
     def add(self, key: str, entry: dict[str, Any]) -> dict[str, Any]:
         entry = {"at": now_iso(), "ts": time.time(), **entry}
-        self.data[key].append(entry)
+        self.data.setdefault(key, []).append(entry)       # new keys (e.g. market) on an old memory file
         return entry
 
     def note(self, text: str, **extra: Any) -> None:

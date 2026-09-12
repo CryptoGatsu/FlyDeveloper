@@ -295,3 +295,18 @@ def test_every_working_build_gets_announced_even_after_a_capped_day(tmp_path):
     assert post["build_slug"] == "license-drift" and post["text"]
     assert fly.unannounced_builds() == []                        # announced once, never again
     assert fly.announce_builds() == ""
+
+
+def test_state_carries_the_market_readout(tmp_path):
+    from fly.publish import build_state
+
+    fly = _fly(tmp_path)
+    fly.memory.add("launches", {"name": "The Fly Dev", "symbol": "FLYDEV", "live": True, "status": "confirmed",
+                                "token": "0x" + "ab" * 20, "curve": "0x" + "cd" * 20, "genesis": True, "pair": "GOOGL"})
+    fly.memory.add("market", {"source": "curve", "mcap_usd": 4000.0, "price_usd": 0.000004, "quote_usd": 200.0})
+    fly.memory.data["market"][-1]["ts"] -= 25 * 3600
+    fly.memory.add("market", {"source": "curve", "mcap_usd": 5000.0, "price_usd": 0.000005, "quote_usd": 200.0, "graduation_pct": 10.0})
+    g = build_state(fly.cfg, fly.memory)["fly"]["genesis"]
+    assert g["market"]["mcap_usd"] == 5000.0 and g["market"]["change_basis"] == "24h"
+    assert abs(g["market"]["change_24h"] - 25.0) < 1e-9
+    assert g["market"]["series"][-1]["mcap_usd"] == 5000.0

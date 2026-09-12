@@ -68,6 +68,22 @@ def _mood_from(drives: dict[str, float]) -> str:
     return names[best]
 
 
+def _market_block(mem: Memory) -> dict[str, Any] | None:
+    """Latest market snapshot plus the 24 h change and a sparkline series."""
+    hist = mem.data.get("market") or []
+    if not hist:
+        return None
+    from .market import Market, change_over
+
+    last = dict(hist[-1])
+    key = "mcap_usd" if last.get("mcap_usd") is not None else "mcap_quote"
+    pct, basis = change_over(hist[:-1], last.get(key), key=key)
+    if last.get("change_24h") is None:
+        last["change_24h"], last["change_basis"] = pct, basis
+    last["series"] = Market(mem).series()
+    return last
+
+
 def _tx0x(tx) -> str:
     tx = str(tx or "")
     return tx if not tx or tx.startswith("0x") else "0x" + tx
@@ -160,7 +176,8 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "factory_name": "Pons V2 launch factory (contract)",
             "repo": REPO_URL, "branch": branch, "site": cfg.site_url or cfg.launchpad.website, "x": cfg.launchpad.twitter,
             "genesis": next(({"symbol": c["symbol"], "name": c["name"], "token": c["token"], "curve": c["curve"],
-                              "pons": c["pons"], "explorer_token": c["explorer_token"], "pair": c["pair"]}
+                              "pons": c["pons"], "explorer_token": c["explorer_token"], "pair": c["pair"],
+                              "market": _market_block(mem)}
                              for c in reversed(coins) if c["genesis"] and c["live"] and c["token"]), None),
         },
         "now": {
