@@ -80,6 +80,7 @@ def cmd_browse(args) -> int:
     notes = fly.browser.explore(fly.mind, fly.memory, topics, budget=args.pages)
     fly.memory.note(f"browsed {len(notes)} pages", topics=topics[:3])
     fly.memory.save()
+    fly._publish("browse", "curious")
     print()
     print(f"read {len(notes)} pages:")
     for n in notes:
