@@ -456,9 +456,10 @@ class Fly:
             if interval and interval > 0:
                 pause = interval
             elif drives is not None:
-                pause = next_rest_sec(action, drives, fingerprint)
+                pause = next_rest_sec(action, drives, fingerprint, ceiling=self.cfg.max_rest_sec)
             else:
-                pause = min(1800, 60 * (2 ** min(crashes, 5)))   # crash backoff: 2, 4, 8 ... 30 min
+                pause = min(self.cfg.max_rest_sec, 60 * (2 ** min(crashes, 5)))   # crash backoff: 2, 4 ... up to the cap
+            pause = min(pause, self.cfg.max_rest_sec)
             self.log(f"the fly rests for {pause // 60} min {pause % 60} s")
             try:
                 self.rest(pause, live=live)

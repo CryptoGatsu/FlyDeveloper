@@ -243,6 +243,7 @@ class FlyConfig:
     x: XConfig = field(default_factory=XConfig)
     tick_interval_sec: int = 0       # 0 = free will: the fly paces itself
     max_actions_per_day: int = 80    # cost guard for the mind
+    max_rest_sec: int = 300          # FLY_MAX_REST_SEC: the fly never naps longer than this
     publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
     site_domain: str = "flydev.tech"   # FLY_SITE_DOMAIN: writes site/CNAME for GitHub Pages custom domains
     site_url: str = "https://flydev.tech"
@@ -258,6 +259,7 @@ class FlyConfig:
         cfg.memory_path = Path(_env("FLY_MEMORY_PATH", str(root / "data" / "fly_memory.json")))
         cfg.tick_interval_sec = _env_int("FLY_TICK_INTERVAL_SEC", 0)
         cfg.max_actions_per_day = _env_int("FLY_MAX_ACTIONS_PER_DAY", 80)
+        cfg.max_rest_sec = max(60, _env_int("FLY_MAX_REST_SEC", 300))
         cfg.publish = _env("FLY_PUBLISH", "site").strip().lower()
         cfg.site_domain = _env("FLY_SITE_DOMAIN", "flydev.tech").strip()
         cfg.site_url = _env("FLY_SITE_URL", "https://flydev.tech").strip()

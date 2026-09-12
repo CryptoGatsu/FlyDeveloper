@@ -144,12 +144,15 @@ def choose_action(drives: Drives, world: WorldSignals, fingerprint: str, tempera
 # How long the fly rests after an action, in seconds, before its brain decides
 # again. Light actions come back quickly; heavy ones earn a longer nap. Fatigue
 # stretches every rest; the spike fingerprint adds jitter so it is never metronomic.
-BASE_REST_SEC = {"browse": 150, "meme": 240, "build": 900, "repair": 600, "improve": 600,
-                 "launch": 1800, "website": 3600, "rest": 420, "brand": 900}
+# Typical rest after each action, in seconds. The fly is a fly: it naps in
+# minutes, not hours. Fatigue stretches these; the ceiling caps them.
+BASE_REST_SEC = {"browse": 120, "meme": 120, "build": 240, "repair": 180, "improve": 180,
+                 "launch": 240, "website": 240, "rest": 150, "brand": 180}
+MAX_REST_SEC = 300
 
 
-def next_rest_sec(action: str, drives: Drives, fingerprint: str = "", floor: int = 60, ceiling: int = 3600) -> int:
-    base = BASE_REST_SEC.get(action, 300)
+def next_rest_sec(action: str, drives: Drives, fingerprint: str = "", floor: int = 60, ceiling: int = MAX_REST_SEC) -> int:
+    base = BASE_REST_SEC.get(action, 150)
     stretch = 0.6 + 1.8 * drives.fatigue                    # 0.6x when fresh, ~2.2x when worn out
     seed = int(hashlib.sha256((fingerprint or action).encode()).hexdigest()[:8], 16)
     jitter = 0.75 + (seed % 1000) / 2000.0                  # 0.75x .. 1.25x

@@ -67,4 +67,4 @@ def test_fatigue_grows_with_activity_and_rest_scales():
     assert next_rest_sec("browse", fresh, "a") < next_rest_sec("build", fresh, "a")
     assert next_rest_sec("browse", fresh, "a") < next_rest_sec("browse", spent, "a")
     for a in ("browse", "build", "launch", "website", "rest", "unknown"):
-        assert 60 <= next_rest_sec(a, busy, "x") <= 3600
+        assert 60 <= next_rest_sec(a, busy, "x") <= 300                  # never more than five minutes
