@@ -349,6 +349,8 @@ class Fly:
         return {"pfp": str(pfp), "banner": str(banner), "tagline": copy.tagline, "bio": copy.bio, "mood": copy.mood}
 
     def act_browse(self, drives: Drives) -> dict[str, Any]:
+        if hasattr(self.browser, "backfill_shots"):
+            self.browser.backfill_shots(self.memory)
         topics = list(self.cfg.browser.seeds)
         for page in self.memory.recent("pages", 5):
             topics.extend(page.get("followups") or [])

@@ -129,3 +129,17 @@ def test_state_marks_built_ideas_and_wallet(tmp_path):
     st = build_state(fly.cfg, fly.memory)
     assert st["ideas"][0]["built"] is True
     assert st["fly"]["wallet"].startswith("0x") and len(st["fly"]["wallet"]) == 42
+
+
+def test_backfill_shots_fills_missing(tmp_path, monkeypatch):
+    from fly.browser import Browser
+    from fly.config import BrowserConfig
+    from fly.memory import Memory
+
+    mem = Memory(path=tmp_path / "m.json")
+    mem.add("pages", {"url": "https://a.test", "title": "A", "shot": ""})
+    mem.add("pages", {"url": "https://b.test", "title": "B", "shot": "browsing/shots/have.jpg"})
+    b = Browser(BrowserConfig(), shots_dir=tmp_path / "shots")
+    monkeypatch.setattr(b, "snapshot", lambda url: "browsing/shots/new.jpg")
+    assert b.backfill_shots(mem) == 1
+    assert mem.data["pages"][0]["shot"] == "browsing/shots/new.jpg"

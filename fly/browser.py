@@ -175,6 +175,23 @@ class Browser:
             out.append(SearchResult(h.get("title", ""), url, f"{h.get('points', 0)} points"))
         return out
 
+    def backfill_shots(self, memory, limit: int = 5) -> int:
+        """Screenshot recent pages that were read before screenshots existed."""
+        if not self.shots_dir:
+            return 0
+        done = 0
+        for page in reversed(memory.data.get("pages", [])):
+            if done >= limit:
+                break
+            if page.get("shot") or not page.get("url"):
+                continue
+            shot = self.snapshot(page["url"])
+            if shot:
+                page["shot"] = shot
+                done += 1
+                self.log(f"  backfilled screenshot for {page.get('title') or page['url']}")
+        return done
+
     # -- a browsing session --------------------------------------------------
     def explore(self, mind, memory, topics: list[str], budget: int | None = None) -> list[PageNote]:
         """Search a few topics, read the most promising pages, keep notes.
@@ -233,12 +250,20 @@ class Browser:
             })
         return notes
 
+    _warned_no_chrome = False
+
     def snapshot(self, url: str) -> str:
         """Screenshot `url` into the site's browsing/shots folder; returns the
         site-relative path ("browsing/shots/<id>.jpg") or ""."""
         if not self.shots_dir:
             return ""
-        from .render import screenshot_url
+        from .render import find_chrome, screenshot_url
+
+        if not find_chrome():
+            if not Browser._warned_no_chrome:
+                Browser._warned_no_chrome = True
+                self.log("  no Chrome/Brave/Chromium found for screenshots; set FLY_CHROME in .env to the browser binary")
+            return ""
 
         name = time.strftime("%Y%m%d-%H%M%S") + "-" + hashlib.sha1(url.encode()).hexdigest()[:8] + ".jpg"
         stamp = f"seen by the fly · {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime())} · {url}"

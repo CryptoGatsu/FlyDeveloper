@@ -31,6 +31,10 @@ def cmd_status(args) -> int:
     print(f"mind: {cfg.mind.mode} ({cfg.mind.model}, effort {cfg.mind.effort})")
     print(f"launchpad: chain {cfg.launchpad.chain_id} factory {cfg.launchpad.factory} live={cfg.launchpad.live} wallet={'set' if cfg.launchpad.private_key else 'unset'}")
     print(f"image host: {cfg.hosting.provider}")
+    from .render import find_chrome
+
+    chrome = find_chrome()
+    print(f"screenshots: {chrome if chrome else 'NO BROWSER FOUND (set FLY_CHROME in .env)'}")
     for w in config_warnings(cfg):
         print(f"WARNING: {w}")
     from .memory import Memory
@@ -72,6 +76,7 @@ def cmd_browse(args) -> int:
     """A browsing session you can watch: search, read, digest, remember."""
     fly = _fly(args)
     topics = args.topics or list(fly.cfg.browser.seeds)
+    fly.browser.backfill_shots(fly.memory)
     notes = fly.browser.explore(fly.mind, fly.memory, topics, budget=args.pages)
     fly.memory.note(f"browsed {len(notes)} pages", topics=topics[:3])
     fly.memory.save()
