@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-12T01:34:22Z",
+ "generated_at": "2026-09-12T01:46:41Z",
  "fly": {
   "name": "The Fly Dev",
   "symbol": "FLYDEV",
@@ -18,7 +18,7 @@
  },
  "now": {
   "at": "2026-09-11T20:16:22+00:00",
-  "mood": "smug",
+  "mood": "scheming",
   "action": "build",
   "drives": {
    "curiosity": 0.3019,
