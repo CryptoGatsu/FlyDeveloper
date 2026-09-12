@@ -27,7 +27,7 @@
       left.textContent = j.turns_left; $("mood").textContent = j.mood || "unknown";
       if (j.burn) burnInfo = j.burn;
       showBurn(j.turns_left <= 0);
-    } catch (e) { hint.textContent = "(the fly's brain is offline: " + e + ")"; }
+    } catch (e) { hint.textContent = "(chat is only live on flydev.tech; this copy has no brain attached)"; left.textContent = "–"; }
   }
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
