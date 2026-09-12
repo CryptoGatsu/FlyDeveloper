@@ -152,6 +152,14 @@ Mac): `ANTHROPIC_API_KEY`, `FLY_CHAT_SECRET` (any long random string), and
 optionally `FLY_CHAT_MODEL`, `FLY_RPC_URL`, `FLY_FREE_TURNS`,
 `FLY_BURN_AMOUNT`, `FLY_BURN_TURNS`, `FLY_DAILY_TURN_BUDGET`.
 
+**Fly cam.** While it browses, the fly posts frames of the page it is on
+(panning down the page a few seconds apart) to `api/cam.js`, which keeps the
+newest few in Vercel Blob; `/browsing` polls every 3 seconds and shows a LIVE
+panel, or "last seen" when idle. Setup: add a Blob store to the Vercel
+project (Storage tab; it injects `BLOB_READ_WRITE_TOKEN`), pick a random
+`FLY_CAM_SECRET` and set it both on Vercel and in `.env`, then
+`python fly.py cam-test`.
+
 **X replies.** Each tick the fly reads new mentions of @TheFlyDev_ and
 answers them in character (`FLY_X_MAX_REPLIES_PER_DAY`, default 30). Drafts
 until posting is armed. `python fly.py replies --live` runs it by hand.

@@ -211,6 +211,8 @@ class FlyConfig:
     tick_interval_sec: int = 1800
     publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
     site_domain: str = "flydev.tech"   # FLY_SITE_DOMAIN: writes site/CNAME for GitHub Pages custom domains
+    site_url: str = "https://flydev.tech"
+    cam_secret: str = ""               # FLY_CAM_SECRET: shared with the Vercel function; empty disables the cam
 
     @classmethod
     def from_env(cls, root: Path | None = None) -> "FlyConfig":
@@ -223,6 +225,8 @@ class FlyConfig:
         cfg.tick_interval_sec = _env_int("FLY_TICK_INTERVAL_SEC", 1800)
         cfg.publish = _env("FLY_PUBLISH", "site").strip().lower()
         cfg.site_domain = _env("FLY_SITE_DOMAIN", "flydev.tech").strip()
+        cfg.site_url = _env("FLY_SITE_URL", "https://flydev.tech").strip()
+        cfg.cam_secret = _env("FLY_CAM_SECRET", "").strip()
 
         b = cfg.brain
         b.mode = _env("FLY_BRAIN", "connectome")

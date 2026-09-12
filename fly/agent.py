@@ -55,7 +55,11 @@ class Fly:
         self.memory = Memory.load(cfg.memory_path)
         self.brain = brain or build_brain(cfg.brain)
         self.mind = mind or build_mind(cfg.mind)
-        self.browser = browser or Browser(cfg.browser, log=log, shots_dir=cfg.root / "site" / "browsing" / "shots")
+        from .cam import FlyCam
+
+        self.cam = FlyCam(cfg.site_url, cfg.cam_secret, log=log)
+        self.browser = browser or Browser(cfg.browser, log=log, shots_dir=cfg.root / "site" / "browsing" / "shots",
+                                          cam=self.cam if self.cam.configured else None)
         self.workshop = Workshop(cfg.workshop_dir)
         self._launchpad = launchpad
         self.x = XClient(cfg.x)

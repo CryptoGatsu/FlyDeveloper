@@ -77,10 +77,11 @@ def _save(memory) -> None:
 
 
 class Browser:
-    def __init__(self, cfg: BrowserConfig, log=None, shots_dir: Path | None = None):
+    def __init__(self, cfg: BrowserConfig, log=None, shots_dir: Path | None = None, cam=None):
         self.cfg = cfg
         self.log = log or (lambda msg: None)
         self.shots_dir = shots_dir          # where page screenshots go (site/browsing/shots)
+        self.cam = cam                      # FlyCam or None
         import requests
 
         self.session = requests.Session()
@@ -212,6 +213,8 @@ class Browser:
         candidates: list[SearchResult] = []
         for topic in topics[:3]:
             self.log(f"searching: {topic}")
+            if self.cam:
+                self.cam.searching(topic)
             found = self.search(topic, n=5)
             self.log(f"  {len(found)} results" + (f" via {self.last_engine}" if found else " (every engine failed or blocked)"))
             memory.add("searches", {"query": topic, "engine": self.last_engine,
@@ -227,6 +230,8 @@ class Browser:
         candidates.extend(hn)
         if not candidates:
             memory.note("tried to browse but every search engine failed; is the network up?")
+        if self.cam:
+            self.cam.post("browsing", note=f"{len(candidates)} candidate pages; picking")
 
         notes: list[PageNote] = []
         seen: set[str] = set()
@@ -244,6 +249,8 @@ class Browser:
             shot = self.snapshot(page.url)
             if shot:
                 self.log(f"  screenshot: {shot}")
+            if self.cam:
+                self.cam.show_page(page.url, page.title, self._last_tall, note="reading")
             try:
                 digest = mind.digest(page.title, page.url, page.text)
                 self.log(f"  gist: {digest.gist[:160]}")
@@ -260,6 +267,8 @@ class Browser:
                 "shot": shot,
             })
             _save(memory)                               # survive a Ctrl-C mid-session
+        if self.cam:
+            self.cam.idle(note=f"read {len(notes)} pages")
         return notes
 
     _warned_no_chrome = False
@@ -279,10 +288,17 @@ class Browser:
 
         name = time.strftime("%Y%m%d-%H%M%S") + "-" + hashlib.sha1(url.encode()).hexdigest()[:8] + ".jpg"
         stamp = f"seen by the fly · {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime())} · {url}"
+        self._last_tall = None
         try:
             out = screenshot_url(url, self.shots_dir / name, stamp=stamp)
+            if self.cam:
+                from .cam import tall_screenshot
+
+                self._last_tall = tall_screenshot(url, self.shots_dir / "__tall.png")
         except Exception:
             return ""
         if not out:
             return ""
         return f"browsing/shots/{name}"
+
+    _last_tall: Path | None = None

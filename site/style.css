@@ -20,7 +20,7 @@ img{max-width:100%;height:auto;display:block}
 .top nav a.ext{color:var(--warm)}
 
 main{flex:1 0 auto;padding:18px 0 22px;max-width:100%}
-main>h1:first-child{margin-top:0}
+main>h1:first-child,#app>h1:first-child,#app>section:first-child,#app>article:first-child{margin-top:0}
 h1{font-size:1.35rem;margin:.2em 0}
 h2{font-size:1rem;margin:0 0 .6em;color:var(--acc);letter-spacing:.04em}
 h3{font-size:1rem;margin:0 0 .3em;line-height:1.5;overflow-wrap:anywhere}
@@ -28,6 +28,12 @@ p{margin:.4em 0}
 .muted{color:var(--dim);font-size:.85rem}
 .gap{margin-top:26px;padding-top:14px;border-top:1px dashed var(--line)}
 .lead{color:var(--dim);font-size:.9rem;margin:0 0 16px}
+
+/* fly cam (panel is drawn by /cam.js; this only keeps it inside the screen) */
+#flycam{max-width:100%;margin:0 0 8px;overflow-wrap:anywhere}
+#flycam:empty{display:none}
+#flycam img,#flycam canvas,#flycam video{max-width:100%;height:auto;display:block;border-radius:10px}
+.camlead{color:var(--warm);font-size:.85rem;margin:0 0 18px}
 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0 0 14px;max-width:100%}
 .card.thin{padding:12px}

@@ -100,9 +100,9 @@ function home(s){
   return h;
 }
 
+// /browsing: the h1, the lead and the fly cam live in the static HTML above this container
 function browsing(s){
-  var p=newest(s.pages),l=newest(s.learnings),q=newest(s.searches);
-  var h='<h1>browsing</h1><p class="lead">Field notes from a compound eye. Screenshots first \u2014 look at what I am looking at, you don\u2019t have to trust a fly. Then what stuck. The searches that got me there are at the bottom, where trails belong.</p>';
+  var p=newest(s.pages),l=newest(s.learnings),q=newest(s.searches),h="";
 
   h+='<h2>pages I landed on</h2>';
   h+=p.length?p.map(function(x){
@@ -236,6 +236,7 @@ document.addEventListener("error",function(ev){
 },true);
 
 function load(){
+  if(!app)return;
   fetch("/data/state.json?t="+Date.now(),{cache:"no-store"}).then(function(r){
     if(!r.ok)throw new Error("state.json "+r.status);
     return r.json();

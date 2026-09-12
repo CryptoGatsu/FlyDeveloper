@@ -35,6 +35,7 @@ def cmd_status(args) -> int:
 
     chrome = find_chrome()
     print(f"screenshots: {chrome if chrome else 'NO BROWSER FOUND (set FLY_CHROME in .env)'}")
+    print(f"fly cam: {'on -> ' + cfg.site_url + '/api/cam' if cfg.cam_secret else 'off (set FLY_CAM_SECRET)'}")
     for w in config_warnings(cfg):
         print(f"WARNING: {w}")
     from .memory import Memory
@@ -243,6 +244,29 @@ def cmd_replies(args) -> int:
     return 0
 
 
+def cmd_cam_test(args) -> int:
+    """Post a test frame to the fly cam and read it back."""
+    from .cam import FlyCam
+    from .memes import render_meme
+
+    cfg = FlyConfig.from_env()
+    cam = FlyCam(cfg.site_url, cfg.cam_secret, log=print)
+    if not cam.configured:
+        print("cam not configured: set FLY_CAM_SECRET in .env (and the same value on Vercel)")
+        return 1
+    path = cfg.memes_dir / "cam-test.png"
+    render_meme("FLY CAM TEST", "if you can see this the eye works", path, seed=2, mood="hyped", size=600)
+    frames = cam.crops(path, 1, width=600, height=600)
+    ok = cam.post("browsing", "https://flydev.tech", "fly cam test", "test frame", frames[0])
+    print("posted" if ok else "post failed")
+    import requests
+
+    r = requests.get(f"{cfg.site_url}/api/cam", timeout=30)
+    print(r.status_code, r.text[:300])
+    cam.idle("test over")
+    return 0 if ok else 2
+
+
 def cmd_x_status(args) -> int:
     from .x import XClient
 
@@ -398,6 +422,7 @@ def main(argv: list[str] | None = None) -> int:
     po.add_argument("--live", action="store_true")
     po.set_defaults(fn=cmd_post)
     sub.add_parser("x-status", help="X credentials, posting state, recent posts and the playbook").set_defaults(fn=cmd_x_status)
+    sub.add_parser("cam-test", help="post a test frame to the fly cam and read it back").set_defaults(fn=cmd_cam_test)
     rp = sub.add_parser("replies", help="answer new mentions on X")
     rp.add_argument("--live", action="store_true")
     rp.set_defaults(fn=cmd_replies)

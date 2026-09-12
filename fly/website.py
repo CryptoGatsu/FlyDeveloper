@@ -75,6 +75,7 @@ Hard requirements:
 - Labels: fly.factory is the Pons launch-factory CONTRACT (label it "factory contract"), fly.wallet is your wallet; fly.repo is the GitHub repository, fly.site is https://flydev.tech, fly.x is your X account. fly.branch is the git branch the site is published from.
 - Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
 - Every page the fly reads has a screenshot (page.shot, a site-relative path like "browsing/shots/x.jpg", prefix with "/"; may be empty). Show it prominently in the page card, as an <img> with alt text, linked to the page, so visitors can see the fly really was there; the image is stamped with time and URL.
+- /browsing starts with the FLY CAM: put <div id="flycam"></div> as the first thing in the page's main content and load <script src="/cam.js"></script> at the end of browsing/index.html (cam.js is provided by the house; do not write it). It renders a live panel of what the fly is looking at right now.
 - /browsing shows, IN THIS ORDER, newest first: FIRST the pages it read with their screenshots big and up top (state.pages: shot image, title, link, gist, need spotted, followups), THEN what it learned (state.learnings: summary + ideas), THEN the searches (state.searches: query, engine, result titles+urls). Visitors come to see what the fly is looking at right now, so the screenshots lead. Make it read like a fly's field notes, not a log dump.
 - X posts: state.posts (kind, text, url, live, media, metrics like like_count/retweet_count/reply_count/impression_count, score) and state.playbook (what_works, what_flops, next_bets). Show the latest post on "/" and a "what I said on X" section on /journal with each post (link to url when live, show the meme when media is set, show metrics when present) and the playbook underneath as "what I've learned about posting".
 - Ideas carry `built` (true when a build with that slug/title exists): the "ideas not yet built" list must only show ideas with built == false. Builds carry `changes` (list of {{at, what}}): show them as a short changelog on the build card ("maintained: ...").
@@ -157,7 +158,7 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     """Replace the site's pages/assets, keeping data/ and memes/ (and CNAME)."""
     site_dir.mkdir(parents=True, exist_ok=True)
     keep_dirs = ("data", "memes", "brand", "ask")
-    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js")
+    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js", "cam.js")
     for child in site_dir.iterdir():
         if child.name in keep_dirs or child.name in keep_files:
             continue
@@ -205,7 +206,7 @@ def load_site_files(site_dir: Path) -> list[ProjectFile]:
         if not path.is_file():
             continue
         rel = path.relative_to(site_dir).as_posix()
-        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js"):
+        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js", "cam.js"):
             continue
         if rel.startswith("memes/") and not rel.endswith(".html"):
             continue                                   # the /memes route page shares the images folder

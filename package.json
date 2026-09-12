@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "description": "flydev.tech: static site written by the fly, plus serverless chat and burn verification",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.70.0"
+    "@anthropic-ai/sdk": "^0.70.0",
+    "@vercel/blob": "^1.1.1"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
