@@ -151,6 +151,30 @@ class MindRefused(RuntimeError):
 
 
 # --- Claude ------------------------------------------------------------------
+def _truncated(exc: BaseException) -> bool:
+    msg = str(exc)
+    return "json_invalid" in msg or "EOF while parsing" in msg or "Unterminated" in msg or "max_tokens" in msg
+
+
+def ask_with_room(call, budget: int, grow: int = 3, tries: int = 2):
+    """Run `call(max_tokens)`; when the answer was cut off (truncated JSON or a
+    max_tokens stop) try again with a bigger budget rather than fail."""
+    n = budget
+    for attempt in range(tries + 1):
+        try:
+            response = call(n)
+        except Exception as exc:
+            if attempt < tries and _truncated(exc):
+                n *= grow
+                continue
+            raise
+        if getattr(response, "stop_reason", "") == "max_tokens" and attempt < tries:
+            n *= grow
+            continue
+        return response
+    return response
+
+
 class ClaudeMind:
     def __init__(self, cfg: MindConfig):
         import anthropic
@@ -158,20 +182,27 @@ class ClaudeMind:
         self.cfg = cfg
         self.client = anthropic.Anthropic()
 
+    MIN_TOKENS = 4000     # thinking shares max_tokens with the answer; small budgets truncate the JSON
+
     def _ask(self, prompt, output_model, max_tokens: int | None = None):
         """`prompt` is a string or a list of content blocks (text + images)."""
         content = prompt if isinstance(prompt, list) else prompt
-        response = self.client.with_options(timeout=1200.0).beta.messages.parse(
-            model=self.cfg.model,
-            max_tokens=max_tokens or self.cfg.max_tokens,
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-            thinking={"type": "adaptive"},
-            output_config={"effort": self.cfg.effort},
-            system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
-            messages=[{"role": "user", "content": content}],
-            output_format=output_model,
-        )
+        budget = max(self.MIN_TOKENS, max_tokens or self.cfg.max_tokens)
+
+        def call(n: int):
+            return self.client.with_options(timeout=1200.0).beta.messages.parse(
+                model=self.cfg.model,
+                max_tokens=n,
+                betas=["server-side-fallback-2026-07-01"],
+                fallbacks="default",
+                thinking={"type": "adaptive"},
+                output_config={"effort": self.cfg.effort},
+                system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
+                messages=[{"role": "user", "content": content}],
+                output_format=output_model,
+            )
+
+        response = ask_with_room(call, budget)
         if response.stop_reason == "refusal":
             details = getattr(response, "stop_details", None)
             raise MindRefused(f"model declined: {getattr(details, 'category', None)}")

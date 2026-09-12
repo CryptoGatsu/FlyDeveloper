@@ -200,7 +200,7 @@ class Fly:
         try:
             result.outcome["x"] = self.social_after(action, result.outcome, live=live)
         except Exception as exc:                       # posting must never break a tick
-            self.memory.note(f"x error: {exc}")
+            self.memory.note(f"x error: {str(exc).splitlines()[0][:160]}")
             result.outcome["x"] = f"error: {exc}"
         finally:
             self.memory.save()
