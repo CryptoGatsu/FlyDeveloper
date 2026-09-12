@@ -189,9 +189,13 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     return written
 
 
+# (marker, tag): the tag is added when the marker is missing from the page.
 HEAD_TAGS = (
-    '<link rel="icon" href="/favicon.png">',
-    '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+    ("/favicon.png", '<link rel="icon" href="/favicon.png">'),
+    ("/apple-touch-icon.png", '<link rel="apple-touch-icon" href="/apple-touch-icon.png">'),
+    # any http:// image or script the fly links is upgraded to https, so the
+    # page never shows "Not Secure" for mixed content
+    ("upgrade-insecure-requests", '<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">'),
 )
 
 
@@ -222,8 +226,9 @@ def ensure_house_panels(html: str, rel: str) -> str:
 
 
 def ensure_head_tags(html: str) -> str:
-    """House rules every page gets regardless of who wrote it: favicon links."""
-    missing = [t for t in HEAD_TAGS if t.split('href="')[1].split('"')[0] not in html]
+    """House rules every page gets regardless of who wrote it: favicon links
+    and the mixed-content upgrade."""
+    missing = [tag for marker, tag in HEAD_TAGS if marker not in html]
     if not missing or "</head>" not in html:
         return html
     return html.replace("</head>", "\n".join(missing) + "\n</head>", 1)

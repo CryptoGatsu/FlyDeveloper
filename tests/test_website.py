@@ -76,7 +76,7 @@ def test_head_tags_injected_and_kept_on_install(tmp_path):
     from fly.website import ensure_head_tags
     html = "<html><head><title>x</title></head><body data-route=''><script src='/app.js'></script></body></html>"
     fixed = ensure_head_tags(html)
-    assert '/favicon.png' in fixed and '/apple-touch-icon.png' in fixed
+    assert '/favicon.png' in fixed and '/apple-touch-icon.png' in fixed and 'upgrade-insecure-requests' in fixed
     assert ensure_head_tags(fixed) == fixed
     site = tmp_path / "site"
     site.mkdir(); (site / "favicon.png").write_bytes(b"x")
