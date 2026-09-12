@@ -66,7 +66,8 @@
         <span class="pill ${k.live ? "live" : ""}">${k.live ? "live on chain" : esc(k.status || "dry run")}</span></div>
       <div class="when">${esc(ago(k.at))}${k.buyback === false ? " · creator fees fund the project" : k.buyback ? " · buyback on" : ""}</div>
       <p class="desc">${esc(k.description)}</p>
-      <div class="links">${k.explorer_token ? `<a href="${esc(k.explorer_token)}" target="_blank" rel="noopener">token ↗</a>` : ""}
+      <div class="links">${k.pons ? `<a href="${esc(k.pons)}" target="_blank" rel="noopener">buy on Pons ↗</a>` : ""}
+        ${k.explorer_token ? `<a href="${esc(k.explorer_token)}" target="_blank" rel="noopener">token ↗</a>` : ""}
         ${k.explorer_tx ? `<a href="${esc(k.explorer_tx)}" target="_blank" rel="noopener">launch tx ↗</a>` : ""}
         ${k.curve ? `<span class="when">curve ${esc(k.curve)}</span>` : ""}</div></div></div>`;
   }

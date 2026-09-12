@@ -159,3 +159,36 @@ def test_tick_survives_action_crash_and_trips_breaker(tmp_path):
     assert not fly.health.allowed("meme")
     r = fly.tick(seed=2)
     assert r.action != "meme"
+
+
+def test_visit_coin_after_launch_records_pons_page(tmp_path):
+    fly = _fly(tmp_path)
+
+    class Snap:
+        _last_tall = None
+        calls = []
+
+        def snapshot(self, url):
+            self.calls.append(url)
+            return "browsing/shots/x.jpg"
+
+    fly.browser = Snap()
+    seen = fly.visit_coin("The Fly Dev", "FLYDEV", "0x" + "ab" * 20, "0x" + "cd" * 32)
+    assert seen[0] == "https://www.ponsfamily.com/launchpad/0x" + "ab" * 20
+    assert seen[1].startswith("https://robinhoodchain.blockscout.com/tx/0x")
+    pages = fly.memory.data["pages"]
+    assert pages[-2]["coin"] == "FLYDEV" and pages[-2]["shot"] == "browsing/shots/x.jpg"
+    assert "Pons" in pages[-2]["title"]
+
+
+def test_state_exports_pons_link_for_live_coins(tmp_path):
+    from fly.publish import build_state
+
+    fly = _fly(tmp_path)
+    fly.memory.add("launches", {"name": "The Fly Dev", "symbol": "FLYDEV", "live": True, "status": "confirmed",
+                                "token": "0x" + "ab" * 20, "tx": "0x" + "cd" * 32, "genesis": True})
+    fly.memory.add("launches", {"name": "Dry", "symbol": "DRY", "live": False, "status": "planned", "token": ""})
+    state = build_state(fly.cfg, fly.memory)
+    coins = {c["symbol"]: c for c in state["coins"]}
+    assert coins["FLYDEV"]["pons"] == "https://www.ponsfamily.com/launchpad/0x" + "ab" * 20
+    assert coins["DRY"]["pons"] == ""

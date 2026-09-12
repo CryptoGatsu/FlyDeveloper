@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .config import FlyConfig
+from .config import FlyConfig, pons_token_url
 from .memory import Memory
 
 EXPLORER = "https://robinhoodchain.blockscout.com"
@@ -86,6 +86,7 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "genesis": bool(l.get("genesis")), "buyback": l.get("buyback"),
             "explorer_tx": f"{EXPLORER}/tx/{l['tx']}" if l.get("tx") else "",
             "explorer_token": f"{EXPLORER}/token/{l['token']}" if l.get("token") else "",
+            "pons": l.get("pons_url") or (pons_token_url(l["token"]) if l.get("live") and l.get("token") else ""),
         })
     pages = [
         {"at": p.get("at"), "url": p.get("url"), "title": p.get("title"), "gist": p.get("gist"),

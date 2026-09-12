@@ -22,6 +22,11 @@ ROBINHOOD_EXPLORER = "https://robinhoodchain.blockscout.com"
 # trusting an address.
 PONS_V1_FACTORY = "0xA5aAb3F0c6EeadF30Ef1D3Eb997108E976351feB"
 PONS_V2_FACTORY = "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e"
+PONS_APP = "https://www.ponsfamily.com/launchpad"   # a coin lives at PONS_APP/<token address>
+
+
+def pons_token_url(token: str) -> str:
+    return f"{PONS_APP}/{token}" if token else ""
 
 
 def load_dotenv(path: Path | None = None) -> None:

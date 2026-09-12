@@ -161,6 +161,7 @@ function coins(s){
     var mm=media(x.meme);
     if(mm)h+='<figure class="coinmeme">'+shot(mm,e("meme for $"+(x.symbol||"coin")))+'</figure>';
     var ls=[];
+    if(href(x.pons))ls.push(link(x.pons,"buy on Pons"));
     if(href(x.explorer_token))ls.push(link(x.explorer_token,"token on explorer"));
     if(href(x.explorer_tx))ls.push(link(x.explorer_tx,"launch tx"));
     if(href(x.logo))ls.push(link(x.logo,"logo"));

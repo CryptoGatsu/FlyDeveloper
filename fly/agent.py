@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 from .brain import FlyBrain, SpikeReport, build_brain
 from .browser import Browser
-from .config import FlyConfig
+from .config import FlyConfig, pons_token_url
 from .developer import Workshop
 from .drives import Drives, WorldSignals, choose_action, compute_drives
 from .hosting import HostingError, host_image
@@ -591,6 +591,35 @@ class Fly:
             "logo": logo, "live": plan.status == "confirmed", "status": plan.status, "tx": plan.tx_hash,
             "genesis": is_genesis, "buyback": buyback, "creator_tax_bps": lp.creator_tax_bps,
             "token": plan.token, "curve": plan.curve, "problems": plan.problems, "calldata": plan.calldata[:10],
+            "pons_url": pons_token_url(plan.token) if plan.status == "confirmed" else "",
         })
         self.log(plan.describe())
+        if plan.status == "confirmed":
+            self.memory.note(f"launched ${symbol} on Pons: {pons_token_url(plan.token)}", tx=plan.tx_hash)
+            self.visit_coin(params.name, symbol, plan.token, plan.tx_hash)
         return {"launch": plan.describe(), "status": plan.status, "tagline": concept.tagline}
+
+    def visit_coin(self, name: str, symbol: str, token: str, tx: str) -> list[str]:
+        """After a launch the fly goes to look at its coin: the Pons page and the
+        transaction on the explorer, on the fly cam and in the browsing feed."""
+        stops = [(pons_token_url(token), f"{name} (${symbol}) on Pons", "the fly checks on its own coin"),
+                 (f"{self.cfg.launchpad.explorer}/tx/{tx}" if tx else "", f"launch transaction for ${symbol}",
+                  "the launch transaction on the explorer")]
+        seen: list[str] = []
+        for url, title, note in stops:
+            if not url:
+                continue
+            try:
+                shot = self.browser.snapshot(url)
+                tall = getattr(self.browser, "_last_tall", None)
+                if getattr(self, "cam", None) and self.cam.configured:
+                    self.cam.show_page(url, title, tall, note=note)
+                    time.sleep(6)                       # long enough for the cam to pan over it
+            except Exception as exc:                    # a missing browser must not undo a launch
+                self.log(f"  could not look at {url}: {exc}")
+                shot = ""
+            self.memory.add("pages", {"url": url, "title": title, "gist": note, "need": "", "interesting": True,
+                                      "followups": [], "shot": shot, "coin": symbol})
+            seen.append(url)
+        self.memory.save()
+        return seen
