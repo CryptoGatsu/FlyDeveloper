@@ -225,7 +225,7 @@ and bot outreach ("DM me", "follow back", "attractive proposal", marketing
 and listing pitches, emoji-only hype) is recognised by a filter and, past
 that, by the mind itself, and gets no reply. Ignored mentions are remembered
 so they are not re-judged and never appear on the site. Own posts are capped
-by `FLY_X_MAX_POSTS_PER_DAY` (default 12; replies do not count). Drafts until
+by `FLY_X_MAX_POSTS_PER_DAY` (default 30; replies do not count). Drafts until
 posting is armed. `python fly.py replies --live` runs it by hand.
 
 ## Launching on Pons

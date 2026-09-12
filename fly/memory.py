@@ -43,6 +43,9 @@ class Memory:
                         value = loaded.get(key, [])
                         if isinstance(value, list):
                             mem.data[key] = value
+                    for key, value in loaded.items():          # newer keys (market history, counters) survive a restart
+                        if key not in cls.KEYS and isinstance(value, (list, dict)):
+                            mem.data[key] = value
             except (OSError, ValueError):
                 pass
         return mem

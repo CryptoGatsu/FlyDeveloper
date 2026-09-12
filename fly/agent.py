@@ -606,8 +606,11 @@ class Fly:
         broken = [b for b in tools if not b.get("ok")]
         if broken:
             return self.act_repair(broken[-1])
-        # Every third build, improve something that already works.
-        if tools and len(self.memory.data.get("builds", [])) % 3 == 2:
+        # Every third build action improves something that already works; the
+        # other two make new things (counted, so improving never becomes a rut).
+        counters = self.memory.data.setdefault("counters", {})
+        counters["build_actions"] = int(counters.get("build_actions", 0)) + 1
+        if tools and counters["build_actions"] % 3 == 0:
             oldest = min(tools, key=lambda b: float(b.get("touched_ts") or b.get("ts") or 0))
             return self.act_improve(oldest)
         idea = self.mind.ideate(self.context())

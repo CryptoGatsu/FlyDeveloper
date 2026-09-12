@@ -174,10 +174,10 @@ class XConfig:
     access_token: str = ""       # X_ACCESS_TOKEN (the account's)
     access_secret: str = ""      # X_ACCESS_SECRET
     post: bool = False           # FLY_X_POST=1 sends posts; otherwise dry runs
-    max_posts_per_day: int = 12      # own posts (hype/build/meme/launch/learning); replies do not count
+    max_posts_per_day: int = 30      # own posts (hype/build/meme/launch/learning); replies do not count
     max_replies_per_day: int = 30
     max_replies_per_account_per_day: int = 2   # a bot that keeps mentioning you gets nothing after this
-    hype_every_hours: float = 4.0   # at most one unprompted $FLYDEV post per this many hours
+    hype_every_hours: float = 2.0   # at most one unprompted $FLYDEV post per this many hours
     metrics_every_hours: float = 3.0
     mentions_every_sec: int = 180   # while resting, look for mentions this often and answer them
 
@@ -242,7 +242,7 @@ class FlyConfig:
     hosting: HostingConfig = field(default_factory=HostingConfig)
     x: XConfig = field(default_factory=XConfig)
     tick_interval_sec: int = 0       # 0 = free will: the fly paces itself
-    max_actions_per_day: int = 80    # cost guard for the mind
+    max_actions_per_day: int = 200   # cost guard for the mind
     max_rest_sec: int = 300          # FLY_MAX_REST_SEC: the fly never naps longer than this
     publish: str = "site"      # "none" | "site" (export site/data) | "git" (export + commit + push)
     site_domain: str = "flydev.tech"   # FLY_SITE_DOMAIN: writes site/CNAME for GitHub Pages custom domains
@@ -258,7 +258,7 @@ class FlyConfig:
         cfg.memes_dir = Path(_env("FLY_MEMES_DIR", str(root / "memes")))
         cfg.memory_path = Path(_env("FLY_MEMORY_PATH", str(root / "data" / "fly_memory.json")))
         cfg.tick_interval_sec = _env_int("FLY_TICK_INTERVAL_SEC", 0)
-        cfg.max_actions_per_day = _env_int("FLY_MAX_ACTIONS_PER_DAY", 80)
+        cfg.max_actions_per_day = _env_int("FLY_MAX_ACTIONS_PER_DAY", 200)
         cfg.max_rest_sec = max(60, _env_int("FLY_MAX_REST_SEC", 300))
         cfg.publish = _env("FLY_PUBLISH", "site").strip().lower()
         cfg.site_domain = _env("FLY_SITE_DOMAIN", "flydev.tech").strip()
@@ -325,10 +325,10 @@ class FlyConfig:
         xc.access_token = _env("X_ACCESS_TOKEN", "")
         xc.access_secret = _env("X_ACCESS_SECRET", "")
         xc.post = _env_bool("FLY_X_POST", False)
-        xc.max_posts_per_day = _env_int("FLY_X_MAX_POSTS_PER_DAY", 12)
+        xc.max_posts_per_day = _env_int("FLY_X_MAX_POSTS_PER_DAY", 30)
         xc.max_replies_per_day = _env_int("FLY_X_MAX_REPLIES_PER_DAY", 30)
         xc.max_replies_per_account_per_day = _env_int("FLY_X_MAX_REPLIES_PER_ACCOUNT_PER_DAY", 2)
-        xc.hype_every_hours = _env_float("FLY_X_HYPE_EVERY_HOURS", 4.0)
+        xc.hype_every_hours = _env_float("FLY_X_HYPE_EVERY_HOURS", 2.0)
         xc.mentions_every_sec = max(60, _env_int("FLY_X_MENTIONS_EVERY_SEC", 180))
 
         h = cfg.hosting

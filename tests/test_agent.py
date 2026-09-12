@@ -350,3 +350,14 @@ def test_market_snapshot_uses_the_lazy_launchpad(tmp_path, monkeypatch):
     assert fly._launchpad is None
     assert fly.market_snapshot() == {"mcap_usd": 1.0}
     assert seen["lp"] is not None and seen["lp"] is fly.launchpad
+
+
+def test_memory_keeps_market_history_and_counters_across_restarts(tmp_path):
+    from fly.memory import Memory
+
+    mem = Memory(tmp_path / "m.json")
+    mem.add("market", {"mcap_usd": 5.0})
+    mem.data.setdefault("counters", {})["build_actions"] = 4
+    mem.save()
+    again = Memory.load(tmp_path / "m.json")
+    assert again.data["market"][-1]["mcap_usd"] == 5.0 and again.data["counters"]["build_actions"] == 4

@@ -95,7 +95,7 @@ def compute_drives(reports: dict[str, SpikeReport], world: WorldSignals, calibra
     if world.genesis_pending and world.launch_armed:
         appetite_w = max(appetite_w, 0.95)   # the urge to hatch its own coin
 
-    fatigue = min(0.9, 0.12 + 0.09 * world.actions_last_hour)
+    fatigue = min(0.9, 0.08 + 0.05 * world.actions_last_hour)    # ~0.4 at eight actions an hour
     if world.actions_today >= world.max_actions_per_day:
         fatigue = 0.95                      # out of budget for today: it will mostly rest
     drives = Drives(
@@ -117,7 +117,7 @@ def choose_action(drives: Drives, world: WorldSignals, fingerprint: str, tempera
         "build": drives.craft,
         "meme": drives.humor,
         "launch": drives.appetite * (0.4 + 0.6 * drives.boldness),
-        "rest": drives.fatigue,
+        "rest": 0.75 * drives.fatigue,                       # rest competes, it does not dominate
     }
     # Itchy antennae: past an hour without browsing the urge grows until it
     # wins outright, so the fly is never off the web for long.
