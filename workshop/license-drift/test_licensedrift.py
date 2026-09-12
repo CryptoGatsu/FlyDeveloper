@@ -73,11 +73,35 @@ def test_normalize_name(raw, expected):
     ("Apache-2.0 WITH Commons-Clause", True),
     ("MIT AND Proprietary", True),
     ("Apache-2.0 OR MIT", False),
+    # copyleft is drift, not an alarm, unless you ask for it
+    ("AGPL-3.0", False),
     ("UNKNOWN", False),
     ("", False),
 ])
 def test_is_restrictive(tag, expected):
     assert ld.is_restrictive(tag) is expected
+
+
+@pytest.mark.parametrize("values,expected", [
+    (["AGPL-3.0"], {"AGPL-3.0"}),
+    (["agpl, gpl"], {"AGPL-3.0", "GPL"}),
+    (["GNU Affero", "UNKNOWN"], {"AGPL-3.0", "UNKNOWN"}),
+    (["  ", ""], set()),
+    (None, set()),
+])
+def test_parse_alarm_tags(values, expected):
+    assert ld.parse_alarm_tags(values) == expected
+
+
+def test_is_restrictive_honours_a_custom_policy():
+    policy = ld.RESTRICTIVE | {"AGPL-3.0"}
+    assert ld.is_restrictive("AGPL-3.0", policy) is True
+    assert ld.is_restrictive("MIT AND AGPL-3.0", policy) is True
+    # a dual license still leaves you an out
+    assert ld.is_restrictive("AGPL-3.0 OR MIT", policy) is False
+    # the built-ins are still in there
+    assert ld.is_restrictive("BUSL-1.1", policy) is True
+    assert ld.is_restrictive("MIT", policy) is False
 
 
 def test_extract_prefers_expression_then_classifier_then_field():
@@ -148,6 +172,13 @@ def test_diff_alarms_on_quiet_commons_clause_bolt_on():
     assert ld.exit_code(changes) == 2
 
 
+def test_diff_applies_a_custom_policy_to_added_packages():
+    policy = ld.RESTRICTIVE | {"AGPL-3.0"}
+    added = ld.diff({}, {"copyleft": _pkg("1.0", "AGPL-3.0")}, policy)[0]
+    assert added["kind"] == "added" and added["alarm"] is True
+    assert ld.diff({}, {"copyleft": _pkg("1.0", "AGPL-3.0")})[0]["alarm"] is False
+
+
 def test_dual_licensed_package_is_drift_but_not_an_alarm():
     old = {"dual": _pkg("1.0", ld.normalize_license("MIT"))}
     new = {"dual": _pkg("2.0", ld.normalize_license("MIT OR BUSL-1.1"))}
@@ -177,6 +208,14 @@ def test_format_report():
     assert "source-available" in text
 
 
+def test_format_report_labels_policy_alarms_separately():
+    policy = ld.RESTRICTIVE | {"AGPL-3.0"}
+    text = ld.format_report(
+        ld.diff({"a": _pkg("1", "MIT")}, {"a": _pkg("2", "AGPL-3.0")}, policy))
+    assert "[policy]" in text
+    assert "source-available" not in text
+
+
 def test_build_report_shape():
     changes = ld.diff({"a": _pkg("1", "MIT")}, {"a": _pkg("2", "SSPL-1.0")})
     report = ld.build_report(changes, "licenses.json")
@@ -186,6 +225,7 @@ def test_build_report_shape():
     assert report["exit_code"] == 2
     assert report["snapshot_updated"] is False
     assert report["changes"] == changes
+    assert report["alarm_on"] == sorted(ld.RESTRICTIVE)
 
 
 def test_snapshot_roundtrip(tmp_path):
@@ -239,6 +279,36 @@ def test_cli_check_reports_drift_and_can_update(tmp_path, capsys):
     assert ld.main(["check", path, "--update"], current=drifted) == 2
     assert ld.main(["check", path], current=drifted) == 0
     capsys.readouterr()
+
+
+def test_cli_alarm_on_blocks_copyleft(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    ld.main(["snapshot", path], current={"lib": _pkg("1.0", "MIT")})
+    drifted = {"lib": _pkg("2.0", "AGPL-3.0")}
+    assert ld.main(["check", path], current=drifted) == 1
+    assert ld.main(["check", path, "--alarm-on", "agpl"], current=drifted) == 2
+    assert "[policy]" in capsys.readouterr().out
+
+
+def test_cli_alarm_on_unknown_catches_unreadable_metadata(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    ld.main(["snapshot", path], current={"lib": _pkg("1.0", "MIT")})
+    drifted = {"lib": _pkg("1.0", "MIT"), "mystery": _pkg("0.1", "UNKNOWN")}
+    assert ld.main(["check", path], current=drifted) == 1
+    assert ld.main(["check", path, "--alarm-on", "UNKNOWN,GPL"], current=drifted) == 2
+    capsys.readouterr()
+
+
+def test_cli_alarm_on_is_repeatable_and_lands_in_the_json_report(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    ld.main(["snapshot", path], current={"lib": _pkg("1.0", "MIT")})
+    capsys.readouterr()
+    code = ld.main(["check", path, "--json", "--alarm-on", "AGPL-3.0",
+                    "--alarm-on", "GPL,LGPL"], current={"lib": _pkg("2.0", "GPL")})
+    body = json.loads(capsys.readouterr().out)
+    assert code == 2 == body["exit_code"]
+    assert body["alarms"] == 1
+    assert set(body["alarm_on"]) == ld.RESTRICTIVE | {"AGPL-3.0", "GPL", "LGPL"}
 
 
 def test_cli_check_json_is_pure_json_and_carries_the_exit_code(tmp_path, capsys):

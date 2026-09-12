@@ -38,7 +38,7 @@ python licensedrift.py check licenses.json --update
 |------|---------|
 | 0 | no drift |
 | 1 | something changed (added / removed / license changed) |
-| 2 | a package now carries a source-available or proprietary license |
+| 2 | a package now carries an alarming license |
 | 3 | usage error (missing snapshot file, bad JSON) |
 
 So in CI: fail the build on `2`, warn on `1`.
@@ -57,6 +57,35 @@ license drift: 4 change(s)
   - six@1.16.0              removed, was MIT
 ```
 
+## Your own policy: `--alarm-on`
+
+Out of the box only source-available licenses exit `2`. Plenty of teams have a
+different line in the sand — no AGPL in a hosted service, no unreadable license
+metadata at all. Name the extra tags and they join the alarm set:
+
+```sh
+python licensedrift.py check licenses.json --alarm-on AGPL-3.0,GPL
+python licensedrift.py check licenses.json --alarm-on agpl --alarm-on UNKNOWN
+```
+
+* Comma-separated, repeatable, and each value is normalised by the same rules as
+  package metadata — `agpl`, `AGPL-3.0` and `GNU Affero` all mean `AGPL-3.0`.
+* Tags are distinct: `GPL`, `LGPL` and `AGPL-3.0` are three separate things, so
+  list the ones you mean.
+* `--alarm-on UNKNOWN` turns "we could not read this package's license" into a
+  build failure, which is a good habit once your snapshot is clean.
+* Compound licenses follow the same operator rules as below, so
+  `AGPL-3.0 OR MIT` still does not alarm under an AGPL policy: you may pick MIT.
+* The built-in source-available set is always included; `--alarm-on` only adds.
+
+Policy hits are labelled `[policy]` instead of `[source-available]`, so a reader
+can tell "the upstream rug-pulled" from "this is our own house rule":
+
+```
+license drift: 1 change(s)
+  ! chatty-lib@3.0.0        MIT -> AGPL-3.0  [policy]
+```
+
 ## Machine-readable output
 
 For bots, PR annotations and anything that would otherwise grep the text report:
@@ -68,6 +97,7 @@ python licensedrift.py check licenses.json --json
 ```json
 {
   "alarms": 1,
+  "alarm_on": ["BUSL-1.1", "Commons-Clause", "Elastic-2.0", "FSL-1.1", "Proprietary", "SSPL-1.0"],
   "changes": [
     {
       "alarm": true,
@@ -89,9 +119,11 @@ python licensedrift.py check licenses.json --json
 
 `kind` is one of `added`, `removed`, `license-change`. `old` and `new` are the
 normalised license tags (`null` where they do not apply). `alarm` is the
-source-available flag — the thing worth blocking a merge on. The exit code is
-still the exit code; it is repeated in the document so a job that pipes stdout
-into another tool does not lose it.
+block-the-merge flag. `alarm_on` is the effective alarm set for this run —
+built-ins plus anything you passed to `--alarm-on` — so a log tells you which
+policy produced the verdict. The exit code is still the exit code; it is
+repeated in the document so a job that pipes stdout into another tool does not
+lose it.
 
 With `--json`, stdout is *only* JSON: the "snapshot updated." line becomes the
 `snapshot_updated` field. Errors still go to stderr with exit `3`.
@@ -142,7 +174,8 @@ when every term is a license we recognise, so prose like
 `GNU General Public License v2 or later` still normalises to plain `GPL`.
 
 Unreadable or absent metadata becomes `UNKNOWN`, which still drifts loudly if it
-later becomes something else.
+later becomes something else — and can be made a hard failure with
+`--alarm-on UNKNOWN`.
 
 ## Tests
 

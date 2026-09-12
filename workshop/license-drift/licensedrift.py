@@ -142,17 +142,37 @@ def normalize_license(raw):
     return cleaned if len(cleaned) <= 40 else "UNKNOWN"
 
 
-def is_restrictive(tag):
+def parse_alarm_tags(values):
+    """Turn `--alarm-on` values into a set of normalised tags.
+
+    Accepts repetition and commas: `--alarm-on agpl,gpl --alarm-on UNKNOWN`.
+    Each piece goes through the same normaliser as package metadata, so
+    `agpl`, `AGPL-3.0` and `GNU Affero` all mean the same tag.
+    """
+    tags = set()
+    for value in values or ():
+        for piece in str(value).split(","):
+            piece = piece.strip()
+            if piece:
+                tags.add(normalize_license(piece))
+    return tags
+
+
+def is_restrictive(tag, restrictive=None):
     """Should this tag make CI stop?
 
-    A plain restrictive tag does. In a compound expression, `OR` means you may
-    pick a branch, so it only alarms when every option is restrictive; `AND` and
-    `WITH` stack obligations, so any restrictive part alarms (this is how a
-    quiet `Apache-2.0 WITH Commons-Clause` gets caught).
+    `restrictive` defaults to the built-in source-available set; pass a wider
+    set (see `parse_alarm_tags`) to enforce a house policy such as "no AGPL".
+
+    A plain listed tag alarms. In a compound expression, `OR` means you may
+    pick a branch, so it only alarms when every option is listed; `AND` and
+    `WITH` stack obligations, so any listed part alarms (this is how a quiet
+    `Apache-2.0 WITH Commons-Clause` gets caught).
     """
+    alarm_on = RESTRICTIVE if restrictive is None else restrictive
     if not tag:
         return False
-    if tag in RESTRICTIVE:
+    if tag in alarm_on:
         return True
     tokens = _CONNECTOR.split(tag)
     if len(tokens) < 3:
@@ -160,8 +180,8 @@ def is_restrictive(tag):
     atoms = [t.strip() for t in tokens[0::2]]
     connectors = set(tokens[1::2])
     if connectors == {"OR"}:
-        return all(atom in RESTRICTIVE for atom in atoms)
-    return any(atom in RESTRICTIVE for atom in atoms)
+        return all(atom in alarm_on for atom in atoms)
+    return any(atom in alarm_on for atom in atoms)
 
 
 def extract_license(expression=None, license_field=None, classifiers=()):
@@ -254,8 +274,11 @@ def _change(kind, name, version, old, new, alarm):
     }
 
 
-def diff(old, new):
-    """Compare two package maps; return a sorted list of change records."""
+def diff(old, new, restrictive=None):
+    """Compare two package maps; return a sorted list of change records.
+
+    `restrictive` is the alarm set (see `is_restrictive`).
+    """
     old, new = normalize_names(old), normalize_names(new)
     changes = []
     for name in sorted(set(old) | set(new)):
@@ -264,7 +287,7 @@ def diff(old, new):
             lic = after.get("license", "UNKNOWN")
             changes.append(_change(
                 "added", name, after.get("version", "?"),
-                None, lic, is_restrictive(lic)))
+                None, lic, is_restrictive(lic, restrictive)))
         elif after is None:
             changes.append(_change(
                 "removed", name, before.get("version", "?"),
@@ -275,8 +298,15 @@ def diff(old, new):
             if old_lic != new_lic:
                 changes.append(_change(
                     "license-change", name, after.get("version", "?"),
-                    old_lic, new_lic, is_restrictive(new_lic)))
+                    old_lic, new_lic, is_restrictive(new_lic, restrictive)))
     return changes
+
+
+def _alarm_label(change):
+    """Say *why* a change alarmed: built-in source-available, or your policy."""
+    if is_restrictive(change.get("new")):
+        return "  [source-available]"
+    return "  [policy]"
 
 
 def format_report(changes):
@@ -292,19 +322,21 @@ def format_report(changes):
             detail = "new dependency, %s" % ch["new"]
         else:
             detail = "removed, was %s" % ch["old"]
-        tail = "  [source-available]" if ch["alarm"] else ""
+        tail = _alarm_label(ch) if ch["alarm"] else ""
         lines.append("  %s %-24s %s%s" % (mark, ch["name"], detail, tail))
     return "\n".join(lines)
 
 
-def build_report(changes, snapshot_path, updated=False):
+def build_report(changes, snapshot_path, updated=False, restrictive=None):
     """The `--json` document: everything a CI annotator needs, nothing else."""
+    alarm_on = RESTRICTIVE if restrictive is None else restrictive
     return {
         "tool": "license-drift",
         "generated": _utc_now(),
         "snapshot": snapshot_path,
         "changes": changes,
         "alarms": sum(1 for ch in changes if ch["alarm"]),
+        "alarm_on": sorted(alarm_on),
         "exit_code": exit_code(changes),
         "snapshot_updated": bool(updated),
     }
@@ -327,6 +359,9 @@ def main(argv=None, current=None):
     chk.add_argument("--update", action="store_true", help="rewrite snapshot after reporting")
     chk.add_argument("--json", action="store_true", dest="as_json",
                      help="print a machine-readable report instead of text")
+    chk.add_argument("--alarm-on", action="append", dest="alarm_on", metavar="TAGS",
+                     help="extra license tags that should exit 2, comma separated "
+                          "(e.g. AGPL-3.0,GPL,UNKNOWN); repeatable")
     lst = sub.add_parser("list", help="print current packages and licenses")
     lst.add_argument("--json", action="store_true", dest="as_json",
                      help="print snapshot-shaped JSON on stdout")
@@ -354,6 +389,8 @@ def main(argv=None, current=None):
         print("wrote %d packages to %s" % (len(packages), args.path))
         return 0
 
+    alarm_on = RESTRICTIVE | parse_alarm_tags(getattr(args, "alarm_on", None))
+
     try:
         baseline = load_snapshot(args.path)
     except FileNotFoundError:
@@ -364,13 +401,14 @@ def main(argv=None, current=None):
         print("cannot read %s: %s" % (args.path, exc), file=sys.stderr)
         return 3
 
-    changes = diff(baseline, packages)
+    changes = diff(baseline, packages, alarm_on)
     updated = bool(args.update and changes)
     if updated:
         save_snapshot(args.path, packages)
 
     if as_json:
-        print(json.dumps(build_report(changes, args.path, updated), indent=2, sort_keys=True))
+        print(json.dumps(build_report(changes, args.path, updated, alarm_on),
+                         indent=2, sort_keys=True))
     else:
         print(format_report(changes))
         if updated:
