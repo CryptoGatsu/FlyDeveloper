@@ -50,6 +50,29 @@ _EMPTY = {"", "UNKNOWN", "NONE", "NULL", "SEE LICENSE", "DUAL LICENSE"}
 _CONNECTOR = re.compile(r"\s+(AND|OR|WITH)\s+")
 _MAX_ATOMS = 6
 
+# PEP 503: runs of -, _ and . are equivalent, comparison is case-insensitive
+_NAME_SEP = re.compile(r"[-_.]+")
+
+
+def normalize_name(name):
+    """PEP 503 normalised project name.
+
+    `Typing_Extensions`, `typing.extensions` and `typing-extensions` are the
+    same distribution; without this a metadata reshuffle looks like one package
+    disappearing and another appearing.
+    """
+    return _NAME_SEP.sub("-", str(name).strip()).lower()
+
+
+def normalize_names(packages):
+    """Re-key a package map by normalised name; first spelling wins."""
+    out = {}
+    for name, info in packages.items():
+        key = normalize_name(name)
+        if key not in out:
+            out[key] = info
+    return out
+
 
 def _match_rule(upper_text):
     """Return the short tag for an uppercased blurb, or None if nothing matches."""
@@ -156,7 +179,11 @@ def extract_license(expression=None, license_field=None, classifiers=()):
 
 
 def read_installed():
-    """Map distribution name -> {version, license} for this environment."""
+    """Map normalised distribution name -> {version, license}.
+
+    Duplicate dist-info directories (a venv shadowing a system install) are
+    resolved the way an import would be: the first one on sys.path wins.
+    """
     from importlib import metadata
 
     found = {}
@@ -166,11 +193,14 @@ def read_installed():
             name = (md.get("Name") or "").strip()
             if not name:
                 continue
+            key = normalize_name(name)
+            if key in found:
+                continue
             classifiers = md.get_all("Classifier") or []
             lic = extract_license(
                 md.get("License-Expression"), md.get("License"), classifiers
             )
-            found[name.lower()] = {
+            found[key] = {
                 "version": (dist.version or "?").strip(),
                 "license": lic,
             }
@@ -183,7 +213,7 @@ def build_snapshot(packages):
     return {
         "tool": "license-drift",
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "packages": packages,
+        "packages": normalize_names(packages),
     }
 
 
@@ -191,9 +221,9 @@ def load_snapshot(path):
     with open(path, "r", encoding="utf-8") as fh:
         data = json.load(fh)
     if isinstance(data, dict) and isinstance(data.get("packages"), dict):
-        return data["packages"]
+        return normalize_names(data["packages"])
     if isinstance(data, dict):
-        return data
+        return normalize_names(data)
     raise ValueError("snapshot is not an object")
 
 
@@ -205,6 +235,7 @@ def save_snapshot(path, packages):
 
 def diff(old, new):
     """Compare two package maps; return a sorted list of change records."""
+    old, new = normalize_names(old), normalize_names(new)
     changes = []
     for name in sorted(set(old) | set(new)):
         before, after = old.get(name), new.get(name)
@@ -270,6 +301,7 @@ def main(argv=None, current=None):
         return 3
 
     packages = current if current is not None else read_installed()
+    packages = normalize_names(packages)
 
     if args.cmd == "list":
         for name in sorted(packages):

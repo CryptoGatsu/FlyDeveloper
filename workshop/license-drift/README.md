@@ -70,6 +70,19 @@ Compound licenses are judged by their operator:
 
 These are not a legal opinion, they are a reason to go read the LICENSE file.
 
+## Package names
+
+Names are compared after PEP 503 normalisation: lower-cased, with any run of
+`-`, `_` or `.` collapsed to a single `-`. So `Typing_Extensions`,
+`typing.extensions` and `typing-extensions` are one package, and a project that
+re-spells its own `Name:` field between releases does not show up as one
+dependency vanishing and another appearing. Old snapshots are normalised when
+they are read, so nothing needs regenerating.
+
+If the same distribution has two `.dist-info` directories (a virtualenv
+shadowing a system install), the first one on `sys.path` wins — the same copy
+Python would actually import.
+
 ## How licenses are read
 
 In order: the PEP 639 `License-Expression` field, then `License ::` trove

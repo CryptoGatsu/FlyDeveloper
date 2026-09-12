@@ -51,6 +51,17 @@ def test_prose_is_not_mistaken_for_an_expression(raw, expected):
     assert ld.normalize_license(raw) == expected
 
 
+@pytest.mark.parametrize("raw,expected", [
+    ("typing_extensions", "typing-extensions"),
+    ("Typing.Extensions", "typing-extensions"),
+    ("ruamel.yaml", "ruamel-yaml"),
+    ("zope..interface", "zope-interface"),
+    ("  Rich ", "rich"),
+])
+def test_normalize_name(raw, expected):
+    assert ld.normalize_name(raw) == expected
+
+
 @pytest.mark.parametrize("tag,expected", [
     ("MIT", False),
     ("BUSL-1.1", True),
@@ -88,6 +99,23 @@ def _pkg(version, license_):
 def test_diff_detects_nothing_when_identical():
     state = {"rich": _pkg("13.7.0", "MIT")}
     assert ld.diff(state, dict(state)) == []
+
+
+def test_diff_ignores_name_punctuation_and_case():
+    old = {"Typing_Extensions": _pkg("4.9.0", "PSF-2.0"),
+           "ruamel.yaml": _pkg("0.18.5", "MIT")}
+    new = {"typing-extensions": _pkg("4.9.0", "PSF-2.0"),
+           "ruamel-yaml": _pkg("0.18.5", "MIT")}
+    assert ld.diff(old, new) == []
+
+
+def test_diff_still_sees_a_relicense_under_a_respelled_name():
+    old = {"sneaky.orm": _pkg("1.0", "Apache-2.0")}
+    new = {"sneaky-orm": _pkg("2.0", "BUSL-1.1")}
+    changes = ld.diff(old, new)
+    assert len(changes) == 1
+    assert changes[0]["kind"] == "license-change"
+    assert changes[0]["name"] == "sneaky-orm@2.0"
 
 
 def test_diff_detects_relicensing_and_alarms():
@@ -149,10 +177,23 @@ def test_snapshot_roundtrip(tmp_path):
     assert ld.load_snapshot(str(path)) == packages
 
 
+def test_snapshot_writes_normalised_names(tmp_path):
+    path = tmp_path / "licenses.json"
+    ld.save_snapshot(str(path), {"Typing_Extensions": _pkg("4.9.0", "PSF-2.0")})
+    body = json.loads(path.read_text())
+    assert list(body["packages"]) == ["typing-extensions"]
+
+
 def test_load_snapshot_accepts_bare_mapping(tmp_path):
     path = tmp_path / "bare.json"
     path.write_text(json.dumps({"rich": _pkg("13.7.0", "MIT")}))
     assert "rich" in ld.load_snapshot(str(path))
+
+
+def test_load_snapshot_normalises_legacy_names(tmp_path):
+    path = tmp_path / "old.json"
+    path.write_text(json.dumps({"packages": {"ruamel.yaml": _pkg("0.18.5", "MIT")}}))
+    assert ld.load_snapshot(str(path)) == {"ruamel-yaml": _pkg("0.18.5", "MIT")}
 
 
 def test_cli_snapshot_then_clean_check(tmp_path, capsys):
@@ -161,6 +202,13 @@ def test_cli_snapshot_then_clean_check(tmp_path, capsys):
     assert ld.main(["snapshot", path], current=packages) == 0
     assert ld.main(["check", path], current=packages) == 0
     assert "calm" in capsys.readouterr().out
+
+
+def test_cli_check_is_quiet_across_a_name_respelling(tmp_path, capsys):
+    path = str(tmp_path / "licenses.json")
+    ld.main(["snapshot", path], current={"ruamel.yaml": _pkg("0.18.5", "MIT")})
+    assert ld.main(["check", path], current={"ruamel-yaml": _pkg("0.18.5", "MIT")}) == 0
+    capsys.readouterr()
 
 
 def test_cli_check_reports_drift_and_can_update(tmp_path, capsys):
@@ -180,12 +228,13 @@ def test_cli_missing_snapshot_is_usage_error(tmp_path, capsys):
 
 
 def test_cli_list(capsys):
-    assert ld.main(["list"], current={"rich": _pkg("13.7.0", "MIT")}) == 0
+    assert ld.main(["list"], current={"Rich": _pkg("13.7.0", "MIT")}) == 0
     assert "rich" in capsys.readouterr().out
 
 
 def test_read_installed_returns_mapping():
     packages = ld.read_installed()
     assert isinstance(packages, dict)
-    for info in packages.values():
+    for name, info in packages.items():
+        assert name == ld.normalize_name(name)
         assert "version" in info and "license" in info
