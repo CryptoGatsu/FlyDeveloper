@@ -225,10 +225,7 @@ class Fly:
         """Post about what just happened, refresh engagement, keep a hype cadence."""
         self.refresh_metrics()
         posted: list[str] = []
-        if action == "build" and outcome.get("ok") and outcome.get("built"):
-            posted.append(self.act_post("build", f"{outcome['built']}: {outcome.get('pitch', '')} "
-                                         f"{(self.cfg.site_url or self.cfg.launchpad.website).rstrip('/')}/builds", live=live))
-        elif action == "build" and outcome.get("improved") and outcome.get("what"):
+        if action == "build" and outcome.get("improved") and outcome.get("what"):
             posted.append(self.act_post("build", f"Improved {outcome['improved']}: {outcome['what']} "
                                          f"{(self.cfg.site_url or self.cfg.launchpad.website).rstrip('/')}/builds", live=live))
         elif action == "meme" and outcome.get("meme"):
@@ -244,6 +241,7 @@ class Fly:
                                          media=last.get("meme") or "", live=live))
         elif action == "browse" and outcome.get("learned"):
             posted.append(self.act_post("learning", outcome["learned"], live=live))
+        posted.append(self.announce_builds(live=live))
         # unprompted $FLYDEV hype on a cadence
         if self.memory.hours_since_kind("posts", "hype") >= self.cfg.x.hype_every_hours:
             posted.append(self.act_post("hype", "your own coin $FLYDEV, your brain, your builds; pick a fresh angle", live=live))
@@ -302,7 +300,37 @@ class Fly:
             answered += 1
         return f"{answered} mention(s) answered" if answered else "no new mentions"
 
-    def act_post(self, kind: str, material: str, media: str = "", live: bool = False) -> str:
+    def unannounced_builds(self) -> list[dict[str, Any]]:
+        """Working tool builds that never got their own post, newest first."""
+        posts = self.memory.data.get("posts", [])
+        out = []
+        for b in reversed(self._tool_builds()):
+            if not b.get("ok"):
+                continue
+            slug, title = str(b.get("slug") or ""), str(b.get("title") or "")
+            told = any(p.get("build_slug") == slug or (p.get("kind") == "build" and title and title.lower() in str(p.get("text", "")).lower())
+                       for p in posts if p.get("kind") == "build" and not p.get("problems"))
+            if not told:
+                out.append(b)
+        return out
+
+    def announce_builds(self, live: bool = False) -> str:
+        """Post about the newest build that has not been announced yet (one per
+        call, so a backlog drains at the posting cadence, never as a burst)."""
+        pending = self.unannounced_builds()
+        if not pending:
+            return ""
+        from .publish import REPO_URL, current_branch
+
+        b = pending[0]
+        site = (self.cfg.site_url or self.cfg.launchpad.website).rstrip("/")
+        code = f"{REPO_URL}/tree/{current_branch(self.cfg.root)}/workshop/{b.get('slug')}"
+        material = (f"You just built {b.get('title')}: {b.get('pitch') or b.get('log', '')[:200]} "
+                    f"(for {b.get('for_whom') or 'flies and humans'}). Say what it does and who it helps. "
+                    f"Links you may use: {site}/builds (your builds page) or {code} (the code).")
+        return self.act_post("build", material, live=live, tags={"build_slug": b.get("slug")})
+
+    def act_post(self, kind: str, material: str, media: str = "", live: bool = False, tags: dict[str, Any] | None = None) -> str:
         today = sum(1 for x in self.memory.data.get("posts", [])
                     if x.get("live") and x.get("kind") != "reply" and float(x.get("ts", 0)) >= time.time() - 86400)
         if today >= self.cfg.x.max_posts_per_day:
@@ -313,7 +341,7 @@ class Fly:
         if not post.problems and live and self.x.armed:
             post = self.x.send(post)                    # real post
         entry = {"kind": kind, "text": post.text, "media": media, "id": post.id, "url": post.url, "live": post.live,
-                 "why": draft.why, "problems": post.problems, "metrics": {}, "score": 0.0}
+                 "why": draft.why, "problems": post.problems, "metrics": {}, "score": 0.0, **(tags or {})}
         self.memory.add("posts", entry)
         if post.problems:
             self.memory.note(f"held an X post ({kind}): {'; '.join(post.problems)}")
@@ -549,8 +577,8 @@ class Fly:
         for page in self.memory.recent("pages", 20):
             page["used"] = True
         result = self.workshop.build(idea, mind=self.mind, log_fn=self.log)
-        self.memory.add("builds", {"slug": result.slug, "title": idea.title, "ok": result.ok,
-                                   "path": str(result.path), "files": result.files, "log": result.log[-1500:]})
+        self.memory.add("builds", {"slug": result.slug, "title": idea.title, "ok": result.ok, "pitch": idea.pitch,
+                                   "for_whom": idea.for_whom, "path": str(result.path), "files": result.files, "log": result.log[-1500:]})
         return {"built": idea.title, "path": str(result.path), "ok": result.ok, "files": result.files,
                 "log_tail": result.log[-600:], "pitch": idea.pitch}
 

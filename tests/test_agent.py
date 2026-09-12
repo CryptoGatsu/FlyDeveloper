@@ -274,3 +274,24 @@ def test_post_cap_ignores_replies(tmp_path):
     assert "cap" not in fly.act_post("hype", "own coin")                # replies do not eat the cap
     fly.memory.add("posts", {"kind": "hype", "text": "x", "live": True})
     assert "cap" in fly.act_post("hype", "own coin")
+
+
+def test_every_working_build_gets_announced_even_after_a_capped_day(tmp_path):
+    fly = _fly(tmp_path)
+    fly.cfg.publish = "none"
+    (tmp_path / "workshop" / "license-drift").mkdir(parents=True)
+    (tmp_path / "workshop" / "broken-thing").mkdir(parents=True)
+    fly.memory.add("builds", {"slug": "license-drift", "title": "License Drift", "ok": True, "pitch": "yells when a dependency's license changes",
+                              "for_whom": "maintainers", "path": "x", "files": ["main.py"], "log": ""})
+    fly.memory.add("builds", {"slug": "broken-thing", "title": "Broken Thing", "ok": False, "path": "x", "files": [], "log": "fail"})
+    assert [b["slug"] for b in fly.unannounced_builds()] == ["license-drift"]
+    fly.cfg.x.max_posts_per_day = 0
+    assert "cap" in fly.announce_builds()                       # capped today: stays pending, nothing lost
+    assert [b["slug"] for b in fly.unannounced_builds()] == ["license-drift"]
+    fly.cfg.x.max_posts_per_day = 12
+    out = fly.announce_builds()
+    assert out.startswith("build:")
+    post = [p for p in fly.memory.data["posts"] if p.get("kind") == "build"][-1]
+    assert post["build_slug"] == "license-drift" and post["text"]
+    assert fly.unannounced_builds() == []                        # announced once, never again
+    assert fly.announce_builds() == ""
