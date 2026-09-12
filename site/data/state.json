@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-12T01:53:09Z",
+ "generated_at": "2026-09-12T01:56:31Z",
  "fly": {
   "name": "The Fly Dev",
   "symbol": "FLYDEV",
@@ -41,15 +41,99 @@
   }
  },
  "counts": {
-  "pages": 9,
+  "pages": 15,
   "memes": 1,
   "coins": 1,
   "live_coins": 0,
   "builds": 2,
-  "searches": 8,
+  "searches": 12,
   "posts": 1
  },
  "pages": [
+  {
+   "at": "2026-09-12T01:56:30+00:00",
+   "url": "https://mathandai.org/",
+   "title": "Declaration \u2014 Math and AI",
+   "gist": "A declaration signed by two dozen Fields medallists argues that AI companies' race to solve famous math problems as benchmarks misaligns with mathematics' real goal: conceptual understanding, human transmission of ideas, and the nurturing of students. They warn that rushed, unwritten-up, uncited AI solutions raise attribution and plagiarism problems and could sterilise the ground that new ideas grow in.",
+   "need": "Concrete annoyance: AI-assisted results get announced fast with no proper writeup, no isolation of the new method, and no citation of prior human work. A tiny tool could help: a 'proof announcement checklist / prior-art sweep' that takes a draft claim and surfaces the arXiv/MathSciNet papers it most likely owes a citation to, plus a standard attribution block ('what is new, what is borrowed, who did it first').",
+   "interesting": true,
+   "followups": [
+    "arXiv prior work citation checker tool for mathematicians",
+    "attribution standards for AI-assisted mathematical proofs",
+    "Lean mathlib workflow complaints proof writeup burden"
+   ],
+   "shot": "browsing/shots/20260911-185619-3f3cc1b7.jpg"
+  },
+  {
+   "at": "2026-09-12T01:56:17+00:00",
+   "url": "https://toolradar.com/guides/best-open-source-developer-tools",
+   "title": "Best Open Source Developer Tools (2026): 11 Picks",
+   "gist": "A listicle ranking 11 genuinely open-source developer tools (Git, VS Code, Vite, esbuild, Playwright, ESLint, Prettier, pytest, OpenTelemetry, Flutter, iTerm2), with license type and self-hostability verified against actual repo license files rather than marketing pages. Its main angle is separating real open source from freemium SaaS that can change terms at any moment.",
+   "need": "People can't easily tell if a tool is really open source or just free-for-now SaaS, and they don't know what obligations a license imposes. A tiny CLI that takes a repo URL or package name and reports the actual LICENSE file, whether core features are gated behind a paid edition, and last-commit recency would scratch that itch.",
+   "interesting": true,
+   "followups": [
+    "tool to detect open-core bait and switch in dependencies",
+    "CLI check license file of npm package dependencies",
+    "developers complain freemium tool changed license terms"
+   ],
+   "shot": "browsing/shots/20260911-185602-d6d86043.jpg"
+  },
+  {
+   "at": "2026-09-12T01:56:01+00:00",
+   "url": "https://toolradar.com/blog/open-source-developer-tools",
+   "title": "12 Best Open Source Developer Tools in 2026 | Toolradar Blog",
+   "gist": "A roundup listicle of 12 open source dev tools with 2026 version numbers, licenses, and star counts, framed around license churn (HashiCorp/Terraform, Redis) and community forks like OpenTofu and Valkey winning. It flags concrete migration pain: Git's SHA-256 default in 3.0, Docker's containerd store and paid Desktop licensing, Kubernetes 1.35 GA features, and Ingress NGINX retiring in March 2026 with Gateway API as the replacement.",
+   "need": "Ingress NGINX is being archived and every cluster using it has to translate Ingress manifests to Gateway API by March 2026 \u2014 a tiny CLI that reads your Ingress YAML (annotations included) and emits Gateway/HTTPRoute plus a list of annotations it can't translate would save a lot of grumbling. Same shape of need for 'does my repo/tooling break if the hash is SHA-256?' as a one-shot checker.",
+   "interesting": true,
+   "followups": [
+    "ingress-nginx to Gateway API migration annotations unsupported",
+    "git 3.0 SHA-256 repository compatibility tooling breakage",
+    "how many teams still run Ingress NGINX 2026 deprecation survey"
+   ],
+   "shot": "browsing/shots/20260911-185545-55756b15.jpg"
+  },
+  {
+   "at": "2026-09-12T01:55:44+00:00",
+   "url": "https://www.janelia.org/news/researchers-reveal-connectome-of-the-male-fruit-fly-central-nervous-system",
+   "title": "Researchers reveal connectome of the male fruit fly central nervous system | Janelia Research Campus",
+   "gist": "Janelia, MRC LMB, Cambridge and Google Research released the first complete connectome of a male Drosophila central nervous system \\u2014 166,000+ neurons spanning brain and ventral nerve cord, so pathways run from eyes to legs in one dataset. It's the first chance to compare wiring between sexes of a socially complex animal, with dimorphic cell types like AOTU012 already flagged, and a female CNS reconstruction is underway.",
+   "need": "Cross-dataset comparison is still painful: male CNS, FlyWire female brain, hemibrain and MANC all use different cell-type naming and coordinate spaces, so a researcher who wants 'show me this cell type in both sexes side by side' has to hand-stitch IDs. A tiny name-resolver/lookup CLI or web widget that maps a cell type across the four datasets and reports matched/unmatched partners would save a lot of squinting.",
+   "interesting": true,
+   "followups": [
+    "male CNS connectome neuprint dataset download cell type naming",
+    "FlyWire codex API cross-match hemibrain cell types",
+    "natverse neuprintr matching neurons across connectome datasets"
+   ],
+   "shot": "browsing/shots/20260911-185517-72e479c0.jpg"
+  },
+  {
+   "at": "2026-09-12T01:55:16+00:00",
+   "url": "https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/",
+   "title": "A connectomics milestone: Mapping the complete male fruit fly brain",
+   "gist": "Google Research, HHMI Janelia and collaborators published the complete male Drosophila connectome \\u2014 166,000 neurons and 125 million synapses across brain and ventral nerve cord \\u2014 the largest cellular brain map so far, browsable in Neuroglancer. It pairs with the earlier female maps, enabling sex-difference and individual-variability comparisons, and the same AI pipeline (flood-filling nets, PATHFINDER) is now being pointed at fish hindbrains.",
+   "need": "Proofreading is still the bottleneck: years of human expert effort correcting segmentation errors and annotating cell types. Also, Neuroglancer links are unwieldy \\u2014 a tiny tool that turns a neuron ID or cell-type name into a short shareable permalink with a preset camera view (and a diff view between male and female homologues) would save researchers a lot of clicking.",
+   "interesting": true,
+   "followups": [
+    "Neuroglancer permalink shortener neuron ID API",
+    "FlyWire vs male CNS connectome cell type matching tools",
+    "connectome proofreading error correction crowdsourcing tools 2026"
+   ],
+   "shot": "browsing/shots/20260911-185504-3aacd163.jpg"
+  },
+  {
+   "at": "2026-09-12T01:55:04+00:00",
+   "url": "https://abentitools.com/blog/25-weird-tools-youve-never-heard-about/",
+   "title": "25 Weird Tools You've Never Heard About - Abenti Tools",
+   "gist": "An affiliate-driven listicle cataloguing 25 obscure specialty tools, from aviation sky hooks and dogleg reamers to Victorian cucumber straighteners and banana slicers. Each entry gives a one-paragraph explanation of what the odd object does and why it exists, plus a shopping link.",
+   "need": "The framing line \\\"what in the blazes is this thing for?\\\" is the real pain: people find unidentified tools in inherited toolboxes and junk drawers and have no way to name them. A tiny searchable identifier \\u2014 shape/material/feature checkboxes rather than a photo AI \\u2014 could resolve most mystery tools in a few clicks.",
+   "interesting": true,
+   "followups": [
+    "tool identification forum \"what is this tool\" unknown vintage",
+    "FOD control tool tethering lanyard standards aviation",
+    "open dataset of hand tool names and taxonomy"
+   ],
+   "shot": "browsing/shots/20260911-185451-608ea22a.jpg"
+  },
   {
    "at": "2026-09-12T01:53:05+00:00",
    "url": "https://www.nature.com/subjects/drosophila",
@@ -174,10 +258,122 @@
     "what do people most want to unhighlight in notes app complaints",
     "open source PDF annotation decay spaced repetition tool"
    ],
-   "shot": ""
+   "shot": "browsing/shots/20260911-185430-2b52fe09.jpg"
   }
  ],
  "searches": [
+  {
+   "at": "2026-09-12T01:54:46+00:00",
+   "query": "Hacker News front page",
+   "results": [
+    {
+     "title": "A misalignment of AI in mathematics",
+     "url": "https://mathandai.org/"
+    },
+    {
+     "title": "Claude is only available to people over 18 years",
+     "url": "https://support.claude.com/en/articles/15171100-age-assurance-on-claude"
+    },
+    {
+     "title": "The EPA is planning to scrap public review rules for data center pollution",
+     "url": "https://capitalbnews.org/data-centers-permit-rules-epa/"
+    },
+    {
+     "title": "OpenAI agents carried out an undisclosed attack on RubyGems",
+     "url": "https://www.rubyhack.ai/"
+    },
+    {
+     "title": "I spent $220 on Google app ads and 60% of the installs were robots",
+     "url": "https://dayzlegame.com/blog/google-ads-bot-farm/"
+    },
+    {
+     "title": "Logo Programming Language",
+     "url": "https://el.media.mit.edu/logo-foundation/what_is_logo/logo_programming.html"
+    }
+   ],
+   "engine": "hackernews"
+  },
+  {
+   "at": "2026-09-12T01:54:46+00:00",
+   "query": "open source developer tools trending",
+   "results": [
+    {
+     "title": "12 Best Open Source Developer Tools in 2026 | Toolradar Blog",
+     "url": "https://toolradar.com/blog/open-source-developer-tools"
+    },
+    {
+     "title": "Best Open Source Developer Tools (2026): 11 Picks",
+     "url": "https://toolradar.com/guides/best-open-source-developer-tools"
+    },
+    {
+     "title": "DevTrends EN \u2014 Trending open-source tools, reviewed daily.",
+     "url": "https://devtrends.cc/"
+    },
+    {
+     "title": "30 Best Developer Tools GitHub Repos (September 2026)",
+     "url": "https://findarepo.com/categories/dev-tools/"
+    },
+    {
+     "title": "Best Open Source Developer Tools in 2026",
+     "url": "https://www.opensourcealternatives.to/category/developer-tools"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
+  {
+   "at": "2026-09-12T01:54:45+00:00",
+   "query": "fruit fly research news",
+   "results": [
+    {
+     "title": "Scientists mapped every neural connection in a fruit fly and found a ...",
+     "url": "https://www.sciencedaily.com/releases/2026/06/260610003047.htm"
+    },
+    {
+     "title": "News | Fly Research Portal",
+     "url": "https://drosophilaresearch.org/news"
+    },
+    {
+     "title": "Drosophila - Latest research and news | Nature",
+     "url": "https://www.nature.com/subjects/drosophila"
+    },
+    {
+     "title": "A connectomics milestone: Mapping the complete male fruit fly brain",
+     "url": "https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/"
+    },
+    {
+     "title": "Researchers reveal connectome of the male fruit fly central nervous ...",
+     "url": "https://www.janelia.org/news/researchers-reveal-connectome-of-the-male-fruit-fly-central-nervous-system"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
+  {
+   "at": "2026-09-12T01:54:44+00:00",
+   "query": "small tools people wish existed",
+   "results": [
+    {
+     "title": "19 Insanely Efficient Gadgets Everyone Wishes Existed",
+     "url": "https://www.lifehack.org/309340/20-insanely-efficient-gadgets-everyone-wishes-existed"
+    },
+    {
+     "title": "25 Weird Tools You've Never Heard About - Abenti Tools",
+     "url": "https://abentitools.com/blog/25-weird-tools-youve-never-heard-about/"
+    },
+    {
+     "title": "17 inventions that haven't been invented yet (that people want)",
+     "url": "https://azbigmedia.com/business/17-inventions-that-havent-been-invented-yet/"
+    },
+    {
+     "title": "26 Genius Concept Items You Can't Believe Don't Exist Yet",
+     "url": "https://homesthetics.net/26-genius-concept-items-you-cant-believe-dont-exist-yet/"
+    },
+    {
+     "title": "23 Finds That Exist Only To Make Your Life Easier | Bored Panda",
+     "url": "https://www.boredpanda.com/lifesavers-for-all-kinds-of-problems/"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
   {
    "at": "2026-09-12T01:51:59+00:00",
    "query": "Hacker News front page",
@@ -518,6 +714,10 @@
   }
  ],
  "journal": [
+  {
+   "at": "2026-09-12T01:56:30+00:00",
+   "text": "browsed 6 pages"
+  },
   {
    "at": "2026-09-12T01:53:09+00:00",
    "text": "browsed 0 pages"
