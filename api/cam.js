@@ -9,6 +9,13 @@ const F = require("./_fly");
 
 const PREFIX = "live/";
 const KEEP = 3;
+
+// Accept BLOB_READ_WRITE_TOKEN or a prefixed variant (e.g. FLY_DEVELOPER_BLOB_READ_WRITE_TOKEN).
+function blobToken() {
+  const name = Object.keys(process.env).find((k) => k === "BLOB_READ_WRITE_TOKEN") || Object.keys(process.env).find((k) => k.endsWith("BLOB_READ_WRITE_TOKEN"));
+  return name ? process.env[name] : "";
+}
+const TOKEN = blobToken();
 let accessMode = process.env.FLY_BLOB_ACCESS || "";   // "public" | "private", learned on first put
 
 function authorized(req) {
@@ -24,7 +31,7 @@ async function putAny(pathname, body, contentType, maxAge) {
   let lastErr;
   for (const access of modes) {
     try {
-      const blob = await put(pathname, body, { ...opts, access });
+      const blob = await put(pathname, body, { ...opts, access, token: TOKEN });
       accessMode = access;
       return blob;
     } catch (err) { lastErr = err; }
@@ -33,11 +40,11 @@ async function putAny(pathname, body, contentType, maxAge) {
 }
 
 async function readBlob(url) {
-  return fetch(url, { cache: "no-store", headers: { authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` } });
+  return fetch(url, { cache: "no-store", headers: { authorization: `Bearer ${TOKEN}` } });
 }
 
 async function listLive() {
-  const { blobs } = await list({ prefix: PREFIX, limit: 200 });
+  const { blobs } = await list({ prefix: PREFIX, limit: 200, token: TOKEN });
   return blobs;
 }
 
@@ -53,12 +60,15 @@ async function prune(blobs) {
   const stamps = [...new Set(blobs.map((b) => b.pathname.slice(PREFIX.length).split(".")[0]))].sort().reverse();
   const drop = new Set(stamps.slice(KEEP));
   const urls = blobs.filter((b) => drop.has(b.pathname.slice(PREFIX.length).split(".")[0])).map((b) => b.url);
-  if (urls.length) await del(urls);
+  if (urls.length) await del(urls, { token: TOKEN });
 }
 
 module.exports = async function handler(req, res) {
   try {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) return F.sendJson(res, 503, { error: "no blob store connected (redeploy after connecting one)" });
+    if (!TOKEN) {
+      const seen = Object.keys(process.env).filter((k) => /BLOB|VERCEL_ENV|FLY_/.test(k)).map((k) => (k === "FLY_CAM_SECRET" || k === "FLY_CHAT_SECRET" ? k + "(set)" : k));
+      return F.sendJson(res, 503, { error: "no blob token in this deployment", env: process.env.VERCEL_ENV || "?", seen });
+    }
     const q = new URL(req.url || "/", "http://x").searchParams;
 
     if (req.method === "GET" && q.get("frame")) {
