@@ -191,4 +191,19 @@ def test_state_exports_pons_link_for_live_coins(tmp_path):
     state = build_state(fly.cfg, fly.memory)
     coins = {c["symbol"]: c for c in state["coins"]}
     assert coins["FLYDEV"]["pons"] == "https://www.ponsfamily.com/launchpad/0x" + "ab" * 20
-    assert coins["DRY"]["pons"] == ""
+    assert coins["FLYDEV"]["pair"] == ""                         # old records carry no pair
+    assert "DRY" not in coins                                   # rehearsals never reach the coins page
+
+
+def test_dry_runs_are_not_coins_and_can_be_forgotten(tmp_path):
+    from fly.publish import build_state
+
+    fly = _fly(tmp_path)
+    fly.memory.add("launches", {"name": "Hatched", "symbol": "HATCHED", "live": False, "status": "planned", "token": ""})
+    fly.memory.add("launches", {"name": "The Fly Dev", "symbol": "FLYDEV", "live": True, "status": "confirmed",
+                                "token": "0x" + "ab" * 20, "tx": "0x" + "cd" * 32, "genesis": True})
+    assert [c["symbol"] for c in build_state(fly.cfg, fly.memory)["coins"]] == ["FLYDEV"]
+    gone = fly.memory.forget_launches(symbol="hatched")
+    assert [l["symbol"] for l in gone] == ["HATCHED"]
+    assert fly.memory.forget_launches(symbol="FLYDEV") == []          # live launches stay
+    assert [l["symbol"] for l in fly.memory.data["launches"]] == ["FLYDEV"]

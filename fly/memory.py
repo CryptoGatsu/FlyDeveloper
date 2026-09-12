@@ -97,6 +97,17 @@ class Memory:
     def visited(self, url: str) -> bool:
         return any(p.get("url") == url for p in self.data.get("pages") or [])
 
+    def forget_launches(self, symbol: str = "", dry_runs: bool = False) -> list[dict[str, Any]]:
+        """Drop launch records that never reached the chain: a dry run by
+        symbol, or every dry run. Live launches are never forgotten."""
+        keep, gone = [], []
+        for l in self.data.get("launches") or []:
+            dry = not l.get("live") and l.get("status") in (None, "", "planned", "blocked")
+            match = dry and (dry_runs or (symbol and str(l.get("symbol", "")).upper() == symbol.upper()))
+            (gone if match else keep).append(l)
+        self.data["launches"] = keep
+        return gone
+
     def unlaunched_memes(self) -> list[dict[str, Any]]:
         launched = {l.get("meme") for l in self.data.get("launches") or [] if l.get("live")}
         return [m for m in self.data.get("memes") or [] if m.get("path") not in launched]

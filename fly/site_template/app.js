@@ -62,7 +62,7 @@
   }
   function coinCard(k) {
     return `<div class="card coin"><img src="${esc(k.meme ? "/" + k.meme : k.logo)}" alt="" loading="lazy"><div>
-      <div><b>${esc(k.name)}</b> <span class="sym">$${esc(k.symbol)}</span>${k.genesis ? '<span class="pill genesis">genesis</span>' : ""}
+      <div><b>${esc(k.name)}</b> <span class="sym">$${esc(k.symbol)}</span>${k.genesis ? '<span class="pill genesis">genesis</span>' : ""}${k.pair ? `<span class="pill">paired with ${esc(k.pair)}</span>` : ""}
         <span class="pill ${k.live ? "live" : ""}">${k.live ? "live on chain" : esc(k.status || "dry run")}</span></div>
       <div class="when">${esc(ago(k.at))}${k.buyback === false ? " · creator fees fund the project" : k.buyback ? " · buyback on" : ""}</div>
       <p class="desc">${esc(k.description)}</p>

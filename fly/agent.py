@@ -590,12 +590,13 @@ class Fly:
             "name": params.name, "symbol": symbol, "description": params.description, "meme": meme["path"],
             "logo": logo, "live": plan.status == "confirmed", "status": plan.status, "tx": plan.tx_hash,
             "genesis": is_genesis, "buyback": buyback, "creator_tax_bps": lp.creator_tax_bps,
+            "pair": lp.quote, "pair_token": lp.pair_token,
             "token": plan.token, "curve": plan.curve, "problems": plan.problems, "calldata": plan.calldata[:10],
             "pons_url": pons_token_url(plan.token) if plan.status == "confirmed" else "",
         })
         self.log(plan.describe())
         if plan.status == "confirmed":
-            self.memory.note(f"launched ${symbol} on Pons: {pons_token_url(plan.token)}", tx=plan.tx_hash)
+            self.memory.note(f"launched ${symbol} on Pons, paired with {lp.quote}: {pons_token_url(plan.token)}", tx=plan.tx_hash)
             self.visit_coin(params.name, symbol, plan.token, plan.tx_hash)
         return {"launch": plan.describe(), "status": plan.status, "tagline": concept.tagline}
 

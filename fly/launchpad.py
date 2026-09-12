@@ -62,6 +62,12 @@ FACTORY_ABI: list[dict[str, Any]] = [
     },
     {"type": "function", "name": "launchFee", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
     {"type": "function", "name": "feeEscrow", "stateMutability": "view", "inputs": [], "outputs": [{"type": "address"}]},
+    {"type": "function", "name": "approvedPairTokens", "stateMutability": "view",
+     "inputs": [{"name": "pairToken", "type": "address"}], "outputs": [{"type": "bool"}]},
+    {"type": "function", "name": "pairTokenEconomics", "stateMutability": "view",
+     "inputs": [{"name": "pairToken", "type": "address"}],
+     "outputs": [{"name": "phantomQuote", "type": "uint256"}, {"name": "graduationThreshold", "type": "uint256"},
+                 {"name": "decimals", "type": "uint8"}]},
     {"type": "function", "name": "launchEnabled", "stateMutability": "view", "inputs": [], "outputs": [{"type": "bool"}]},
     {"type": "function", "name": "maxCreatorTaxBps", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint256"}]},
     {"type": "function", "name": "canLaunch", "stateMutability": "view", "inputs": [{"name": "launcher", "type": "address"}], "outputs": [{"type": "bool"}]},
@@ -129,7 +135,20 @@ def mask_rpc(url: str) -> str:
 
 ESCROW_ABI: list[dict[str, Any]] = [
     {"type": "function", "name": "balanceOf", "stateMutability": "view", "inputs": [{"name": "recipient", "type": "address"}], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "balanceOfToken", "stateMutability": "view",
+     "inputs": [{"name": "recipient", "type": "address"}, {"name": "token", "type": "address"}], "outputs": [{"type": "uint256"}]},
     {"type": "function", "name": "claim", "stateMutability": "nonpayable", "inputs": [], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "claimToken", "stateMutability": "nonpayable", "inputs": [{"name": "token", "type": "address"}], "outputs": [{"type": "uint256"}]},
+]
+
+ERC20_ABI: list[dict[str, Any]] = [
+    {"type": "function", "name": "symbol", "stateMutability": "view", "inputs": [], "outputs": [{"type": "string"}]},
+    {"type": "function", "name": "decimals", "stateMutability": "view", "inputs": [], "outputs": [{"type": "uint8"}]},
+    {"type": "function", "name": "balanceOf", "stateMutability": "view", "inputs": [{"name": "owner", "type": "address"}], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "allowance", "stateMutability": "view",
+     "inputs": [{"name": "owner", "type": "address"}, {"name": "spender", "type": "address"}], "outputs": [{"type": "uint256"}]},
+    {"type": "function", "name": "approve", "stateMutability": "nonpayable",
+     "inputs": [{"name": "spender", "type": "address"}, {"name": "amount", "type": "uint256"}], "outputs": [{"type": "bool"}]},
 ]
 
 
@@ -212,6 +231,7 @@ class LaunchPlan:
     status: str = "planned"        # planned | blocked | sent | confirmed | failed
     problems: list[str] = field(default_factory=list)
     chain_status: dict[str, Any] = field(default_factory=dict)
+    pair_symbol: str = "ETH"
 
     def as_json(self) -> dict[str, Any]:
         d = asdict(self)
@@ -222,8 +242,8 @@ class LaunchPlan:
         fee = f"{self.fee_wei / 1e18:.6f} ETH" if self.fee_wei is not None else "unknown (rpc unreachable)"
         lines = [
             f"{'LIVE' if self.live else 'DRY RUN'} launch of {self.params.name} ({self.params.symbol}) on chain {self.chain_id}",
-            f"  factory {self.factory}, launchConfigId {self.launch_config_id}, pairToken {self.pair_token}",
-            f"  launch fee {fee}, initial buy {self.initial_buy_wei / 1e18:.6f} ETH",
+            f"  factory {self.factory}, launchConfigId {self.launch_config_id}, pairToken {self.pair_token} ({self.pair_symbol})",
+            f"  trades in {self.pair_symbol}; launch fee {fee}, initial buy {self.initial_buy_wei / 1e18:.6f} {self.pair_symbol}",
             f"  logo {self.params.logo or '(none)'}",
             f"  status {self.status}",
         ]
@@ -258,6 +278,36 @@ class PonsLaunchpad:
         except Exception:
             return False
 
+    def pair_info(self) -> dict[str, Any]:
+        """What the quote asset looks like on chain: symbol, decimals, whether
+        Pons accepts it as a pair token, and its curve economics."""
+        from web3 import Web3
+
+        if self.cfg.pair_is_native:
+            return {"native": True, "symbol": "ETH", "decimals": 18, "approved": True, "address": ZERO_ADDRESS}
+        addr = Web3.to_checksum_address(self.cfg.pair_token)
+        out: dict[str, Any] = {"native": False, "address": addr, "expected_symbol": self.cfg.pair_symbol}
+        token = self.w3.eth.contract(address=addr, abi=ERC20_ABI)
+        try:
+            out["symbol"] = token.functions.symbol().call()
+            out["decimals"] = int(token.functions.decimals().call())
+        except Exception as exc:
+            out["error"] = f"pair token unreadable: {exc}"
+            return out
+        try:
+            out["approved"] = bool(self.factory.functions.approvedPairTokens(addr).call())
+            pq, gt, dec = self.factory.functions.pairTokenEconomics(addr).call()
+            scale = 10 ** int(dec or out["decimals"])
+            out["economics"] = {"phantomQuote": pq / scale, "graduationThreshold": gt / scale, "decimals": int(dec)}
+        except Exception as exc:
+            out["error"] = f"factory pair read failed: {exc}"
+        if self.address:
+            try:
+                out["walletBalance"] = token.functions.balanceOf(self.address).call() / 10 ** out["decimals"]
+            except Exception:
+                pass
+        return out
+
     def status(self) -> dict[str, Any]:
         out: dict[str, Any] = {"rpc": mask_rpc(self.cfg.rpc_url), "factory": self.cfg.factory, "wallet": self.address or None}
         if not self.connected():
@@ -281,6 +331,10 @@ class PonsLaunchpad:
                 out["balanceEth"] = float(self.w3.from_wei(self.w3.eth.get_balance(self.address), "ether"))
             except Exception as exc:
                 out["canLaunch"] = f"error: {exc}"
+        try:
+            out["pair"] = self.pair_info()
+        except Exception as exc:
+            out["pair"] = f"error: {exc}"
         keys = ("supply", "curveFeeBps", "phantomQuote", "graduationThreshold", "poolFee", "tickSpacing", "enabled")
         try:
             out["launchConfig"] = dict(zip(keys, f.getLaunchConfig(self.cfg.launch_config_id).call()))
@@ -313,9 +367,24 @@ class PonsLaunchpad:
         checks.append((st.get("canLaunch") is True, "this wallet may launch (canLaunch)"))
         lc = st.get("launchConfig")
         checks.append((isinstance(lc, dict) and bool(lc.get("enabled")), f"launch config {self.cfg.launch_config_id} enabled"))
+        pair = st.get("pair") if isinstance(st.get("pair"), dict) else {}
+        if not self.cfg.pair_is_native:
+            sym = str(pair.get("symbol", "?"))
+            checks.append((bool(pair) and "error" not in pair and sym.upper() == self.cfg.pair_symbol.upper(),
+                           f"pair token {self.cfg.pair_token} is {sym} (expected {self.cfg.pair_symbol})"
+                           + (f": {pair['error']}" if pair.get("error") else "")))
+            checks.append((pair.get("approved") is True, f"Pons accepts {self.cfg.pair_symbol} as a pair token (approvedPairTokens)"))
+            econ = pair.get("economics") or {}
+            checks.append((bool(econ.get("graduationThreshold")),
+                           f"{self.cfg.pair_symbol} curve economics set (graduates at {econ.get('graduationThreshold', '?')} {self.cfg.pair_symbol})"))
         bal = st.get("balanceEth")
-        need = (fee if isinstance(fee, int) else 0) / 1e18 + self.cfg.initial_buy_eth + 0.0005
-        checks.append((isinstance(bal, float) and bal >= need, f"balance {bal if isinstance(bal, float) else '?'} ETH >= {need:.6f} needed"))
+        buy_eth = self.cfg.initial_buy_eth if self.cfg.pair_is_native else 0.0
+        need = (fee if isinstance(fee, int) else 0) / 1e18 + buy_eth + 0.0005
+        checks.append((isinstance(bal, float) and bal >= need, f"balance {bal if isinstance(bal, float) else '?'} ETH >= {need:.6f} needed (fee + gas)"))
+        if not self.cfg.pair_is_native and self.cfg.initial_buy_eth > 0:
+            have = pair.get("walletBalance")
+            checks.append((isinstance(have, float) and have >= self.cfg.initial_buy_eth,
+                           f"wallet holds {have if isinstance(have, float) else '?'} {self.cfg.pair_symbol} for the initial buy of {self.cfg.initial_buy_eth}"))
         checks.append((self.cfg.live, "FLY_LIVE_LAUNCH=1"))
         checks.append(("authenticated" in hosting_status or hosting_status.startswith("github:"), f"image host ready ({hosting_status})"))
         return checks
@@ -331,6 +400,7 @@ class PonsLaunchpad:
             params=params, launch_config_id=self.cfg.launch_config_id, pair_token=pair,
             chain_id=self.cfg.chain_id, factory=self.cfg.factory,
             initial_buy_wei=int(initial_buy_eth * 1e18), live=bool(live and self.cfg.live), sender=self.address,
+            pair_symbol=self.cfg.quote,
         )
         plan.problems.extend(params.problems())
         if self.connected():
@@ -392,18 +462,34 @@ class PonsLaunchpad:
         return plan
 
     def buy(self, curve_address: str, eth_amount: float, live: bool = False, min_tokens_out: int = 0) -> str:
-        """Buy from a launch's bonding curve with native ETH. Returns tx hash
-        (or the encoded calldata when not live)."""
+        """Buy from a launch's bonding curve with its quote asset: native ETH,
+        or the ERC-20 pair token (approved first, sent with no value). The
+        amount is in whole units of that asset. Returns the tx hash, or the
+        encoded calldata when not live."""
         from web3 import Web3
 
         if eth_amount <= 0 or eth_amount > self.cfg.max_initial_buy_eth:
-            raise LaunchError(f"buy amount must be within (0, {self.cfg.max_initial_buy_eth}] ETH")
-        curve = self.w3.eth.contract(address=Web3.to_checksum_address(curve_address), abi=CURVE_ABI)
-        wei = int(eth_amount * 1e18)
+            raise LaunchError(f"buy amount must be within (0, {self.cfg.max_initial_buy_eth}] {self.cfg.quote}")
+        curve_addr = Web3.to_checksum_address(curve_address)
+        curve = self.w3.eth.contract(address=curve_addr, abi=CURVE_ABI)
+        native = self.cfg.pair_is_native
+        decimals = 18
+        if not native:
+            try:
+                decimals = int(self.pair_info().get("decimals", 18))
+            except Exception:
+                pass
+        amount = int(eth_amount * 10 ** decimals)
         recipient = self.address or ZERO_ADDRESS
         if not (live and self.cfg.live and self._account):
-            return curve.encode_abi("buy", args=[wei, min_tokens_out, recipient])
-        tx = self._build_tx(curve.functions.buy(wei, min_tokens_out, recipient), value=wei)
+            return curve.encode_abi("buy", args=[amount, min_tokens_out, recipient])
+        if not native:
+            token = self.w3.eth.contract(address=Web3.to_checksum_address(self.cfg.pair_token), abi=ERC20_ABI)
+            if token.functions.allowance(self.address, curve_addr).call() < amount:
+                approve = self._build_tx(token.functions.approve(curve_addr, amount), value=0)
+                self.w3.eth.wait_for_transaction_receipt(
+                    self.w3.eth.send_raw_transaction(_raw(self._account.sign_transaction(approve))).hex(), timeout=240)
+        tx = self._build_tx(curve.functions.buy(amount, min_tokens_out, recipient), value=amount if native else 0)
         signed = self._account.sign_transaction(tx)
         tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
@@ -426,14 +512,21 @@ class PonsLaunchpad:
             if self.address:
                 escrow = self.w3.eth.contract(address=Web3.to_checksum_address(escrow_addr), abi=ESCROW_ABI)
                 out["claimableEth"] = escrow.functions.balanceOf(self.address).call() / 1e18
+                if not self.cfg.pair_is_native:
+                    info = self.pair_info()
+                    scale = 10 ** int(info.get("decimals", 18))
+                    pair = Web3.to_checksum_address(self.cfg.pair_token)
+                    out["claimable" + self.cfg.quote] = escrow.functions.balanceOfToken(self.address, pair).call() / scale
         except Exception as exc:
             out["error"] = f"escrow read failed: {exc}"
+        out["quote"] = self.cfg.quote
         for c in curves or []:
             try:
                 curve = self.w3.eth.contract(address=Web3.to_checksum_address(c), abi=CURVE_ABI)
                 out["curves"][c] = {
-                    "pendingFeeEth": curve.functions.quoteFeeBalance().call() / 1e18,
-                    "pendingCreatorTaxEth": curve.functions.creatorTaxBalance().call() / 1e18,
+                    "pendingFee": curve.functions.quoteFeeBalance().call() / 1e18,
+                    "pendingCreatorTax": curve.functions.creatorTaxBalance().call() / 1e18,
+                    "unit": self.cfg.quote,
                     "buybackEnabled": curve.functions.buybackEnabled().call(),
                     "graduated": curve.functions.graduated().call(),
                 }
@@ -455,15 +548,22 @@ class PonsLaunchpad:
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)
         return tx_hash
 
-    def claim_fees(self, live: bool = False) -> str:
-        """Claim the wallet's escrow balance in ETH."""
+    def claim_fees(self, live: bool = False, token: str = "") -> str:
+        """Claim the wallet's escrow balance: in ETH, or in an ERC-20 pair
+        token when `token` is given (the fees of a GOOGL-paired coin are GOOGL)."""
         from web3 import Web3
 
         escrow_addr = self.factory.functions.feeEscrow().call()
         escrow = self.w3.eth.contract(address=Web3.to_checksum_address(escrow_addr), abi=ESCROW_ABI)
+        if token:
+            fn = escrow.functions.claimToken(Web3.to_checksum_address(token))
+            encoded = escrow.encode_abi("claimToken", args=[Web3.to_checksum_address(token)])
+        else:
+            fn = escrow.functions.claim()
+            encoded = escrow.encode_abi("claim", args=[])
         if not (live and self.cfg.live and self._account):
-            return escrow.encode_abi("claim", args=[])
-        tx = self._build_tx(escrow.functions.claim(), value=0)
+            return encoded
+        tx = self._build_tx(fn, value=0)
         signed = self._account.sign_transaction(tx)
         tx_hash = self.w3.eth.send_raw_transaction(_raw(signed)).hex()
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=240)

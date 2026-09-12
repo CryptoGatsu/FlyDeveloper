@@ -78,6 +78,8 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
     ]
     coins = []
     for l in d.get("launches", []):
+        if not l.get("live") and l.get("status") in (None, "", "planned", "blocked"):
+            continue                                    # dry runs are rehearsals, not coins
         coins.append({
             "at": l.get("at"), "name": l.get("name"), "symbol": l.get("symbol"),
             "description": l.get("description"), "live": bool(l.get("live")), "status": l.get("status"),
@@ -86,6 +88,7 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             "genesis": bool(l.get("genesis")), "buyback": l.get("buyback"),
             "explorer_tx": f"{EXPLORER}/tx/{l['tx']}" if l.get("tx") else "",
             "explorer_token": f"{EXPLORER}/token/{l['token']}" if l.get("token") else "",
+            "pair": l.get("pair") or "",
             "pons": l.get("pons_url") or (pons_token_url(l["token"]) if l.get("live") and l.get("token") else ""),
         })
     pages = [

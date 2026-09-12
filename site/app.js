@@ -156,7 +156,8 @@ function coins(s){
       '<h3>'+e(x.name||"untitled")+' <span class="muted">$'+e(x.symbol||"")+'</span>'+
       (x.genesis?'<span class="badge gen">genesis</span>':"")+
       (x.live?'<span class="badge live">live</span>':'<span class="badge soon">'+e(x.status||"pending")+'</span>')+
-      (x.buyback?'<span class="badge">buyback</span>':"")+'</h3>';
+      (x.buyback?'<span class="badge">buyback</span>':"")+
+      (x.pair?'<span class="badge">paired with '+e(x.pair)+'</span>':"")+'</h3>';
     if(x.description)h+='<p>'+e(x.description)+'</p>';
     var mm=media(x.meme);
     if(mm)h+='<figure class="coinmeme">'+shot(mm,e("meme for $"+(x.symbol||"coin")))+'</figure>';

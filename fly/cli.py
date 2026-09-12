@@ -156,6 +156,10 @@ def cmd_launch_status(args) -> int:
     print(f"  creator share of the 1% curve fee -> {recipient}")
     print(f"  creator tax on top: {lpc.creator_tax_bps} bps ({lpc.creator_tax_bps / 100:.2f}%) -> same wallet  [FLY_CREATOR_TAX_BPS, max 1000]")
     print(f"  buyback-and-lock: {'ON (a slice of creator fees buys the coin back)' if lpc.genesis_buyback else 'OFF (all creator fees stay in the wallet to fund the project)'}")
+    if lpc.pair_is_native:
+        print("  quote asset: native ETH (buyers pay ETH, creator fees accrue in ETH)  [FLY_PAIR_TOKEN]")
+    else:
+        print(f"  quote asset: {lpc.pair_symbol} at {lpc.pair_token} (buyers pay {lpc.pair_symbol}, creator fees accrue in {lpc.pair_symbol}; the launch fee itself is ETH)  [FLY_PAIR_TOKEN]")
     if lpc.creator_tax_bps == 0:
         print("  note: with 0 bps the wallet only earns its share of the base fee; set FLY_CREATOR_TAX_BPS (e.g. 250 = 2.5%) to fund the project")
     print()
@@ -206,7 +210,9 @@ def cmd_fees(args) -> int:
                 continue
             print(f"sweep {c}: {lp.sweep_fees(c, live=args.live, min_buyback_tokens_out=args.min_buyback_out)}")
     if args.claim:
-        print(f"claim: {lp.claim_fees(live=args.live)}")
+        print(f"claim ETH: {lp.claim_fees(live=args.live)}")
+        if not cfg.launchpad.pair_is_native:
+            print(f"claim {cfg.launchpad.quote}: {lp.claim_fees(live=args.live, token=cfg.launchpad.pair_token)}")
     if (args.sweep or args.claim) and not (args.live and cfg.launchpad.live):
         print("(dry run: printed calldata only; add --live with FLY_LIVE_LAUNCH=1 to send)")
     return 0
@@ -327,6 +333,27 @@ def cmd_health(args) -> int:
         print("checkup: " + n)
     for i in s["incidents"]:
         print(f"- {i.get('at', '')[:16]} {i.get('kind')}: {i.get('detail')}" + (f"  -> {i.get('fixed')}" if i.get("fixed") else ""))
+    return 0
+
+
+def cmd_forget(args) -> int:
+    """Forget dry-run launches (rehearsals) so they stop showing on the site."""
+    from .memory import Memory
+    from .publish import export_site
+
+    cfg = FlyConfig.from_env()
+    memory = Memory(cfg.memory_path)
+    if not args.symbol and not args.dry_runs:
+        dry = [l for l in memory.data.get("launches") or []
+               if not l.get("live") and l.get("status") in (None, "", "planned", "blocked")]
+        print(f"{len(dry)} dry-run launch(es) on record: " + ", ".join(f"${l.get('symbol')}" for l in dry))
+        print("usage: python fly.py forget <SYMBOL> | --dry-runs   (live launches are never forgotten)")
+        return 0
+    gone = memory.forget_launches(symbol=args.symbol or "", dry_runs=args.dry_runs)
+    memory.save()
+    print("forgot: " + (", ".join(f"${l.get('symbol')} ({l.get('status')})" for l in gone) or "nothing matched"))
+    export_site(cfg, memory)
+    print("site data re-exported; run  python fly.py publish --push  (or let the fly publish on its next tick)")
     return 0
 
 
@@ -562,6 +589,10 @@ def main(argv: list[str] | None = None) -> int:
     po.set_defaults(fn=cmd_post)
     sub.add_parser("x-status", help="X credentials, posting state, recent posts and the playbook").set_defaults(fn=cmd_x_status)
     sub.add_parser("health", help="uptime, suspended actions, recent incidents and what the fly did about them").set_defaults(fn=cmd_health)
+    fg = sub.add_parser("forget", help="drop a dry-run launch from memory and the site (never a live one)")
+    fg.add_argument("symbol", nargs="?", help="ticker of the dry run to forget")
+    fg.add_argument("--dry-runs", action="store_true", help="forget every dry-run launch")
+    fg.set_defaults(fn=cmd_forget)
     rp2 = sub.add_parser("repairs", help="fixes the fly drafted for its own crashes (list | apply <stamp>)")
     rp2.add_argument("action", nargs="?", choices=["list", "apply"], default="list")
     rp2.add_argument("stamp", nargs="?")

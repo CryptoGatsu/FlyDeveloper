@@ -23,8 +23,10 @@ def test_export_site_writes_state_and_copies_memes(tmp_path):
     fly.tick(force="browse", seed=2)
     fly.tick(force="launch", seed=3)
     state = json.loads((tmp_path / "site" / "data" / "state.json").read_text())
-    assert state["counts"]["memes"] >= 1 and state["counts"]["pages"] == 1 and state["counts"]["coins"] >= 1
-    assert state["coins"][0]["symbol"] == "FLYDEV" and state["coins"][0]["genesis"] is True
+    assert state["counts"]["memes"] >= 1 and state["counts"]["pages"] == 1
+    assert state["coins"] == [] and state["counts"]["coins"] == 0      # a dry run is not a coin
+    last = fly.memory.last("launches")
+    assert last["symbol"] == "FLYDEV" and last["genesis"] is True and last["live"] is False
     assert state["memes"][0]["src"].startswith("memes/")
     assert (tmp_path / "site" / state["memes"][0]["src"]).is_file()
     assert "calldata" not in json.dumps(state) and "problems" not in json.dumps(state)

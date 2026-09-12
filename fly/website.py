@@ -47,7 +47,7 @@ STATE_EXAMPLE = {
     "memes": [{"at": "...", "top": "...", "bottom": "...", "alt": "...", "mood": "smug", "src": "memes/fly-2026....png"}],
     "coins": [{"at": "...", "name": "The Fly Dev", "symbol": "FLYDEV", "description": "...", "live": True, "status": "confirmed",
                "tx": "0x...", "token": "0x...", "curve": "0x...", "logo": "https://...", "meme": "memes/fly-....png",
-               "genesis": True, "buyback": False, "explorer_tx": "https://robinhoodchain.blockscout.com/tx/0x...",
+               "genesis": True, "buyback": False, "pair": "GOOGL", "explorer_tx": "https://robinhoodchain.blockscout.com/tx/0x...",
                "explorer_token": "https://robinhoodchain.blockscout.com/token/0x...",
                "pons": "https://www.ponsfamily.com/launchpad/0x..."}],
     "builds": [{"at": "...", "slug": "ripeness-clock", "title": "Ripeness Clock", "ok": True, "kind": "tool", "files": ["README.md"],

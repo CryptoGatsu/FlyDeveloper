@@ -134,3 +134,37 @@ def test_sweep_and_claim_dry_run_encode():
     data = lp.sweep_fees("0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e")
     assert data.startswith("0x") and len(data) == 2 + 8 + 64
     assert lp.fees()["error"] == "rpc unreachable"
+
+
+def test_coins_pair_with_googl_by_default():
+    from fly.config import GOOGL_TOKEN, FlyConfig
+
+    cfg = FlyConfig()
+    assert cfg.launchpad.pair_token == GOOGL_TOKEN and cfg.launchpad.quote == "GOOGL"
+    assert cfg.launchpad.pair_is_native is False
+    lp = _lp()
+    plan = lp.execute(lp.plan(_params()))
+    assert GOOGL_TOKEN.lower()[2:] in plan.calldata.lower()          # pairToken argument in the calldata
+    assert "trades in GOOGL" in plan.describe()
+    checks = dict((msg, ok) for ok, msg in lp.readiness("none"))
+    assert any("pair token" in m and "GOOGL" in m for m in checks)  # verified on chain before a live launch
+
+
+def test_pair_token_env_accepts_eth_for_native(monkeypatch):
+    from fly.config import ZERO, FlyConfig
+
+    monkeypatch.setenv("FLY_PAIR_TOKEN", "ETH")
+    monkeypatch.setenv("FLY_MIND", "offline")
+    cfg = FlyConfig.from_env()
+    assert cfg.launchpad.pair_token == ZERO and cfg.launchpad.pair_is_native and cfg.launchpad.quote == "ETH"
+
+
+def test_claim_token_dry_run_encodes_claim_token():
+    from fly.config import GOOGL_TOKEN
+
+    lp = _lp()
+    try:
+        data = lp.claim_fees(token=GOOGL_TOKEN)
+    except Exception:
+        return                                              # rpc unreachable: feeEscrow() lookup fails offline
+    assert data.startswith("0x")

@@ -22,6 +22,10 @@ ROBINHOOD_EXPLORER = "https://robinhoodchain.blockscout.com"
 # trusting an address.
 PONS_V1_FACTORY = "0xA5aAb3F0c6EeadF30Ef1D3Eb997108E976351feB"
 PONS_V2_FACTORY = "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e"
+# Robinhood Chain stock token for Alphabet Class A (GOOGL), from the explorer.
+# The fly verifies on chain (symbol, decimals, Pons approval) before any live launch.
+GOOGL_TOKEN = "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3"
+ZERO = "0x0000000000000000000000000000000000000000"
 PONS_APP = "https://www.ponsfamily.com/launchpad"   # a coin lives at PONS_APP/<token address>
 
 
@@ -113,6 +117,14 @@ class BrowserConfig:
     ])
 
 
+def _pair_token(value: str) -> str:
+    """FLY_PAIR_TOKEN accepts an address, or ETH/native/0x0 for the native quote."""
+    v = (value or "").strip()
+    if v.lower() in ("", "eth", "native", "0x0", "0", "none"):
+        return ZERO
+    return v
+
+
 @dataclass
 class LaunchpadConfig:
     rpc_url: str = ROBINHOOD_RPC_URL
@@ -122,11 +134,12 @@ class LaunchpadConfig:
     private_key: str = ""            # FLY_WALLET_PRIVATE_KEY
     live: bool = False               # FLY_LIVE_LAUNCH=1 arms real transactions
     launch_config_id: int = 0
-    pair_token: str = "0x0000000000000000000000000000000000000000"  # native ETH quote
+    pair_token: str = GOOGL_TOKEN     # quote asset every coin trades in (FLY_PAIR_TOKEN; "ETH" for native)
+    pair_symbol: str = "GOOGL"        # what the pair token must call itself on chain (FLY_PAIR_SYMBOL)
     creator_tax_bps: int = 0
     buyback_enabled: bool = True
     max_launches_per_day: int = 1
-    initial_buy_eth: float = 0.0     # optional first curve buy, in ETH
+    initial_buy_eth: float = 0.0     # optional first curve buy, in the quote asset (GOOGL, or ETH when native)
     max_initial_buy_eth: float = 0.01
     max_launch_fee_eth: float = 0.01 # refuse to launch if the factory fee exceeds this
     creator_fee_recipient: str = ""  # defaults to the launching wallet
@@ -134,6 +147,15 @@ class LaunchpadConfig:
     twitter: str = "https://x.com/TheFlyDev_"
     telegram: str = ""
     # The fly's own coin: used for its first live launch. Empty name disables.
+    @property
+    def pair_is_native(self) -> bool:
+        return self.pair_token.lower() == ZERO
+
+    @property
+    def quote(self) -> str:
+        """Name of the asset the coins trade in."""
+        return "ETH" if self.pair_is_native else (self.pair_symbol or "pair token")
+
     genesis_name: str = "The Fly Dev"
     genesis_symbol: str = "FLYDEV"
     # Genesis creator fees stay in the fly's wallet (they fund the project):
@@ -271,7 +293,8 @@ class FlyConfig:
         lp.private_key = _env("FLY_WALLET_PRIVATE_KEY", "")
         lp.live = _env_bool("FLY_LIVE_LAUNCH", False)
         lp.launch_config_id = _env_int("FLY_LAUNCH_CONFIG_ID", 0)
-        lp.pair_token = _env("FLY_PAIR_TOKEN", lp.pair_token)
+        lp.pair_token = _pair_token(_env("FLY_PAIR_TOKEN", lp.pair_token))
+        lp.pair_symbol = _env("FLY_PAIR_SYMBOL", "ETH" if lp.pair_token == ZERO else lp.pair_symbol).upper()
         lp.creator_tax_bps = _env_int("FLY_CREATOR_TAX_BPS", 0)
         lp.buyback_enabled = _env_bool("FLY_BUYBACK_ENABLED", True)
         lp.max_launches_per_day = _env_int("FLY_MAX_LAUNCHES_PER_DAY", 1)
