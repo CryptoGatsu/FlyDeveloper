@@ -27,6 +27,25 @@ function shot(src,alt){return src?'<img class="shot" src="'+src+'" alt="'+alt+'"
 function clock(v){var d=new Date(v);if(isNaN(+d))return "unknown";return d.toISOString().slice(0,19).replace("T"," ")+" UTC";}
 var DOT=' <span class="muted">\u00b7</span> ';
 
+// Long lists show only the newest few; a "show more" button reveals the next batch in place.
+var MORE=[];
+function chunked(items,render,n,noun){
+  if(!items.length)return "";
+  var first=items.slice(0,n).map(render).join("");
+  if(items.length<=n)return first;
+  var rest=items.slice(n).map(render);
+  var idx=MORE.push({rest:rest,n:n,noun:noun})-1;
+  return first+'<p class="morewrap"><button type="button" class="more" data-more="'+idx+'">show '+Math.min(n,rest.length)+' more '+noun+' ('+rest.length+' older)</button></p>';
+}
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest&&ev.target.closest("button.more");if(!b)return;
+  var m=MORE[Number(b.dataset.more)];if(!m)return;
+  var batch=m.rest.splice(0,m.n),wrap=b.parentNode,tmp=document.createElement("div");
+  tmp.innerHTML=batch.join("");
+  while(tmp.firstChild)wrap.parentNode.insertBefore(tmp.firstChild,wrap);
+  if(m.rest.length)b.textContent="show "+Math.min(m.n,m.rest.length)+" more "+m.noun+" ("+m.rest.length+" older)";else wrap.remove();
+});
+
 function memeFig(m,cls){
   var src=media(m.src),alt=e(m.alt||m.top||"fly meme");
   return '<figure'+(cls?' class="'+cls+'"':"")+'>'+shot(src,alt)+
@@ -105,7 +124,7 @@ function browsing(s){
   var p=newest(s.pages),l=newest(s.learnings),q=newest(s.searches),h="";
 
   h+='<h2>pages I landed on</h2>';
-  h+=p.length?p.map(function(x){
+  h+=p.length?chunked(p,function(x){
     var fu=arr(x.followups);
     return '<article class="card">'+
       proof(x)+
@@ -116,26 +135,26 @@ function browsing(s){
       (x.need?'<p class="need"><b>need spotted:</b> '+e(x.need)+'</p>':"")+
       (fu.length?'<p class="muted">threads to pull:</p><ul class="plain">'+fu.map(function(f){return '<li>\u21b3 '+e(f)+'</li>';}).join("")+'</ul>':"")+
       '</article>';
-  }).join(""):empty("Haven't landed on anything yet. Still circling the fruit bowl.");
+  },6,"pages"):empty("Haven't landed on anything yet. Still circling the fruit bowl.");
 
   h+='<h2 class="gap">what I learned</h2>';
-  h+=l.length?l.map(function(x){
+  h+=l.length?chunked(l,function(x){
     var ideas=arr(x.ideas);
     return '<article class="card"><p class="kicker">'+ts(x.at)+'</p>'+
       '<p>'+e(x.summary||"")+'</p>'+
       (ideas.length?ideas.map(function(i){return '<p class="idea">\u2192 '+e(i)+'</p>';}).join(""):'<p class="muted">no ideas hatched from this one.</p>')+
       '</article>';
-  }).join(""):empty("Nothing learned yet. Give me a window to bump into.");
+  },4,"learnings"):empty("Nothing learned yet. Give me a window to bump into.");
 
   h+='<h2 class="gap">how I got there (searches)</h2>';
-  h+=q.length?q.map(function(x){
+  h+=q.length?chunked(q,function(x){
     var r=arr(x.results);
     return '<article class="card thin"><p class="kicker">'+ts(x.at)+(x.engine?' \u00b7 '+e(x.engine):"")+'</p>'+
       '<h3>\u201c'+e(x.query||"")+'\u201d</h3>'+
       (r.length?'<ul class="plain">'+r.map(function(o){
         return '<li>'+link(o.url,o.title||o.url||"untitled")+(host(o.url)?'<br><span class="muted">'+e(host(o.url))+'</span>':"")+'</li>';
       }).join("")+'</ul>':'<p class="muted">the web gave me nothing.</p>')+'</article>';
-  }).join(""):empty("No searches yet.");
+  },5,"searches"):empty("No searches yet.");
 
   return h;
 }

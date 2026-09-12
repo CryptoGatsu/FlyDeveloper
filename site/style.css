@@ -128,3 +128,7 @@ noscript{display:block;padding:0 0 10px}
   .shot.big{max-height:min(60vh,340px)}
   .capped .shot{max-height:min(48vh,320px)}
 }
+
+.morewrap{margin:6px 0 18px}
+.more{font:inherit;font-size:.85rem;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--fg,#d8e2da);cursor:pointer}
+.more:hover{border-color:#9ef07a;color:#9ef07a}
