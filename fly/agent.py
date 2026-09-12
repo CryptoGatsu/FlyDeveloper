@@ -18,7 +18,7 @@ from .memes import render_meme
 from .memory import Memory
 from .mind import Mind, MindRefused, build_mind
 from .neurons import Sense, load_senses
-from .x import Post, XClient, XError, engagement_score, mention_skip_reason, post_problems
+from .x import Post, XClient, XError, engagement_score, mention_skip_reason, post_problems, shorten_post
 
 Logger = Callable[[str], None]
 
@@ -291,6 +291,14 @@ class Fly:
                 continue
             post = Post(text=draft.text.strip(), kind="reply")
             post.problems = post_problems(post.text)
+            if any(pr.startswith("too long") for pr in post.problems):
+                draft = self.mind.reply(author, m["text"] + f"\n\n(Your previous reply was {len(post.text)} characters; the limit is 280. Under 240 this time.)",
+                                        self.context(), mood)
+                post = Post(text=(draft.text or "").strip() or shorten_post(post.text), kind="reply")
+                post.problems = post_problems(post.text)
+            if any(pr.startswith("too long") for pr in post.problems):
+                post.text = shorten_post(post.text)
+                post.problems = post_problems(post.text)
             if not post.problems and live and self.x.armed:
                 post = self.x.reply(post.text, m["id"])
             self.memory.add("posts", {"kind": "reply", "text": post.text, "id": post.id, "url": post.url, "live": post.live,
@@ -338,6 +346,17 @@ class Fly:
         draft = self.mind.compose_post(kind, material, self.context(), self.playbook_text())
         post = Post(text=draft.text.strip(), kind=kind, media=media)
         post.problems = post_problems(post.text)
+        for _ in range(2):                                  # too long? say it shorter, twice if needed
+            if not any(pr.startswith("too long") for pr in post.problems):
+                break
+            draft = self.mind.compose_post(kind, material + f"\n\nYour previous draft was {len(post.text)} characters; "
+                                           "the hard limit is 280. Say the same thing in under 240 characters.",
+                                           self.context(), self.playbook_text())
+            post = Post(text=draft.text.strip(), kind=kind, media=media)
+            post.problems = post_problems(post.text)
+        if any(pr.startswith("too long") for pr in post.problems):
+            post.text = shorten_post(post.text)
+            post.problems = post_problems(post.text)
         if not post.problems and live and self.x.armed:
             post = self.x.send(post)                    # real post
         entry = {"kind": kind, "text": post.text, "media": media, "id": post.id, "url": post.url, "live": post.live,
@@ -395,14 +414,14 @@ class Fly:
         """Price / market cap / 24 h move of the genesis coin, remembered in memory."""
         coin = next((l for l in reversed(self.memory.data.get("launches") or [])
                      if l.get("live") and l.get("genesis") and l.get("token")), None)
-        if not coin or not self._launchpad:
+        if not coin:
             return None
         try:
             if self._market is None:
                 from .market import Market
 
-                self._market = Market(self.memory)
-            return self._market.snapshot(self._launchpad, coin["token"], coin.get("curve") or "", coin.get("pair") or self.cfg.launchpad.quote)
+                self._market = Market(self.memory, log=self.log)
+            return self._market.snapshot(self.launchpad, coin["token"], coin.get("curve") or "", coin.get("pair") or self.cfg.launchpad.quote)
         except Exception as exc:
             self.log(f"  market readout failed: {exc}")
             return None

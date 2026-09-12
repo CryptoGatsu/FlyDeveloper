@@ -76,7 +76,7 @@ def from_dexscreener(token: str, fetch: Callable[[str], Any] = _get_json) -> dic
         return None
 
 
-def from_curve(launchpad, curve: str, quote_symbol: str, quote_usd_price: float | None) -> dict[str, Any] | None:
+def from_curve(launchpad, curve: str, quote_symbol: str, quote_usd_price: float | None, log=None) -> dict[str, Any] | None:
     """Spot price from the curve's reserves; None when the RPC is unreachable."""
     try:
         from web3 import Web3
@@ -88,7 +88,9 @@ def from_curve(launchpad, curve: str, quote_symbol: str, quote_usd_price: float 
         real = c.functions.realQuoteReserve().call()
         threshold = c.functions.graduationThreshold().call()
         graduated = bool(c.functions.graduated().call())
-    except Exception:
+    except Exception as exc:
+        if log:
+            log(f"  market: could not read the curve {curve}: {str(exc)[:160]}")
         return None
     if not token_res:
         return None
@@ -132,9 +134,10 @@ class Market:
 
     HISTORY_MAX = 900                 # ~3 days at one snapshot per 5 minutes
 
-    def __init__(self, memory, fetch: Callable[[str], Any] = _get_json):
+    def __init__(self, memory, fetch: Callable[[str], Any] = _get_json, log=None):
         self.memory = memory
         self.fetch = fetch
+        self.log = log
         self._usd: tuple[float, float | None] = (0.0, None)
 
     def _quote_usd(self, symbol: str) -> float | None:
@@ -149,8 +152,10 @@ class Market:
     def snapshot(self, launchpad, token: str, curve: str, quote_symbol: str) -> dict[str, Any] | None:
         snap = from_dexscreener(token, self.fetch)
         if snap is None and curve:
-            snap = from_curve(launchpad, curve, quote_symbol, self._quote_usd(quote_symbol))
+            snap = from_curve(launchpad, curve, quote_symbol, self._quote_usd(quote_symbol), log=self.log)
         if snap is None:
+            if self.log:
+                self.log("  market: no readout this time (not on DexScreener yet, curve unreadable)")
             return None
         history = self.memory.data.setdefault("market", [])
         key = "mcap_usd" if snap.get("mcap_usd") is not None else "mcap_quote"

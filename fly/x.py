@@ -117,6 +117,28 @@ def mention_skip_reason(text: str) -> str:
     return looks_like_promo(text) or looks_like_bait(text)
 
 
+def shorten_post(text: str, limit: int = 270) -> str:
+    """Cut a post at the last sentence or line that fits; never mid-word, and
+    a trailing URL is kept whole if it fits."""
+    t = (text or "").strip()
+    if len(t) <= limit:
+        return t
+    urls = re.findall(r"https?://\S+", t)
+    tail = urls[-1] if urls and t.endswith(urls[-1]) else ""
+    body = t[: len(t) - len(tail)].rstrip() if tail else t
+    room = limit - (len(tail) + 1 if tail else 0)
+    cut = body[:room]
+    for sep in ("\n\n", "\n", ". ", "! ", "? "):
+        i = cut.rfind(sep)
+        if i > room // 2:
+            cut = cut[: i + (0 if sep.startswith("\n") else 1)]
+            break
+    else:
+        i = cut.rfind(" ")
+        cut = (cut[:i] if i > room // 2 else cut).rstrip() + "\u2026"
+    return (cut.rstrip() + ("\n" + tail if tail else "")).strip()
+
+
 def post_problems(text: str) -> list[str]:
     out = []
     low = text.lower()

@@ -310,3 +310,43 @@ def test_state_carries_the_market_readout(tmp_path):
     assert g["market"]["mcap_usd"] == 5000.0 and g["market"]["change_basis"] == "24h"
     assert abs(g["market"]["change_24h"] - 25.0) < 1e-9
     assert g["market"]["series"][-1]["mcap_usd"] == 5000.0
+
+
+def test_too_long_posts_are_rewritten_not_held(tmp_path):
+    from fly.mind import OfflineMind, XPost
+
+    class Verbose(OfflineMind):
+        n = 0
+
+        def compose_post(self, kind, material, context, playbook):
+            Verbose.n += 1
+            if "under 240" in material:
+                return XPost(text="Short and sweet. https://flydev.tech/builds", why="asked to shorten")
+            return XPost(text="word " * 70 + "https://flydev.tech/builds", why="ramble")
+
+    fly = _fly(tmp_path)
+    fly.cfg.publish = "none"
+    fly.mind = Verbose()
+    out = fly.act_post("build", "a new tool")
+    post = fly.memory.data["posts"][-1]
+    assert post["problems"] == [] and post["text"].startswith("Short and sweet") and Verbose.n == 2
+    assert "held" not in out
+
+
+def test_market_snapshot_uses_the_lazy_launchpad(tmp_path, monkeypatch):
+    fly = _fly(tmp_path)
+    fly.memory.add("launches", {"name": "The Fly Dev", "symbol": "FLYDEV", "live": True, "status": "confirmed",
+                                "token": "0x" + "ab" * 20, "curve": "0x" + "cd" * 20, "genesis": True, "pair": "GOOGL"})
+    seen = {}
+
+    class FakeMarket:
+        def __init__(self, memory, log=None): pass
+
+        def snapshot(self, launchpad, token, curve, quote):
+            seen["lp"] = launchpad
+            return {"mcap_usd": 1.0}
+
+    monkeypatch.setattr("fly.market.Market", FakeMarket)
+    assert fly._launchpad is None
+    assert fly.market_snapshot() == {"mcap_usd": 1.0}
+    assert seen["lp"] is not None and seen["lp"] is fly.launchpad

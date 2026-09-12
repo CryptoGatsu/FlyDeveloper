@@ -102,3 +102,13 @@ def test_bait_and_small_talk_are_ignored_but_real_questions_pass():
     assert mention_skip_reason("@TheFlyDev_ thoughts on the GOOGL pairing?") == ""
     assert mention_skip_reason("@TheFlyDev_ your ripeness clock crashed on my banana") == ""
     assert mention_skip_reason("@TheFlyDev_ Let's take your project to the next level! DM me")   # promo still caught
+
+
+def test_shorten_post_cuts_at_a_sentence_and_keeps_the_link():
+    from fly.x import shorten_post, post_problems
+
+    long = "I built a tiny watchdog. " * 12 + "It yells when a license changes. https://flydev.tech/builds"
+    out = shorten_post(long)
+    assert len(out) <= 280 and out.endswith("https://flydev.tech/builds") and not post_problems(out)
+    assert out.split("\n")[0].endswith(".")
+    assert shorten_post("short one") == "short one"
