@@ -62,7 +62,16 @@ class Fly:
                                           cam=self.cam if self.cam.configured else None)
         self.workshop = Workshop(cfg.workshop_dir)
         self._launchpad = launchpad
-        self.x = XClient(cfg.x)
+        try:
+            self.x = XClient(cfg.x)
+        except Exception as exc:                        # missing dependency etc.: never fatal
+            log(f"x client unavailable: {exc}")
+            from .x import XClient as _X
+
+            self.x = _X(type(cfg.x)())
+        from .health import Health
+
+        self.health = Health(cfg.root, log=log)
         self.senses: dict[str, Sense] = load_senses(cfg.root / "data" / "fly_senses.json")
 
     @property
@@ -126,8 +135,14 @@ class Fly:
         action, probs = choose_action(drives, world, fingerprint)
         if force:
             action = force
+        elif not self.health.allowed(action):
+            self.log(f"{action} is suspended after repeated failures; choosing something else")
+            probs = {k: (0.0 if k == action else v) for k, v in probs.items()}
+            action = max(probs, key=probs.get) if any(probs.values()) else "rest"
         self.memory.add("drives", {"drives": drives.as_dict(), "action": action, "probs": probs,
                                    "brain": {k: r.describe() for k, r in reports.items()}})
+        self._last_rasters = {k: r.raster() for k, r in reports.items()}
+        self._push_brain(self._last_rasters, mood=self.mood(drives), action=action)
         mood = self.mood(drives)
         self.log(f"fly feels {mood} ({drives.describe()}) -> {action}")
         if action == "launch" and world.genesis_pending and world.launch_armed:
@@ -161,9 +176,17 @@ class Fly:
             else:
                 result.outcome = {"rest": "the fly grooms its wings"}
                 self.memory.note("rested")
+            self.health.succeeded(action)
         except MindRefused as exc:
             result.outcome = {"error": f"mind refused: {exc}"}
             self.memory.note(f"mind refused during {action}: {exc}")
+        except Exception as exc:
+            result.outcome = {"error": f"{type(exc).__name__}: {exc}"}
+            self.memory.note(f"{action} failed: {type(exc).__name__}: {str(exc)[:200]}")
+            self.log(f"{action} failed: {type(exc).__name__}: {str(exc)[:200]}")
+            if self.health.failed(action, f"{type(exc).__name__}: {exc}"):
+                self.log(f"{action} suspended for a while")
+            self._last_exception = exc
         try:
             result.outcome["x"] = self.social_after(action, result.outcome, live=live)
         except Exception as exc:                       # posting must never break a tick
@@ -173,6 +196,19 @@ class Fly:
             self.memory.save()
             self._publish(action, mood)
         return result
+
+    _last_rasters: dict[str, Any] = {}
+
+    def _push_brain(self, rasters: dict[str, Any], mood: str, action: str) -> None:
+        """Send the latest spike rasters to the fly cam so the home page shows
+        the brain firing within seconds (state.json follows on the next publish)."""
+        if not getattr(self, "cam", None) or not self.cam.configured:
+            return
+        import threading
+
+        payload = {"at": self.memory.data["drives"][-1]["at"] if self.memory.data.get("drives") else None,
+                   "mood": mood, "action": action, "rasters": rasters}
+        threading.Thread(target=self.cam.post_brain, args=(payload,), daemon=True).start()
 
     # -- X ---------------------------------------------------------------
     def social_after(self, action: str, outcome: dict[str, Any], live: bool = False) -> str:
@@ -303,7 +339,8 @@ class Fly:
         try:
             from .publish import export_site, publish
 
-            export_site(self.cfg, self.memory, extra={"mood": mood, "wallet": self._launchpad.address if self._launchpad else ""})
+            export_site(self.cfg, self.memory, extra={"mood": mood, "wallet": self._launchpad.address if self._launchpad else "",
+                                                     "health": self.health.summary(), "rasters": self._last_rasters})
             if self.cfg.publish == "git":
                 last = self.memory.last(action if action in ("builds",) else {"browse": "pages", "build": "builds", "meme": "memes", "launch": "launches"}.get(action, "journal")) or {}
                 what = last.get("title") or last.get("top") or last.get("symbol") or action
@@ -311,26 +348,68 @@ class Fly:
         except Exception as exc:
             self.log(f"publish skipped: {exc}")
 
-    def run(self, ticks: int | None = None, interval_sec: int | None = None, live: bool = False) -> None:
+    _last_exception: BaseException | None = None
+
+    def run(self, ticks: int | None = None, interval_sec: int | None = None, live: bool = False) -> int:
         """Keep living. With a fixed interval the fly acts on a timer; with none
-        (the default) it decides how long to rest after each action."""
+        (the default) it decides how long to rest after each action. Never
+        dies on an error: it backs off, checks itself, and tries again.
+        Returns an exit code: 0 = restart me on new code, 2 = asked to stop."""
+        from . import selfrepair
         from .drives import next_rest_sec
 
         interval = interval_sec if interval_sec is not None else self.cfg.tick_interval_sec
+        self.health.start_watchdog()
         n = 0
+        crashes = 0
         while ticks is None or n < ticks:
-            result = self.tick(live=live)
-            self.log(result.describe())
+            self.health.beat("checkup")
+            for note in self.health.checkup():
+                self.log(f"checkup: {note}")
+                self.memory.note(f"checkup: {note}")
+            if not self.health.network_up():
+                self.health.wait_for_network()
+            if self.health.maybe_update():
+                self.memory.note("pulled my own updates; restarting")
+                self.memory.save()
+                return 0
+            self._last_exception = None
+            try:
+                self.health.beat("tick")
+                result = self.tick(live=live)
+                self.log(result.describe())
+                crashes = 0
+                action, drives, fingerprint = result.action, result.drives, "".join(r.fingerprint() for r in result.reports.values())
+            except KeyboardInterrupt:
+                self.log("stopped by hand")
+                return 2
+            except Exception as exc:                    # a crash outside any single action
+                crashes += 1
+                self.health.incident("crash", f"{type(exc).__name__}: {str(exc)[:300]}")
+                self.log(f"crash #{crashes}: {type(exc).__name__}: {str(exc)[:200]}")
+                self._last_exception = exc
+                action, drives, fingerprint = "rest", None, ""
+            if self._last_exception is not None and crashes >= 2:
+                try:                                    # draft a fix for a human to review; never self-apply
+                    selfrepair.propose(self.cfg.root, self.mind, self.health, self._last_exception, log=self.log)
+                except Exception as exc:
+                    self.log(f"self-repair drafting failed: {exc}")
             n += 1
             if ticks is not None and n >= ticks:
                 break
             if interval and interval > 0:
                 pause = interval
+            elif drives is not None:
+                pause = next_rest_sec(action, drives, fingerprint)
             else:
-                fingerprint = "".join(r.fingerprint() for r in result.reports.values())
-                pause = next_rest_sec(result.action, result.drives, fingerprint)
+                pause = min(1800, 60 * (2 ** min(crashes, 5)))   # crash backoff: 2, 4, 8 ... 30 min
             self.log(f"the fly rests for {pause // 60} min {pause % 60} s")
-            time.sleep(pause)
+            self.health.beat("resting")
+            try:
+                time.sleep(pause)
+            except KeyboardInterrupt:
+                return 2
+        return 2
 
     # -- actions ---------------------------------------------------------
     def context(self) -> str:

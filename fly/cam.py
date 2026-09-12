@@ -90,6 +90,29 @@ class FlyCam:
 
         threading.Thread(target=run, daemon=True).start()
 
+    def post_brain(self, payload: dict) -> bool:
+        """Push the latest spike rasters (a few tens of KB of JSON)."""
+        if not self.configured:
+            return False
+        import json
+
+        import requests
+
+        try:
+            body = json.dumps(payload, separators=(",", ":"))
+            if len(body) > 700_000:
+                for r in payload.get("rasters", {}).values():
+                    r["spikes"] = r.get("spikes", [])[:1200]
+                body = json.dumps(payload, separators=(",", ":"))
+            r = requests.post(f"{self.site_url}/api/brain", data=body, headers={"x-fly-cam": self.secret, "content-type": "application/json"}, timeout=30)
+            if r.status_code >= 300:
+                self.log(f"  brain cam: {r.status_code} {r.text[:120]}")
+                return False
+            return True
+        except Exception as exc:
+            self.log(f"  brain cam: {exc}")
+            return False
+
     def searching(self, query: str) -> None:
         if self.configured:
             threading.Thread(target=self.post, args=("searching", "", "", f"searching: {query}"), daemon=True).start()

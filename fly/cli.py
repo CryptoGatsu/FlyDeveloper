@@ -68,9 +68,44 @@ def cmd_tick(args) -> int:
 
 
 def cmd_live(args) -> int:
-    fly = _fly(args)
-    fly.run(ticks=args.ticks, interval_sec=args.interval, live=args.live)
-    return 0
+    """Supervisor: runs the loop in a child process and brings it back after
+    any crash or self-update. `--child` is the loop itself."""
+    import subprocess
+    import sys as _sys
+    import time as _time
+
+    if args.child or args.ticks:
+        fly = _fly(args)
+        return fly.run(ticks=args.ticks, interval_sec=args.interval, live=args.live)
+    cmd = [_sys.executable, str(Path(__file__).resolve().parent.parent / "fly.py")]
+    for flag, val in (("--brain", args.brain), ("--mind", args.mind)):
+        if val:
+            cmd += [flag, val]
+    cmd += ["live", "--child"]
+    if args.live:
+        cmd.append("--live")
+    if args.interval:
+        cmd += ["--interval", str(args.interval)]
+    backoff = 10
+    while True:
+        started = _time.time()
+        try:
+            code = subprocess.call(cmd)
+        except KeyboardInterrupt:
+            return 0
+        if code == 2:
+            return 0                                     # stopped on purpose
+        if code == 0:
+            print("supervisor: restarting the fly on new code")
+            backoff = 10
+            continue
+        ran = _time.time() - started
+        backoff = 10 if ran > 600 else min(600, backoff * 2)
+        print(f"supervisor: the fly exited with code {code} after {int(ran)}s; back in {backoff}s")
+        try:
+            _time.sleep(backoff)
+        except KeyboardInterrupt:
+            return 0
 
 
 def cmd_browse(args) -> int:
@@ -267,6 +302,49 @@ def cmd_cam_test(args) -> int:
     return 0 if ok else 2
 
 
+def cmd_health(args) -> int:
+    from .health import Health
+
+    cfg = FlyConfig.from_env()
+    h = Health(cfg.root, log=lambda m: None)
+    h.state.restarts -= 1                                # this command is not a restart
+    h.save()
+    s = h.summary()
+    print(f"uptime since last start: {s['uptime_sec'] // 60} min; restarts: {s['restarts']}; fix drafts today: {s['proposals_today']}")
+    print("suspended actions: " + (", ".join(s["suspended"]) or "none"))
+    print("network: " + ("up" if h.network_up() else "DOWN"))
+    for n in h.checkup(force=True):
+        print("checkup: " + n)
+    for i in s["incidents"]:
+        print(f"- {i.get('at', '')[:16]} {i.get('kind')}: {i.get('detail')}" + (f"  -> {i.get('fixed')}" if i.get("fixed") else ""))
+    return 0
+
+
+def cmd_repairs(args) -> int:
+    """List the fly's drafted fixes for its own crashes, or apply one."""
+    from . import selfrepair
+
+    cfg = FlyConfig.from_env()
+    if args.action == "apply":
+        if not args.stamp:
+            print("usage: python fly.py repairs apply <stamp>")
+            return 1
+        applied = selfrepair.apply_proposal(cfg.root, args.stamp)
+        print("applied: " + (", ".join(applied) or "nothing"))
+        print("now run the tests, then commit:  python -m pytest -q tests && git add fly && git commit -m 'apply fly self-repair'")
+        return 0
+    props = selfrepair.list_proposals(cfg.root)
+    if not props:
+        print("no drafted fixes (the fly has not crashed in its own code, or it fixed itself by restarting)")
+        return 0
+    for pr in props:
+        print(f"- {pr['stamp']}  tests {'PASS' if pr.get('tests_passed') else 'FAIL'}  {pr.get('error', '')[:80]}")
+        print(f"    {pr.get('diagnosis', '')[:160]}")
+        print(f"    files: {', '.join(pr.get('files', []))}   diff: data/self-repair/{pr['stamp']}/patch.diff")
+    print("apply one with:  python fly.py repairs apply <stamp>")
+    return 0
+
+
 def cmd_x_status(args) -> int:
     from .x import XClient
 
@@ -431,6 +509,7 @@ def main(argv: list[str] | None = None) -> int:
     l = sub.add_parser("live", help="keep living: the fly paces itself (or --interval for a fixed timer)")
     l.add_argument("--ticks", type=int)
     l.add_argument("--interval", type=int, help="seconds between actions; omit for free will")
+    l.add_argument("--child", action="store_true", help=argparse.SUPPRESS)
     l.add_argument("--live", action="store_true")
     l.set_defaults(fn=cmd_live)
     br = sub.add_parser("browse", help="watch the fly browse: search, read, digest")
@@ -472,6 +551,11 @@ def main(argv: list[str] | None = None) -> int:
     po.add_argument("--live", action="store_true")
     po.set_defaults(fn=cmd_post)
     sub.add_parser("x-status", help="X credentials, posting state, recent posts and the playbook").set_defaults(fn=cmd_x_status)
+    sub.add_parser("health", help="uptime, suspended actions, recent incidents and what the fly did about them").set_defaults(fn=cmd_health)
+    rp2 = sub.add_parser("repairs", help="fixes the fly drafted for its own crashes (list | apply <stamp>)")
+    rp2.add_argument("action", nargs="?", choices=["list", "apply"], default="list")
+    rp2.add_argument("stamp", nargs="?")
+    rp2.set_defaults(fn=cmd_repairs)
     sub.add_parser("cam-test", help="post a test frame to the fly cam and read it back").set_defaults(fn=cmd_cam_test)
     rp = sub.add_parser("replies", help="answer new mentions on X")
     rp.add_argument("--live", action="store_true")

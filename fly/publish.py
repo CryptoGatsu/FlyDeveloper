@@ -36,6 +36,18 @@ def _meme_public_path(path: str) -> str:
     return f"memes/{Path(path).name}"
 
 
+def _health_from_disk(cfg: FlyConfig) -> dict[str, Any]:
+    p = cfg.root / "data" / "fly_health.json"
+    try:
+        d = json.loads(p.read_text(encoding="utf-8"))
+        now = time.time()
+        return {"uptime_sec": int(now - float(d.get("started_at", now))), "restarts": d.get("restarts", 0),
+                "suspended": [k for k, b in (d.get("breakers") or {}).items() if float(b.get("open_until", 0)) > now],
+                "incidents": (d.get("incidents") or [])[-10:], "proposals_today": d.get("proposals_today", 0)}
+    except Exception:
+        return {"uptime_sec": 0, "restarts": 0, "suspended": [], "incidents": [], "proposals_today": 0}
+
+
 def _wallet_address(cfg: FlyConfig) -> str:
     key = cfg.launchpad.private_key.strip()
     if not key:
@@ -152,6 +164,8 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
         "learnings": learnings[::-1][:20],
         "posts": posts[::-1][:40],
         "playbook": playbook,
+        "health": (extra or {}).get("health") or _health_from_disk(cfg),
+        "brain_live": {"at": last_drives.get("at"), "rasters": (extra or {}).get("rasters") or {}},
         "memes": memes[::-1],
         "coins": coins[::-1],
         "builds": builds[::-1],

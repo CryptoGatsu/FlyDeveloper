@@ -61,3 +61,14 @@ def test_npz_roundtrip(tmp_path):
     assert d.n_neurons == 300
     assert d.n_synapses == c.n_synapses
     assert d.index_of([c.flywire_ids[5]]).tolist() == [5]
+
+
+def test_events_and_raster():
+    c = Connectome.synthetic(1200, seed=3)
+    b = FlyBrain(c)
+    r = b.run("sugar", np.arange(20), 200.0, t_run_sec=0.05, seed=11)
+    assert r.events and all(len(e) == 2 for e in r.events)
+    ras = r.raster(max_neurons=50, max_events=500)
+    assert ras["n_rows"] <= 50 and ras["n_stimulated"] <= 20
+    assert all(0 <= s[0] < ras["n_rows"] and 0 <= s[1] <= 50 for s in ras["spikes"])
+    assert len(ras["pop_rate_ms"]) == 50

@@ -143,3 +143,19 @@ def test_backfill_shots_fills_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(b, "snapshot", lambda url: "browsing/shots/new.jpg")
     assert b.backfill_shots(mem) == 1
     assert mem.data["pages"][0]["shot"] == "browsing/shots/new.jpg"
+
+
+def test_tick_survives_action_crash_and_trips_breaker(tmp_path):
+    fly = _fly(tmp_path)
+
+    class Crashy(OfflineMind):
+        def caption(self, context, mood, theme=""):
+            raise RuntimeError("meme machine jammed")
+
+    fly.mind = Crashy()
+    for _ in range(3):
+        r = fly.tick(force="meme", seed=1)
+        assert "error" in r.outcome
+    assert not fly.health.allowed("meme")
+    r = fly.tick(seed=2)
+    assert r.action != "meme"

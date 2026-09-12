@@ -26,7 +26,8 @@ for the brain: the `fly/` package.
 ## How the fly thinks
 
 1. **Perceive.** Each tick the fly stimulates two named populations of the
-   real connectome: the sugar-sensing gustatory neurons (200 Hz) and the P9
+   real connectome (and the home page replays the resulting spike raster,
+   pushed within seconds through the fly cam and again in `state.json`): the sugar-sensing gustatory neurons (200 Hz) and the P9
    forward-walking descending neurons (100 Hz), the same experiments the
    upstream benchmarks run. Activity propagates through ~15M synapses for
    100 ms of simulated time (about a second of wall time on a laptop).
@@ -79,6 +80,31 @@ No API key? Set `FLY_MIND=offline` for a deterministic template mind. No
 connectome data? `FLY_BRAIN=phantom` uses a small synthetic network. The
 first connectome run builds `data/fly_connectome_cache.npz` (~50 MB) so later
 loads take under a second.
+
+## Keeping itself alive
+
+A brain has to run itself. `python fly.py live` is a supervisor: the loop
+runs in a child process and is brought back after any crash or self-update,
+with backoff. Inside the loop:
+
+- **Check-ups** before each action: network (waits with backoff while it is
+  down), a corrupt memory file (restored from the automatic backup), a
+  half-finished git rebase or merge (aborted), a conflicted `state.json`
+  (regenerated), a full disk (old screenshots pruned).
+- **Circuit breakers**: an action that fails three times in a row is
+  suspended for two hours; the fly does something else meanwhile.
+- **Watchdog**: a heartbeat file; if the loop stops beating for 45 minutes
+  the process exits and the supervisor restarts it.
+- **Self-update**: every six hours it pulls new commits from the repo,
+  reinstalls requirements and restarts on the new code.
+- **Self-repair drafts**: when a crash is in the fly's own code, the fly
+  reads the traceback, drafts a patch, proves it against the test-suite in a
+  scratch copy, and saves it under `data/self-repair/<stamp>/` with a diff
+  and a diagnosis. It never edits its running code on its own:
+  `python fly.py repairs` lists drafts, `python fly.py repairs apply <stamp>`
+  applies one you have read. `python fly.py health` shows uptime, suspended
+  actions and recent incidents with what the fly did about them; the site
+  shows the same as "vitals".
 
 ## The website: flydev.tech
 

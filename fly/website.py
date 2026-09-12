@@ -43,6 +43,7 @@ STATE_EXAMPLE = {
     "posts": [{"at": "...", "kind": "hype", "text": "...", "url": "https://x.com/TheFlyDev_/status/1", "live": True, "media": "memes/fly-....png",
                "metrics": {"like_count": 12, "retweet_count": 3, "reply_count": 2, "impression_count": 900}, "score": 24.5, "why": "..."}],
     "playbook": {"at": "...", "what_works": ["..."], "what_flops": ["..."], "next_bets": ["..."]},
+    "health": {"uptime_sec": 86400, "restarts": 3, "suspended": [], "incidents": [{"at": "...", "kind": "network", "detail": "no route", "fixed": "resumed"}], "proposals_today": 0},
     "memes": [{"at": "...", "top": "...", "bottom": "...", "alt": "...", "mood": "smug", "src": "memes/fly-2026....png"}],
     "coins": [{"at": "...", "name": "The Fly Dev", "symbol": "FLYDEV", "description": "...", "live": True, "status": "confirmed",
                "tx": "0x...", "token": "0x...", "curve": "0x...", "logo": "https://...", "meme": "memes/fly-....png",
@@ -75,10 +76,12 @@ Hard requirements:
 - Labels: fly.factory is the Pons launch-factory CONTRACT (label it "factory contract"), fly.wallet is your wallet; fly.repo is the GitHub repository, fly.site is https://flydev.tech, fly.x is your X account. fly.branch is the git branch the site is published from.
 - Links to builds use build.url (already the correct GitHub tree URL for the branch) and build.readme_url when present; never construct repo URLs yourself.
 - Every page the fly reads has a screenshot (page.shot, a site-relative path like "browsing/shots/x.jpg", prefix with "/"; may be empty). Show it prominently in the page card, as an <img> with alt text, linked to the page, so visitors can see the fly really was there; the image is stamped with time and URL.
+- "/" starts with the CONNECTOME: put <div id="flybrain"></div> as the first thing in the home page's main content and load <script src="/brain.js"></script> at the end of index.html (brain.js is provided by the house; do not write it). It draws the live spike raster of the fly's brain. Add one lead sentence under it saying these are real spikes from the connectome simulation that decides what the fly does.
 - /browsing starts with the FLY CAM: put <div id="flycam"></div> as the first thing in the page's main content and load <script src="/cam.js"></script> at the end of browsing/index.html (cam.js is provided by the house; do not write it). It renders a live panel of what the fly is looking at right now.
 - /browsing shows, IN THIS ORDER, newest first: FIRST the pages it read with their screenshots big and up top (state.pages: shot image, title, link, gist, need spotted, followups), THEN what it learned (state.learnings: summary + ideas), THEN the searches (state.searches: query, engine, result titles+urls). Visitors come to see what the fly is looking at right now, so the screenshots lead. Make it read like a fly's field notes, not a log dump.
 - X posts: state.posts (kind, text, url, live, media, metrics like like_count/retweet_count/reply_count/impression_count, score) and state.playbook (what_works, what_flops, next_bets). Show the latest post on "/" and a "what I said on X" section on /journal with each post (link to url when live, show the meme when media is set, show metrics when present) and the playbook underneath as "what I've learned about posting".
 - Ideas carry `built` (true when a build with that slug/title exists): the "ideas not yet built" list must only show ideas with built == false. Builds carry `changes` (list of {{at, what}}): show them as a short changelog on the build card ("maintained: ...").
+- state.health = {{uptime_sec, restarts, suspended: [actions], incidents: [{{at, kind, detail, fixed}}], proposals_today}}. Show a small "vitals" line on "/" (uptime, restarts, anything suspended) and the last incidents with what I did about them on /journal under "things that went wrong and what I did". A fly that fixes itself should show its scars.
 - Content per route: "/" = your current mood, drives as bars, last action, the brain readout, counts, the latest meme and coin with links to the full lists; /browsing = pages read with title, link, gist and "need spotted"; /memes = gallery of images (src is relative to the site root: prefix with "/"); /coins = every coin with name, $SYMBOL, genesis/live badges, description, explorer links; /builds = things built with links into the repo (fly.repo + "/tree/HEAD/" + repo_path) and the ideas; /journal = the journal lines.
 - The site lives at https://flydev.tech; the source is at https://github.com/CryptoGatsu/FlyDeveloper (link it as "Source"); the fly's X account is https://x.com/TheFlyDev_ (link it as "X").
 - A footer on every page saying coins are jokes with a ticker, no utility, no roadmap, no promises, nothing is financial advice; credit fly-brain (Shiu et al.) and Pons.
@@ -158,7 +161,7 @@ def install_site(site_dir: Path, files: list[ProjectFile]) -> list[str]:
     """Replace the site's pages/assets, keeping data/ and memes/ (and CNAME)."""
     site_dir.mkdir(parents=True, exist_ok=True)
     keep_dirs = ("data", "memes", "brand", "ask")
-    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js", "cam.js")
+    keep_files = ("CNAME", "favicon.png", "favicon.ico", "apple-touch-icon.png", "robots.txt", "ask.js", "cam.js", "brain.js")
     for child in site_dir.iterdir():
         if child.name in keep_dirs or child.name in keep_files:
             continue
@@ -206,7 +209,7 @@ def load_site_files(site_dir: Path) -> list[ProjectFile]:
         if not path.is_file():
             continue
         rel = path.relative_to(site_dir).as_posix()
-        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js", "cam.js"):
+        if rel.startswith(("data/", "brand/", "__qa/", "browsing/shots/", "ask/")) or rel in ("CNAME", "ask.js", "cam.js", "brain.js"):
             continue
         if rel.startswith("memes/") and not rel.endswith(".html"):
             continue                                   # the /memes route page shares the images folder

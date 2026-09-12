@@ -36,6 +36,7 @@ MODEL_PARAMS = {
     "wScale": 0.275,
 }
 DT_MS = 0.1
+MAX_EVENTS = 6000
 
 
 @dataclass
@@ -144,6 +145,7 @@ class SpikeReport:
     wall_time_sec: float
     seed: int
     stats: dict = field(default_factory=dict)
+    events: list = field(default_factory=list)   # (t_ms, neuron_index) for up to MAX_EVENTS spikes
 
     @property
     def total_spikes(self) -> int:
@@ -191,6 +193,23 @@ class SpikeReport:
         if early <= 0:
             return 0.0
         return float(late / early)
+
+    def raster(self, max_neurons: int = 160, max_events: int = 2500) -> dict:
+        """Compact spike raster for the website: the most active neurons as
+        rows (stimulated ones first), spikes as (row, t_ms) pairs, plus the
+        population rate per millisecond."""
+        counts = self.spike_counts
+        stim = [int(i) for i in self.stimulated.tolist() if counts[i] > 0]
+        others = [int(i) for i in np.argsort(-counts) if counts[i] > 0 and int(i) not in set(stim)]
+        rows = (stim + others)[:max_neurons]
+        index = {n: r for r, n in enumerate(rows)}
+        spikes = [[index[n], t] for t, n in self.events if n in index][:max_events]
+        return {
+            "stimulus": self.stimulus, "t_run_ms": int(self.t_run_sec * 1000), "n_rows": len(rows),
+            "n_stimulated": len(stim), "total_spikes": self.total_spikes, "active_neurons": self.active_neurons,
+            "flywire_ids": [int(self.stats.get("flywire_ids", {}).get(n, 0)) for n in rows] if self.stats.get("flywire_ids") else [],
+            "spikes": spikes, "pop_rate_ms": [int(x) for x in self.pop_rate_ms.tolist()],
+        }
 
     def fingerprint(self) -> str:
         h = hashlib.sha256(self.spike_counts.tobytes()).hexdigest()
@@ -263,6 +282,7 @@ class FlyBrain:
         spike_counts = np.zeros(n, dtype=np.int64)
         bins_per_ms = max(1, int(round(1.0 / dt)))
         pop_rate = np.zeros(max(1, n_steps // bins_per_ms), dtype=np.int64)
+        events: list[tuple[float, int]] = []
         last_spike_t = np.full(n, -1.0, dtype=np.float64)
         isi_sum = np.zeros(n, dtype=np.float64)
         isi_sq = np.zeros(n, dtype=np.float64)
@@ -297,6 +317,8 @@ class FlyBrain:
                 spike_counts[spiking] += 1
                 pop_rate[min(step // bins_per_ms, pop_rate.size - 1)] += spiking.size
                 t_ms = step * dt
+                if len(events) < MAX_EVENTS:
+                    events.extend((round(t_ms, 1), int(i)) for i in spiking[: MAX_EVENTS - len(events)])
                 prev = last_spike_t[spiking]
                 had = prev >= 0
                 if had.any():
@@ -328,6 +350,7 @@ class FlyBrain:
             wall_time_sec=wall,
             seed=seed,
             stats={"n_steps": n_steps, "rate_hz": rate_hz, "source": self.connectome.source},
+            events=events,
         )
 
 
