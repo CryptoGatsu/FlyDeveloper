@@ -111,8 +111,9 @@ def test_house_panels_injected_once():
     assert 'id="flybrain"' in out and '/brain.js' in out
     assert 'id="flycoin"' in out and '/coin.js' in out
     assert ensure_house_panels(out, "index.html") == out                 # idempotent
-    assert ensure_house_panels(out, "index.html") == out
-    assert ensure_house_panels(html, "memes/index.html") == html
+    other = ensure_house_panels(html, "memes/index.html")
+    assert 'id="flybrain"' not in other and '/brain.js' not in other      # brain only on the home page
+    assert 'id="flycoin"' in other and '/coin.js' in other                # coin strip everywhere
 
 
 def test_refine_keeps_site_when_mind_fails(tmp_path):
