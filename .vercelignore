@@ -1,8 +1,10 @@
-data/
-code/
-workshop/
-tests/
-memes/
-fly/
-scripts/
-docs/
+# root-anchored: never touch site/data, site/memes, site/brand
+/data/
+/code/
+/workshop/
+/tests/
+/memes/
+/fly/
+/scripts/
+/docs/
+/node_modules/
