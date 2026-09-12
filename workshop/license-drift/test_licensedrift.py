@@ -29,6 +29,46 @@ def test_normalize_drops_long_license_text():
     assert ld.normalize_license("blah " * 100) == "UNKNOWN"
 
 
+@pytest.mark.parametrize("raw,expected", [
+    ("MIT OR Apache-2.0", "Apache-2.0 OR MIT"),
+    ("Apache-2.0 OR MIT", "Apache-2.0 OR MIT"),
+    ("MIT AND Python-2.0", "MIT AND PSF-2.0"),
+    ("Apache-2.0 WITH Commons-Clause", "Apache-2.0 WITH Commons-Clause"),
+    ("(MIT OR Apache-2.0)", "Apache-2.0 OR MIT"),
+    ("MIT or MIT", "MIT"),
+])
+def test_normalize_handles_spdx_expressions(raw, expected):
+    assert ld.normalize_license(raw) == expected
+
+
+@pytest.mark.parametrize("raw,expected", [
+    # prose that merely contains "or" / "with" must not be parsed as SPDX
+    ("GNU General Public License v2 or later", "GPL"),
+    ("MIT License and free to use with attribution", "MIT"),
+    ("Apache License 2.0 with LLVM exception", "Apache-2.0"),
+])
+def test_prose_is_not_mistaken_for_an_expression(raw, expected):
+    assert ld.normalize_license(raw) == expected
+
+
+@pytest.mark.parametrize("tag,expected", [
+    ("MIT", False),
+    ("BUSL-1.1", True),
+    ("Commons-Clause", True),
+    # an OR keeps a permissive escape hatch open
+    ("BUSL-1.1 OR MIT", False),
+    ("BUSL-1.1 OR SSPL-1.0", True),
+    # AND / WITH stack obligations: any restrictive part is restrictive
+    ("Apache-2.0 WITH Commons-Clause", True),
+    ("MIT AND Proprietary", True),
+    ("Apache-2.0 OR MIT", False),
+    ("UNKNOWN", False),
+    ("", False),
+])
+def test_is_restrictive(tag, expected):
+    assert ld.is_restrictive(tag) is expected
+
+
 def test_extract_prefers_expression_then_classifier_then_field():
     assert ld.extract_license(expression="MIT", license_field="Apache-2.0") == "MIT"
     assert ld.extract_license(
@@ -61,6 +101,23 @@ def test_diff_detects_relicensing_and_alarms():
     assert (ch["old"], ch["new"]) == ("Apache-2.0", "BUSL-1.1")
     assert ch["alarm"] is True
     assert ld.exit_code(changes) == 2
+
+
+def test_diff_alarms_on_quiet_commons_clause_bolt_on():
+    old = {"tidy": _pkg("1.0", ld.normalize_license("Apache-2.0"))}
+    new = {"tidy": _pkg("1.1", ld.normalize_license("Apache-2.0 WITH Commons-Clause"))}
+    changes = ld.diff(old, new)
+    assert changes[0]["new"] == "Apache-2.0 WITH Commons-Clause"
+    assert ld.exit_code(changes) == 2
+
+
+def test_dual_licensed_package_is_drift_but_not_an_alarm():
+    old = {"dual": _pkg("1.0", ld.normalize_license("MIT"))}
+    new = {"dual": _pkg("2.0", ld.normalize_license("MIT OR BUSL-1.1"))}
+    changes = ld.diff(old, new)
+    assert changes[0]["new"] == "BUSL-1.1 OR MIT"
+    assert changes[0]["alarm"] is False
+    assert ld.exit_code(changes) == 1
 
 
 def test_diff_detects_added_and_removed():

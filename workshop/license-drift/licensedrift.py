@@ -27,7 +27,7 @@ _RULES = [
     (r"\bSSPL|SERVER SIDE PUBLIC", "SSPL-1.0"),
     (r"ELASTIC LICENSE|\bELV2\b|ELASTIC-2", "Elastic-2.0"),
     (r"FUNCTIONAL SOURCE|\bFSL-1", "FSL-1.1"),
-    (r"COMMONS CLAUSE", "Commons-Clause"),
+    (r"COMMONS CLAUSE|COMMONS-CLAUSE", "Commons-Clause"),
     (r"PROPRIETARY|ALL RIGHTS RESERVED", "Proprietary"),
     (r"\bAGPL|AFFERO", "AGPL-3.0"),
     (r"\bLGPL|LESSER GENERAL PUBLIC", "LGPL"),
@@ -39,10 +39,63 @@ _RULES = [
     (r"BSD.?3|3.CLAUSE", "BSD-3-Clause"),
     (r"BSD.?2|2.CLAUSE", "BSD-2-Clause"),
     (r"\bBSD\b", "BSD"),
-    (r"\bPSF\b|PYTHON SOFTWARE FOUNDATION", "PSF-2.0"),
+    # "Python-2.0" is the SPDX id for the PSF license; keep it here so an
+    # expression atom like `MIT AND Python-2.0` is recognised.
+    (r"\bPSF\b|PYTHON SOFTWARE FOUNDATION|\bPYTHON-2\b|\bPYTHON-2\.", "PSF-2.0"),
 ]
 
 _EMPTY = {"", "UNKNOWN", "NONE", "NULL", "SEE LICENSE", "DUAL LICENSE"}
+
+# SPDX-ish operators, always written back in upper case
+_CONNECTOR = re.compile(r"\s+(AND|OR|WITH)\s+")
+_MAX_ATOMS = 6
+
+
+def _match_rule(upper_text):
+    """Return the short tag for an uppercased blurb, or None if nothing matches."""
+    for pattern, tag in _RULES:
+        if re.search(pattern, upper_text):
+            return tag
+    return None
+
+
+def _parse_expression(upper_text):
+    """Split `MIT OR Apache-2.0` style expressions into (tags, connectors).
+
+    Returns None unless every atom is a license we recognise — that guard keeps
+    prose like "GNU GPL v2 or later" out of the expression path.
+    """
+    tokens = _CONNECTOR.split(upper_text)
+    if len(tokens) < 3:
+        return None
+    atoms, connectors = tokens[0::2], tokens[1::2]
+    if len(atoms) > _MAX_ATOMS:
+        return None
+    tags = []
+    for atom in atoms:
+        atom = atom.replace("(", " ").replace(")", " ").strip()
+        if not atom:
+            return None
+        tag = _match_rule(atom)
+        if tag is None:
+            return None
+        tags.append(tag)
+    return tags, connectors
+
+
+def _canonical_expression(tags, connectors):
+    """Render a stable tag. Pure OR / pure AND get sorted so metadata
+    reordering is not mistaken for drift; WITH and mixed forms keep order."""
+    distinct = set(connectors)
+    if distinct in ({"OR"}, {"AND"}):
+        ordered = sorted(set(tags))
+        if len(ordered) == 1:
+            return ordered[0]
+        return (" %s " % connectors[0]).join(ordered)
+    parts = [tags[0]]
+    for connector, tag in zip(connectors, tags[1:]):
+        parts.extend([connector, tag])
+    return " ".join(parts)
 
 
 def normalize_license(raw):
@@ -53,10 +106,35 @@ def normalize_license(raw):
     upper = cleaned.upper()
     if upper in _EMPTY:
         return "UNKNOWN"
-    for pattern, tag in _RULES:
-        if re.search(pattern, upper):
-            return tag
+    parsed = _parse_expression(upper)
+    if parsed:
+        return _canonical_expression(*parsed)
+    tag = _match_rule(upper)
+    if tag:
+        return tag
     return cleaned if len(cleaned) <= 40 else "UNKNOWN"
+
+
+def is_restrictive(tag):
+    """Should this tag make CI stop?
+
+    A plain restrictive tag does. In a compound expression, `OR` means you may
+    pick a branch, so it only alarms when every option is restrictive; `AND` and
+    `WITH` stack obligations, so any restrictive part alarms (this is how a
+    quiet `Apache-2.0 WITH Commons-Clause` gets caught).
+    """
+    if not tag:
+        return False
+    if tag in RESTRICTIVE:
+        return True
+    tokens = _CONNECTOR.split(tag)
+    if len(tokens) < 3:
+        return False
+    atoms = [t.strip() for t in tokens[0::2]]
+    connectors = set(tokens[1::2])
+    if connectors == {"OR"}:
+        return all(atom in RESTRICTIVE for atom in atoms)
+    return any(atom in RESTRICTIVE for atom in atoms)
 
 
 def extract_license(expression=None, license_field=None, classifiers=()):
@@ -134,7 +212,7 @@ def diff(old, new):
             lic = after.get("license", "UNKNOWN")
             changes.append({
                 "kind": "added", "name": "%s@%s" % (name, after.get("version", "?")),
-                "old": None, "new": lic, "alarm": lic in RESTRICTIVE})
+                "old": None, "new": lic, "alarm": is_restrictive(lic)})
         elif after is None:
             changes.append({
                 "kind": "removed", "name": "%s@%s" % (name, before.get("version", "?")),
@@ -147,7 +225,7 @@ def diff(old, new):
                     "kind": "license-change",
                     "name": "%s@%s" % (name, after.get("version", "?")),
                     "old": old_lic, "new": new_lic,
-                    "alarm": new_lic in RESTRICTIVE})
+                    "alarm": is_restrictive(new_lic)})
     return changes
 
 
