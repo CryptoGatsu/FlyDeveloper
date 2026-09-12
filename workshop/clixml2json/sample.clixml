@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Example.Broker.Application</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Banana Browser</ToString>
+    <Props>
+      <S N="Name">Banana Browser</S>
+      <B N="Enabled">true</B>
+      <I32 N="Priority">3</I32>
+      <Db N="CpuWeight">1.5</Db>
+      <Nil N="Description" />
+      <S N="CommandLine">ripe.exe_x0020_--sniff</S>
+      <BA N="IconData">3q2+7w==</BA>
+      <Obj N="Tags" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+        </TN>
+        <LST>
+          <S>fruit</S>
+          <S>kitchen</S>
+        </LST>
+      </Obj>
+      <Obj N="Limits" RefId="2">
+        <TN RefId="2">
+          <T>System.Collections.Hashtable</T>
+        </TN>
+        <DCT>
+          <En>
+            <S N="Key">MaxUsers</S>
+            <I32 N="Value">50</I32>
+          </En>
+        </DCT>
+      </Obj>
+    </Props>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <ToString>Grape Grabber</ToString>
+    <Props>
+      <S N="Name">Grape Grabber</S>
+      <B N="Enabled">false</B>
+      <Ref N="SharesTagsWith" RefId="1" />
+    </Props>
+  </Obj>
+</Objs>
