@@ -90,6 +90,7 @@ def test_plan_says_too_late_instead_of_lying():
     p = model.plan("banana", 0.0, 1.0)
     assert p["status"] == "too-late"
     assert p["temp_c"] is None
+    assert p["counter_days"] is None
     assert p["earliest_days"] == pytest.approx(55.0 / 31.0, abs=0.01)
 
 
@@ -97,6 +98,7 @@ def test_plan_notices_it_already_happened():
     p = model.plan("banana", 200.0, 3.0)
     assert p["status"] == "passed"
     assert p["temp_c"] is None
+    assert p["counter_days"] is None
 
 
 def test_plan_rejects_nonsense():
@@ -106,6 +108,43 @@ def test_plan_rejects_nonsense():
         model.plan("banana", 0.0, 3.0, "firm")
     with pytest.raises(model.UnknownFruit):
         model.plan("moon rock", 0.0, 3.0)
+
+
+# --- counter, then fridge -----------------------------------------------
+
+
+def test_plan_offers_a_counter_then_fridge_split():
+    p = model.plan("banana", 0.0, 5.0, counter_c=21.0)  # 55/17 = 3.24 days out
+    assert p["counter_c"] == pytest.approx(21.0)
+    assert p["counter_days"] == pytest.approx(3.2, abs=0.05)
+    assert p["fridge_days"] == pytest.approx(1.8, abs=0.05)
+    assert p["counter_days"] + p["fridge_days"] == pytest.approx(5.0, abs=0.1)
+
+
+def test_counter_leg_actually_reaches_the_target():
+    p = model.plan("avocado", 32.0, 4.0, counter_c=20.0)
+    soaked = 32.0 + model.daily_rate(20.0) * p["counter_days"]
+    assert soaked == pytest.approx(model.target_for("avocado", "ripe"), abs=1.0)
+    assert model.stage_of("avocado", soaked) in ("ripe", "firm")
+
+
+def test_no_split_when_the_counter_is_too_cold_to_make_it():
+    p = model.plan("banana", 0.0, 3.0, counter_c=12.0)  # 55/8 = 6.9 days > 3
+    assert p["status"] == "ok"
+    assert p["temp_c"] is not None
+    assert p["counter_days"] is None
+    assert p["fridge_days"] is None
+
+
+def test_no_split_when_the_counter_is_below_base():
+    p = model.plan("banana", 0.0, 5.0, counter_c=model.BASE_C)
+    assert p["counter_days"] is None
+
+
+def test_no_split_when_it_is_exactly_leave_it_out():
+    # 55 dd at 21C takes 3.235 days; asking for that is not a two-step plan.
+    p = model.plan("banana", 0.0, 55.0 / 17.0, counter_c=21.0)
+    assert p["counter_days"] is None
 
 
 def test_describe_temp_covers_the_kitchen():
@@ -152,6 +191,21 @@ def test_cli_ready_in_plans_a_temperature(capsys):
     data = json.loads(capsys.readouterr().out)
     assert data["status"] == "ok"
     assert data["temp_c"] == pytest.approx(15.0)
+    assert data["counter_c"] == pytest.approx(model.ROOM_C)
+    assert data["fridge_days"] > 0
+
+
+def test_cli_counter_flag_overrides_the_split_temperature(capsys):
+    assert main(["banana", "--ready-in", "6", "--counter", "26", "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["counter_c"] == pytest.approx(26.0)
+    assert data["counter_days"] == pytest.approx(2.5, abs=0.05)
+
+
+def test_cli_counter_defaults_to_temp(capsys):
+    assert main(["banana", "--temp", "26", "--ready-in", "6", "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["counter_c"] == pytest.approx(26.0)
 
 
 def test_cli_ready_in_counts_the_soak_so_far(capsys):
@@ -167,6 +221,7 @@ def test_cli_ready_in_human_output(capsys):
     out = capsys.readouterr().out
     assert "hold it at" in out
     assert "want ripe in 4 days" in out
+    assert "in the fridge" in out
 
 
 def test_cli_ready_in_rejects_zero_days(capsys):

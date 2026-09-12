@@ -77,6 +77,12 @@ def format_plan(p: dict) -> str:
         lines.append(
             f"  hold it at {p['temp_c']:.1f}°C  ({describe_temp(p['temp_c'])})"
         )
+        if p.get("counter_days") is not None:
+            lines.append(
+                f"  or, in a real kitchen: {p['counter_days']:.1f} days out at "
+                f"{p['counter_c']:.1f}°C, then {p['fridge_days']:.1f} days "
+                "in the fridge"
+            )
         lines.append(f"  soonest possible, at 35°C: {p['earliest_days']:.1f} days")
         lines.append("  Fly: put it in your calendar. Bring exactly one friend.")
     return "\n".join(lines)
@@ -99,6 +105,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--ready-in", type=float, default=None, metavar="DAYS",
                    help="plan backwards: what temperature hits the target "
                         "stage in DAYS days")
+    p.add_argument("--counter", type=float, default=None, metavar="TEMP",
+                   help="your counter temperature for the counter-then-fridge "
+                        "plan (default: --temp, else 21)")
     p.add_argument("--stage", default="ripe", choices=list(model.FUTURE_STAGES),
                    help="target stage for --ready-in (default: ripe)")
     p.add_argument("--list", action="store_true", help="list known fruits")
@@ -135,11 +144,14 @@ def main(argv=None) -> int:
         soaked = model.accumulate(history)
         ahead = args.temp if args.temp is not None else history[-1]
     else:
-        ahead = args.temp if args.temp is not None else 21.0
+        ahead = args.temp if args.temp is not None else model.ROOM_C
         soaked = model.daily_rate(ahead) * max(0.0, args.days)
 
+    room = ahead  # before --fridge overrides the forecast
     if args.fridge:
         ahead = model.BASE_C
+
+    counter = args.counter if args.counter is not None else room
 
     try:
         if args.ready_in is not None:
@@ -147,7 +159,8 @@ def main(argv=None) -> int:
                 print("--ready-in needs a positive number of days",
                       file=sys.stderr)
                 return 2
-            result = model.plan(args.fruit, soaked, args.ready_in, args.stage)
+            result = model.plan(args.fruit, soaked, args.ready_in,
+                                args.stage, counter)
             text = format_plan(result)
         else:
             result = model.forecast(args.fruit, soaked, ahead)

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 BASE_C = 4.0   # below this, ripening effectively stalls (fridge)
 CAP_C = 35.0   # above this, extra heat doesn't buy extra ripening
+ROOM_C = 21.0  # a plausible kitchen counter, used as the default "out" temp
 
 STAGES = ("firm", "ripe", "fly-feast", "compost")
 FUTURE_STAGES = STAGES[1:]
@@ -95,15 +96,32 @@ def forecast(fruit: str, degree_days: float, temp_c: float) -> dict:
     }
 
 
-def plan(fruit: str, degree_days: float, days: float, stage: str = "ripe") -> dict:
-    """Solve the clock backwards: what steady temperature hits `stage` in `days`?
+def plan(
+    fruit: str,
+    degree_days: float,
+    days: float,
+    stage: str = "ripe",
+    counter_c: float = ROOM_C,
+) -> dict:
+    """Solve the clock backwards: how do I hit `stage` in `days` days?
 
-    Returns a dict with a ``status``:
+    Two answers come back, because kitchens are not incubators:
 
-    * ``"ok"``       -- hold it at ``temp_c`` and it lands on time.
+    * ``temp_c`` -- the single steady temperature that lands it exactly on
+      time. Honest arithmetic, hard to actually do.
+    * ``counter_days`` / ``fridge_days`` -- leave it out at ``counter_c``
+      for a while, then move it to the fridge, where the clock stops. Same
+      landing day, and you own both of those appliances.
+
+    ``status`` is one of:
+
+    * ``"ok"``       -- it can be done; see the fields above.
     * ``"passed"``   -- it is already at or past that stage; nothing to plan.
     * ``"too-late"`` -- even at CAP_C it cannot get there in time;
       ``earliest_days`` says the soonest it could possibly arrive.
+
+    The two-step plan is omitted (``None``) when the counter is too cold to
+    make it in time, or when it is so cold that nothing ripens at all.
     """
     name = str(fruit).strip().lower()
     target = target_for(name, stage)
@@ -119,6 +137,9 @@ def plan(fruit: str, degree_days: float, days: float, stage: str = "ripe") -> di
         "degree_days": round(soaked, 1),
         "target_degree_days": target,
         "temp_c": None,
+        "counter_c": None,
+        "counter_days": None,
+        "fridge_days": None,
         "earliest_days": None,
         "status": "ok",
     }
@@ -136,4 +157,15 @@ def plan(fruit: str, degree_days: float, days: float, stage: str = "ripe") -> di
         return out
 
     out["temp_c"] = round(temp, 1)
+
+    # The version you can actually do: counter, then fridge.
+    counter_rate = daily_rate(counter_c)
+    if counter_rate > 0.0:
+        out_days = (target - soaked) / counter_rate
+        chill = days - out_days
+        if chill >= 0.05:  # otherwise it's just "leave it out", no plan needed
+            out["counter_c"] = round(float(counter_c), 1)
+            out["counter_days"] = round(out_days, 1)
+            out["fridge_days"] = round(chill, 1)
+
     return out

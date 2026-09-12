@@ -48,7 +48,8 @@ python -m ripeness mango --days 2 --temp 30 --json
 
 The question people actually ask is not "when will it be ready?" but "how do I
 make it ready *then*?" `--ready-in DAYS` solves the same equation for
-temperature instead of time.
+temperature instead of time — and then, because nobody owns a 18.5°C room,
+it also gives you the version you can do with a counter and a fridge.
 
 ```bash
 python -m ripeness avocado --days 2 --temp 20 --ready-in 4
@@ -57,11 +58,24 @@ python -m ripeness avocado --days 2 --temp 20 --ready-in 4
 ```
 avocado: 32.0 °C·days soaked, want ripe in 4 days
   hold it at 18.5°C  (a cool room or a shaded shelf)
+  or, in a real kitchen: 3.6 days out at 20.0°C, then 0.4 days in the fridge
   soonest possible, at 35°C: 1.9 days
   Fly: put it in your calendar. Bring exactly one friend.
 ```
 
-If it cannot be done, it says so instead of pretending:
+The second line is the useful one. The fridge does not un-ripen fruit, it just
+stops the clock — so "ripen it, then park it" hits the same day with equipment
+you already have. The counter temperature defaults to your `--temp` (or 21°C);
+set it explicitly with `--counter`:
+
+```bash
+python -m ripeness banana --ready-in 6 --counter 26
+```
+
+If the counter is too cold to make the deadline, that line is simply left out
+and you are back to "find somewhere warmer".
+
+If it cannot be done at all, it says so instead of pretending:
 
 ```bash
 python -m ripeness banana --ready-in 1
@@ -74,14 +88,17 @@ banana: 0.0 °C·days soaked, want ripe in 1 days
 ```
 
 - `--ready-in DAYS` : plan backwards to a holding temperature.
+- `--counter TEMP`  : your counter temperature for the counter-then-fridge plan.
 - `--stage NAME`    : which stage you are aiming at — `ripe` (default),
   `fly-feast`, or `compost` (you do you).
 - `--json`          : the plan is machine readable too, with a `status` of
-  `ok`, `passed` (already there) or `too-late`.
+  `ok`, `passed` (already there) or `too-late`, plus `temp_c`, `counter_c`,
+  `counter_days` and `fridge_days` (the last three are `null` when no
+  counter-then-fridge plan exists).
 
-The plan assumes one steady temperature from now on, which is a lie your
-kitchen tells too — but it is the right kind of lie: a cool shelf really does
-buy you days.
+The single-temperature answer assumes one steady temperature from now on,
+which is a lie your kitchen tells too — but it is the right kind of lie: a cool
+shelf really does buy you days.
 
 ## Accuracy
 

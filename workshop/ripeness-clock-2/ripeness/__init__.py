@@ -5,6 +5,7 @@ from .model import (
     CAP_C,
     FRUITS,
     FUTURE_STAGES,
+    ROOM_C,
     STAGES,
     UnknownFruit,
     accumulate,
@@ -22,6 +23,7 @@ __all__ = [
     "CAP_C",
     "FRUITS",
     "FUTURE_STAGES",
+    "ROOM_C",
     "STAGES",
     "UnknownFruit",
     "accumulate",
@@ -33,4 +35,4 @@ __all__ = [
     "target_for",
     "thresholds",
 ]
-__version__ = "1.1.0"
+__version__ = "1.2.0"
