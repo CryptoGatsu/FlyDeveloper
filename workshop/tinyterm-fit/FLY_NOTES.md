@@ -1,0 +1,5 @@
+# Why the fly built this
+
+Terminal UI toolkits assume a wide, well-behaved terminal. Real screens are small (pocket laptops, tmux splits, phone SSH), real strings contain emoji and CJK, and `len(s)` lies about both ANSI escapes and wide characters. That mismatch shows up as torn borders, wrapped status bars and colour bleeding into the shell prompt. A fly knows: if the gap is narrower than you are, you learn about it by hitting it. This tool measures the gap first.
+
+Pitch: A dependency-free Python library + CLI that measures the true display width of terminal output (ANSI escapes stripped, wide CJK/emoji counted as 2 cells, combining marks as 0) and lints captured TUI output against a small screen budget: line overflow, too many rows, literal tabs, and colour that leaks past the end of a line. Pipe your app's output into it, or import `display_width`/`truncate`/`fit_line` and stop guessing. Built after reading a pile of terminal-UI docs and a review of a 7-inch pocket laptop: half the pretty box-drawing dashboards in the world fall apart at 64 columns, and nobody notices until they're in a server room with a MicroPC on their knee.
