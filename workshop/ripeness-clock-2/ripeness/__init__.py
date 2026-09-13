@@ -3,6 +3,7 @@
 from .model import (
     BASE_C,
     CAP_C,
+    CHILL_INJURY_DAYS,
     CHILL_SAFE_C,
     FRUITS,
     FUTURE_STAGES,
@@ -10,6 +11,8 @@ from .model import (
     STAGES,
     UnknownFruit,
     accumulate,
+    chill_exposure,
+    chill_exposure_steady,
     chill_floor,
     daily_rate,
     days_until,
@@ -23,6 +26,7 @@ from .model import (
 __all__ = [
     "BASE_C",
     "CAP_C",
+    "CHILL_INJURY_DAYS",
     "CHILL_SAFE_C",
     "FRUITS",
     "FUTURE_STAGES",
@@ -30,6 +34,8 @@ __all__ = [
     "STAGES",
     "UnknownFruit",
     "accumulate",
+    "chill_exposure",
+    "chill_exposure_steady",
     "chill_floor",
     "daily_rate",
     "days_until",
@@ -39,4 +45,4 @@ __all__ = [
     "target_for",
     "thresholds",
 ]
-__version__ = "1.3.1"
+__version__ = "1.5.0"

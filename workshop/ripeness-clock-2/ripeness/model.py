@@ -38,6 +38,11 @@ CHILL_SAFE_C = {
     "tomato": 12.0,   # cold kills tomato flavour compounds, permanently
 }
 
+# How many days under the chill line (while firm) we are willing to call
+# damage rather than a scare. Histories come one temperature per day, so this
+# is really "at least one whole day in the cold".
+CHILL_INJURY_DAYS = 1.0
+
 
 class UnknownFruit(KeyError):
     """Raised for a fruit we have no thresholds for."""
@@ -79,6 +84,64 @@ def accumulate(temps_c) -> float:
     return sum(daily_rate(t) for t in temps_c)
 
 
+def chill_exposure(fruit: str, temps_c) -> float:
+    """Days in a past history spent under the chill line *while still firm*.
+
+    Degree-days treat cold as a pause. For chill-sensitive fruit that is only
+    true once it is ripe; cold arriving while the fruit is firm can break the
+    ripening machinery for good. This walks the history day by day, tracking
+    what the fruit had already soaked up, and counts the days where it was
+    both firm and below its ``chill_floor``.
+
+    Fridge-safe fruit always returns 0.0 -- there is nothing to warn about.
+    """
+    name = str(fruit).strip().lower()
+    floor = chill_floor(name)  # also validates the fruit
+    if floor <= BASE_C:
+        return 0.0
+    soaked = 0.0
+    chilled = 0.0
+    for t in temps_c:
+        t = float(t)
+        if t < floor and stage_of(name, soaked) == "firm":
+            chilled += 1.0
+        soaked += daily_rate(t)
+    return chilled
+
+
+def chill_exposure_steady(
+    fruit: str,
+    days: float,
+    temp_c: float,
+    degree_days: float = 0.0,
+) -> float:
+    """Same question as :func:`chill_exposure`, for one steady stint.
+
+    "It has been in the fridge for three days" is a history with nothing to
+    walk, so solve it directly instead: at a steady temperature the fruit is
+    firm until it reaches its ripe threshold, and cold only counts while it is
+    firm. Below BASE_C it never ripens at all, so the whole stint counts.
+
+    ``degree_days`` is whatever it had already soaked up before this stint.
+    Fridge-safe fruit, warm stints and zero-length stints all return 0.0.
+    """
+    name = str(fruit).strip().lower()
+    floor = chill_floor(name)  # also validates the fruit
+    if floor <= BASE_C:
+        return 0.0
+    days = max(0.0, float(days))
+    if days <= 0.0 or float(temp_c) >= floor:
+        return 0.0
+    soaked = float(degree_days)
+    target = target_for(name, "ripe")
+    if soaked >= target:
+        return 0.0
+    rate = daily_rate(temp_c)
+    if rate <= 0.0:
+        return round(days, 2)
+    return round(min(days, (target - soaked) / rate), 2)
+
+
 def stage_of(fruit: str, degree_days: float) -> str:
     ripe, feast, compost = thresholds(fruit)
     if degree_days < ripe:
@@ -105,17 +168,29 @@ def days_until(fruit: str, degree_days: float, temp_c: float, stage: str):
     return (target - degree_days) / rate
 
 
-def forecast(fruit: str, degree_days: float, temp_c: float) -> dict:
+def forecast(
+    fruit: str,
+    degree_days: float,
+    temp_c: float,
+    chilled_days: float = 0.0,
+) -> dict:
     """Full picture: where it is now and when each stage arrives.
 
     ``chill_risk`` is True when the fruit is still firm *and* the forecast
     temperature is under its chill line -- the one case where the degree-day
-    model is optimistic, because the fruit may not resume ripening at all.
+    model is optimistic about what is *about* to happen.
+
+    ``chilled_days`` is the same problem in the past tense: days already spent
+    under the chill line while firm (see :func:`chill_exposure` and
+    :func:`chill_exposure_steady`). When it reaches ``CHILL_INJURY_DAYS`` the
+    damage is likely already done, so ``chill_injury`` goes True and every ETA
+    below should be read as the optimistic case.
     """
     name = str(fruit).strip().lower()
     thresholds(name)  # validate early
     stage = stage_of(name, degree_days)
     floor = chill_floor(name)
+    chilled = float(chilled_days)
     return {
         "fruit": name,
         "temp_c": float(temp_c),
@@ -123,6 +198,8 @@ def forecast(fruit: str, degree_days: float, temp_c: float) -> dict:
         "stage": stage,
         "chill_safe_c": floor,
         "chill_risk": bool(stage == "firm" and float(temp_c) < floor),
+        "chilled_days": chilled,
+        "chill_injury": bool(floor > BASE_C and chilled >= CHILL_INJURY_DAYS),
         "eta_days": {
             s: days_until(name, degree_days, temp_c, s) for s in FUTURE_STAGES
         },

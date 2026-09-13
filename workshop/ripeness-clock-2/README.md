@@ -83,6 +83,70 @@ strawberry   ripe     20  fly-feast     45  compost     70  °C·days   (fridge-
 In JSON, every forecast carries `chill_safe_c` and `chill_risk` (true only
 when the fruit is still firm *and* the temperature is under the line).
 
+## Cold that already happened
+
+A degree-day sum has no memory: three days in the fridge add zero, and then
+the counter forecast cheerfully carries on as if nothing happened. For a firm
+banana, something did happen. So the clock looks at the past as well as the
+future, and counts the days the fruit spent under its chill line **while it
+was still firm**.
+
+With a real history, it walks the days one at a time:
+
+```bash
+python -m ripeness banana --temps 22,22,4,4,4,22
+```
+
+```
+banana at 22.0°C
+  soak      54.0 °C·days  ▓▓▓▓▓▓░░░░░░░░░░
+  stage     firm
+  ripe       in 0.1 days
+  fly-feast  in 2.0 days
+  compost    in 4.8 days
+  chilled   3 days of its history sat under banana's 13°C chill line while it
+            was still firm: it may never ripen properly. Read the times above as
+            the optimistic case.
+  Humans: wait. Flies: come back later, bring friends.
+```
+
+And `--days D --temp T` is a history too — a single steady stint — so "it has
+been in the fridge since Monday" gets the same treatment instead of a silent
+zero:
+
+```bash
+python -m ripeness banana --days 3 --temp 4
+```
+
+```
+banana at 4.0°C
+  soak      0.0 °C·days  ░░░░░░░░░░░░░░░░
+  stage     firm
+  ripe       never at this temperature (ripening stalled)
+  fly-feast  never at this temperature (ripening stalled)
+  compost    never at this temperature (ripening stalled)
+  chilled   3 days of its history sat under banana's 13°C chill line while it
+            was still firm: it may never ripen properly. Read the times above as
+            the optimistic case.
+  Humans: wait. Flies: come back later, bring friends.
+```
+
+(When the damage note fires and the fruit is *still* in the cold, the
+forward-looking `chill` line is left out: it is the same sentence in the
+future tense.)
+
+A cold-but-not-freezing stint — say 10°C — still ripens slowly, so only the
+days before it reaches `ripe` are counted. Cold days *after* ripening do not
+count at all (that is only cosmetic), and fridge-safe fruit never triggers any
+of this. If the cold came before ripening but the fruit made it to ripe
+anyway, the note downgrades to "expect mealy texture and muted flavour".
+
+The ETAs are still printed, because the model has nothing better to offer —
+but now you know they are the best case, not the promise.
+
+JSON forecasts carry `chilled_days` (a plain count of days) and
+`chill_injury` (true once that reaches `CHILL_INJURY_DAYS`, one full day).
+
 ## Running the clock backwards: "ripe by Saturday"
 
 The question people actually ask is not "when will it be ready?" but "how do I

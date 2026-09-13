@@ -96,6 +96,81 @@ def test_forecast_warm_enough_is_never_a_chill_risk():
     assert model.forecast("banana", 0.0, 21.0)["chill_risk"] is False
 
 
+# --- cold that already happened -----------------------------------------
+
+
+def test_chill_exposure_counts_cold_days_while_firm():
+    # two warm days, three in the fridge, one more warm: still firm throughout
+    assert model.chill_exposure("banana", [22, 22, 4, 4, 4, 22]) == 3.0
+
+
+def test_chill_exposure_ignores_cold_after_ripening():
+    # 55 dd banana: three days at 24C makes it ripe, then cold is cosmetic
+    assert model.chill_exposure("banana", [24, 24, 24, 4, 4]) == 0.0
+
+
+def test_chill_exposure_ignores_cold_that_is_not_cold_enough():
+    assert model.chill_exposure("banana", [14, 14, 14]) == 0.0
+    assert model.chill_exposure("avocado", [9, 9]) == 0.0  # 7C line
+
+
+def test_chill_exposure_is_zero_for_fridge_safe_fruit():
+    assert model.chill_exposure("strawberry", [4, 4, 4]) == 0.0
+    assert model.chill_exposure("apple", [0, 0]) == 0.0
+
+
+def test_chill_exposure_handles_empty_history_and_bad_fruit():
+    assert model.chill_exposure("banana", []) == 0.0
+    with pytest.raises(model.UnknownFruit):
+        model.chill_exposure("moon rock", [4])
+
+
+def test_forecast_carries_history_damage():
+    rep = model.forecast("banana", 54.0, 22.0, chilled_days=3.0)
+    assert rep["chilled_days"] == 3.0
+    assert rep["chill_injury"] is True
+    assert rep["chill_risk"] is False  # the temperature ahead is fine
+
+
+def test_forecast_defaults_to_no_history_damage():
+    rep = model.forecast("banana", 20.0, 22.0)
+    assert rep["chilled_days"] == 0.0
+    assert rep["chill_injury"] is False
+
+
+# --- cold that already happened, as one steady stint ---------------------
+
+
+def test_chill_exposure_steady_counts_a_fridge_stint():
+    assert model.chill_exposure_steady("banana", 3.0, 4.0) == 3.0
+    assert model.chill_exposure_steady("banana", 0.5, 0.0) == 0.5
+
+
+def test_chill_exposure_steady_is_quiet_when_warm_enough():
+    assert model.chill_exposure_steady("banana", 3.0, 21.0) == 0.0
+    assert model.chill_exposure_steady("banana", 3.0, 13.0) == 0.0
+
+
+def test_chill_exposure_steady_stops_counting_once_it_ripens():
+    # 10C banana banks 6 dd/day; it hits 55 dd (ripe) after 9.17 days, and
+    # cold after that is only cosmetic.
+    assert model.chill_exposure_steady("banana", 12.0, 10.0) == pytest.approx(
+        55.0 / 6.0, abs=0.01)
+    assert model.chill_exposure_steady("banana", 5.0, 10.0) == 5.0
+
+
+def test_chill_exposure_steady_ignores_fruit_that_is_already_ripe():
+    assert model.chill_exposure_steady("banana", 4.0, 4.0, degree_days=60.0) == 0.0
+
+
+def test_chill_exposure_steady_edges():
+    assert model.chill_exposure_steady("strawberry", 5.0, 1.0) == 0.0
+    assert model.chill_exposure_steady("banana", 0.0, 4.0) == 0.0
+    assert model.chill_exposure_steady("banana", -3.0, 4.0) == 0.0
+    with pytest.raises(model.UnknownFruit):
+        model.chill_exposure_steady("moon rock", 3.0, 4.0)
+
+
 # --- the clock, run backwards -------------------------------------------
 
 
@@ -289,6 +364,88 @@ def test_cli_json_carries_the_chill_fields(capsys):
     data = json.loads(capsys.readouterr().out)
     assert data["chill_safe_c"] == 13.0
     assert data["chill_risk"] is True
+
+
+# --- history damage, through the CLI ------------------------------------
+
+
+def test_cli_flags_a_banana_that_was_fridged_while_firm(capsys):
+    assert main(["banana", "--temps", "22,22,4,4,4,22"]) == 0
+    out = capsys.readouterr().out
+    assert "3 days of its history" in out
+    assert "may never ripen properly" in out
+
+
+def test_cli_history_damage_is_singular_for_one_day(capsys):
+    assert main(["tomato", "--temps", "26,26,19,8"]) == 0
+    out = capsys.readouterr().out
+    assert "1 day of its history" in out
+
+
+def test_cli_json_carries_the_history_damage(capsys):
+    assert main(["banana", "--temps", "22,22,4,4,4,22", "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["chilled_days"] == pytest.approx(3.0)
+    assert data["chill_injury"] is True
+    assert data["degree_days"] == pytest.approx(54.0)
+
+
+def test_cli_history_damage_is_quiet_for_fridge_safe_fruit(capsys):
+    assert main(["strawberry", "--temps", "4,4,4,20"]) == 0
+    assert "chilled" not in capsys.readouterr().out
+
+
+def test_cli_history_damage_softens_once_it_ripened(capsys):
+    # cold while firm, but it got there in the end: texture, not tragedy
+    assert main(["banana", "--temps", "22,4,4,24,24,24"]) == 0
+    out = capsys.readouterr().out
+    assert "muted flavour" in out
+    assert "may never ripen properly" not in out
+
+
+def test_cli_history_damage_survives_an_unknown_fruit(capsys):
+    assert main(["moon rock", "--temps", "4,4"]) == 2
+    assert "unknown fruit" in capsys.readouterr().err
+
+
+# --- "it's been in the fridge for three days" ---------------------------
+
+
+def test_cli_counts_a_steady_cold_stint_as_damage(capsys):
+    assert main(["banana", "--days", "3", "--temp", "4", "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["chilled_days"] == pytest.approx(3.0)
+    assert data["chill_injury"] is True
+
+
+def test_cli_steady_cold_stint_says_it_once(capsys):
+    assert main(["banana", "--days", "3", "--temp", "4"]) == 0
+    out = capsys.readouterr().out
+    assert "3 days of its history" in out
+    assert "may never ripen properly" in out
+    # the forward-looking version of the same sentence is suppressed
+    assert "stop ripening for good" not in out
+
+
+def test_cli_steady_stint_uses_the_pre_fridge_temperature(capsys):
+    # --fridge is the forecast, not the history: two warm days did no damage
+    assert main(["banana", "--days", "2", "--temp", "21", "--fridge",
+                 "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["chilled_days"] == 0.0
+    assert data["chill_injury"] is False
+
+
+def test_cli_no_history_means_no_damage_note(capsys):
+    assert main(["banana", "--days", "3", "--temp", "24", "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["chilled_days"] == 0.0
+    assert data["chill_injury"] is False
+
+
+def test_cli_steady_cold_stint_is_quiet_for_fridge_safe_fruit(capsys):
+    assert main(["apple", "--days", "5", "--temp", "2"]) == 0
+    assert "chilled" not in capsys.readouterr().out
 
 
 def test_cli_ready_in_plans_a_temperature(capsys):

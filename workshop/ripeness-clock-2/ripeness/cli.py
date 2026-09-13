@@ -38,6 +38,27 @@ def describe_temp(temp_c: float) -> str:
     return "very warm: a closed paper bag somewhere sunny"
 
 
+def chilled_note(rep: dict) -> str | None:
+    """The cold that already happened, which degree-days quietly forgive."""
+    if not rep.get("chill_injury"):
+        return None
+    days = rep["chilled_days"]
+    count = f"{days:g} day" + ("" if days == 1 else "s")
+    floor = rep["chill_safe_c"]
+    if rep["stage"] == "firm":
+        return (
+            f"  chilled   {count} of its history sat under {rep['fruit']}'s "
+            f"{floor:.0f}°C chill line while it\n"
+            "            was still firm: it may never ripen properly. Read the "
+            "times above as\n            the optimistic case."
+        )
+    return (
+        f"  chilled   {count} of its history sat under {rep['fruit']}'s "
+        f"{floor:.0f}°C chill line before it\n"
+        "            ripened: expect mealy texture and muted flavour."
+    )
+
+
 def chill_note(rep: dict) -> str | None:
     """Say the thing the degree-day arithmetic cannot say by itself."""
     floor = rep["chill_safe_c"]
@@ -74,9 +95,15 @@ def format_report(rep: dict) -> str:
         else:
             text = f"in {eta:.1f} days"
         lines.append(f"  {stage:<10} {text}")
-    note = chill_note(rep)
-    if note:
-        lines.append(note)
+    notes = [chilled_note(rep)]
+    # If the damage note already fired for firm fruit that is still in the
+    # cold, the forward-looking warning is the same sentence in the future
+    # tense. Say it once.
+    if not (rep.get("chill_injury") and rep.get("chill_risk")):
+        notes.append(chill_note(rep))
+    for note in notes:
+        if note:
+            lines.append(note)
     lines.append("  " + ADVICE[rep["stage"]])
     return "\n".join(lines)
 
@@ -136,7 +163,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--temp", type=float, default=None,
                    help="steady temperature in C (default 21)")
     p.add_argument("--temps", default=None,
-                   help="comma separated past daily temps, e.g. 26,26,19,8")
+                   help="comma separated past daily temps, e.g. 26,26,19,8 "
+                        "(also checked for cold days that already did damage)")
     p.add_argument("--fridge", action="store_true",
                    help="forecast ahead at fridge temperature (4 C)")
     p.add_argument("--ready-in", type=float, default=None, metavar="DAYS",
@@ -203,7 +231,13 @@ def main(argv=None) -> int:
                                 args.stage, counter)
             text = format_plan(result)
         else:
-            result = model.forecast(args.fruit, soaked, ahead)
+            if history:
+                chilled = model.chill_exposure(args.fruit, history)
+            else:
+                # "--days 3 --temp 4" is a history too: one steady stint.
+                chilled = model.chill_exposure_steady(
+                    args.fruit, args.days, room)
+            result = model.forecast(args.fruit, soaked, ahead, chilled)
             text = format_report(result)
     except model.UnknownFruit:
         print(f"unknown fruit: {args.fruit} (try --list)", file=sys.stderr)
