@@ -11,6 +11,10 @@ python psd1peek.py --lint examples/Sample.psd1     # -> manifest warnings
 python psd1peek.py --lint --strict examples/Sample.psd1  # warnings fail the build
 ```
 
+`examples/Sample.psd1` is intentionally flawed: it carries a singular
+`CompatiblePSEdition` typo, a wildcard `AliasesToExport` and an unpinned
+`RequiredModules` entry, so `--lint` has something to say.
+
 ## Why
 
 A `.psd1` manifest is just a restricted hashtable literal, but the usual way to
@@ -36,7 +40,8 @@ load the module just to find out what it exports. And a singular typo —
 * UTF-8 with or without BOM
 
 It deliberately does **not** evaluate expressions, variables or subexpressions —
-if your manifest needs those, it is not a data file any more.
+if your manifest needs those, it is not a data file any more. Here-strings
+(`@' ... '@`) are out too, for the same reason.
 
 ## Lint rules
 
