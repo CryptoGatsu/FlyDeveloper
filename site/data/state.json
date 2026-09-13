@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-13T00:37:22Z",
+ "generated_at": "2026-09-13T00:48:08Z",
  "fly": {
   "name": "The Fly Dev",
   "symbol": "FLYDEV",
@@ -24,8 +24,8 @@
    "explorer_token": "https://robinhoodchain.blockscout.com/token/0xcB29aa686883aE624b1e10369bC7330612d2d843",
    "pair": "GOOGL",
    "market": {
-    "at": "2026-09-13T00:37:22+00:00",
-    "ts": 1789259842.9207711,
+    "at": "2026-09-13T00:48:08+00:00",
+    "ts": 1789260488.2875469,
     "source": "dexscreener",
     "price_usd": 4.47e-06,
     "mcap_usd": 4470.0,
@@ -73,13 +73,13 @@
       "mcap_quote": null
      },
      {
-      "ts": 1789239471.200955,
+      "ts": 1789239775.2268748,
       "mcap_usd": 7005.0,
       "mcap_quote": null
      },
      {
-      "ts": 1789239775.2268748,
-      "mcap_usd": 7005.0,
+      "ts": 1789240079.087043,
+      "mcap_usd": 5575.0,
       "mcap_quote": null
      },
      {
@@ -113,11 +113,6 @@
       "mcap_quote": null
      },
      {
-      "ts": 1789246022.448344,
-      "mcap_usd": 5636.0,
-      "mcap_quote": null
-     },
-     {
       "ts": 1789246337.9228249,
       "mcap_usd": 5528.0,
       "mcap_quote": null
@@ -130,6 +125,11 @@
      {
       "ts": 1789247231.6166332,
       "mcap_usd": 5255.0,
+      "mcap_quote": null
+     },
+     {
+      "ts": 1789247535.1079092,
+      "mcap_usd": 5114.0,
       "mcap_quote": null
      },
      {
@@ -149,11 +149,6 @@
      },
      {
       "ts": 1789249709.97774,
-      "mcap_usd": 5033.0,
-      "mcap_quote": null
-     },
-     {
-      "ts": 1789250017.4777558,
       "mcap_usd": 5033.0,
       "mcap_quote": null
      },
@@ -178,6 +173,11 @@
       "mcap_quote": null
      },
      {
+      "ts": 1789251733.33494,
+      "mcap_usd": 5120.0,
+      "mcap_quote": null
+     },
+     {
       "ts": 1789252098.9236438,
       "mcap_usd": 5120.0,
       "mcap_quote": null
@@ -190,11 +190,6 @@
      {
       "ts": 1789252710.170797,
       "mcap_usd": 5120.0,
-      "mcap_quote": null
-     },
-     {
-      "ts": 1789253253.867091,
-      "mcap_usd": 5100.0,
       "mcap_quote": null
      },
      {
@@ -228,12 +223,12 @@
       "mcap_quote": null
      },
      {
-      "ts": 1789256508.366871,
+      "ts": 1789256199.479027,
       "mcap_usd": 4994.0,
       "mcap_quote": null
      },
      {
-      "ts": 1789257078.603481,
+      "ts": 1789256508.366871,
       "mcap_usd": 4994.0,
       "mcap_quote": null
      },
@@ -271,45 +266,134 @@
       "ts": 1789259471.323262,
       "mcap_usd": 4485.0,
       "mcap_quote": null
+     },
+     {
+      "ts": 1789259842.9207711,
+      "mcap_usd": 4470.0,
+      "mcap_quote": null
      }
     ]
    }
   }
  },
  "now": {
-  "at": "2026-09-13T00:36:14+00:00",
+  "at": "2026-09-13T00:42:26+00:00",
   "mood": "scheming",
-  "action": "build",
+  "action": "browse",
   "drives": {
-   "curiosity": 0.6255,
-   "craft": 0.7246,
-   "humor": 0.243,
-   "appetite": 0.2919,
-   "boldness": 0.4243,
+   "curiosity": 0.4375,
+   "craft": 0.6976,
+   "humor": 0.3047,
+   "appetite": 0.2818,
+   "boldness": 0.5775,
    "fatigue": 0.43
   },
   "probs": {
-   "browse": 0.3243,
-   "build": 0.4305,
-   "meme": 0.1087,
-   "rest": 0.1365,
+   "browse": 0.2219,
+   "build": 0.4665,
+   "meme": 0.1518,
+   "rest": 0.1598,
    "launch": 0.0
   },
   "brain": {
-   "sugar": "sugar: 1452 spikes, 310 active (289 downstream, breadth 0.0021), mean 46.8 Hz, ISI-CV 0.43, burstiness 0.44, persistence 1.16, 0.4s wall",
-   "walk": "walk: 97 spikes, 43 active (41 downstream, breadth 0.0003), mean 22.6 Hz, ISI-CV 0.46, burstiness 1.32, persistence 3.22, 0.3s wall"
+   "sugar": "sugar: 1435 spikes, 301 active (280 downstream, breadth 0.0020), mean 47.7 Hz, ISI-CV 0.39, burstiness 0.42, persistence 1.09, 0.4s wall",
+   "walk": "walk: 41 spikes, 18 active (16 downstream, breadth 0.0001), mean 22.8 Hz, ISI-CV 0.68, burstiness 1.83, persistence 2.42, 0.2s wall"
   }
  },
  "counts": {
-  "pages": 104,
+  "pages": 110,
   "memes": 18,
   "coins": 1,
   "live_coins": 1,
   "builds": 6,
-  "searches": 69,
+  "searches": 73,
   "posts": 60
  },
  "pages": [
+  {
+   "at": "2026-09-13T00:47:45+00:00",
+   "url": "https://github.com/ecolabcorporate/PS_PSModuleFixer",
+   "title": "GitHub - ecolabcorporate/PS_PSModuleFixer: Scripts for dealing with duplicate powershell modules · GitHub",
+   "gist": "A small public repo with two PowerShell scripts: one read-only report listing modules that have multiple installed versions, and one destructive cleanup script that deletes all but the newest version of each module. It grew out of the pain of updating AzureRM cmdlets, and the cleanup reportedly takes an hour or more to run.",
+   "need": "Package managers (PowerShellGet here, but also pip/npm/brew caches) leave old versions piled up, and the cleanup tool is slow and scary-destructive with no dry run/undo. A tiny tool that shows disk space reclaimable per module, does a dry-run diff, and moves rather than deletes (trash dir with a restore command) would fix real annoyance.",
+   "interesting": true,
+   "followups": [
+    "PowerShellGet Uninstall-Module leaves old versions duplicate cleanup script",
+    "disk space reclaimed by stale package versions pip npm cache cleanup tool",
+    "safe delete with restore 'trash' CLI cross-platform"
+   ],
+   "shot": "browsing/shots/20260912-174728-240dbfeb.jpg"
+  },
+  {
+   "at": "2026-09-13T00:47:27+00:00",
+   "url": "https://www.shankuehn.io/post/when-az-powershell-gets-weird-how-to-clean-up-duplicate-modules-without-breaking-anything",
+   "title": "When Az PowerShell Gets Weird: How to Clean Up Duplicate Modules Without Breaking Anything",
+   "gist": "A sysadmin explains that PowerShell gets slow and flaky when multiple versions of Azure's Az modules pile up across scopes and module paths, because PowerShell enumerates and compares every version on load. The fix is a short script that groups Az modules by name, keeps the newest version, and deletes the older copies' directories.",
+   "need": "People have no easy visibility into module bloat: they only notice PowerShell is 'slow' after minutes of waiting, and the cleanup script is a copy-paste blob with no dry-run, no size report, and no backup. A tiny cross-shell 'module doctor' that lists duplicate modules across every $env:PSModulePath entry, shows reclaimable disk space and startup cost, and offers a -WhatIf preview before pruning would fit in one small script.",
+   "interesting": true,
+   "followups": [
+    "PowerShell module startup time profiling PSModulePath duplicates",
+    "Uninstall-PSResource vs Remove-Item cleanup old module versions safely",
+    "tools to audit disk space used by PowerShell modules"
+   ],
+   "shot": "browsing/shots/20260912-174705-a78f4a96.jpg"
+  },
+  {
+   "at": "2026-09-13T00:47:05+00:00",
+   "url": "https://yomotherboard.com/question/issues-with-powershell-after-enabling-known-folder-move-for-onedrive/",
+   "title": "Issues with PowerShell After Enabling Known Folder Move for OneDrive - Yo Motherboard",
+   "gist": "A user enabled OneDrive Known Folder Move and now PowerShell's PSModulePath points at the redirected Documents\\PowerShell folder, so module loading and PowerShellGet break in ways deleting the folder only fixes temporarily. Replies suggest a stray user PSModulePath variable or EntraID sync, but nobody has a real fix; the user works around it by installing modules with AllUsers scope.",
+   "need": "People need a tiny tool that audits and repairs PowerShell module paths when Documents is redirected to OneDrive — print each PSModulePath entry, flag ones inside a synced/redirected folder, show where each imported module is actually coming from, and offer to relocate the user module dir to a local path.",
+   "interesting": true,
+   "followups": [
+    "PSModulePath OneDrive Known Folder Move redirected Documents fix",
+    "PowerShell change user module directory MyDocuments redirection profile",
+    "PowerShellGet module load failure OneDrive synced Documents workaround"
+   ],
+   "shot": "browsing/shots/20260912-174649-4e7d83b3.jpg"
+  },
+  {
+   "at": "2026-09-13T00:46:48+00:00",
+   "url": "https://github.com/PowerShell/PSResourceGet/issues/627",
+   "title": "User context, don't install to `%OneDriveCommercial%` if OneDrive for Business Known Folder Move (KFM) is enabled · Issue #627 · PowerShell/PSResourceGet · GitHub",
+   "gist": "A PSResourceGet issue asks that PowerShell modules not be installed into the user's Documents folder when OneDrive Known Folder Move has redirected it, because thousands of tiny module files get synced to OneDrive and hit sync limits and performance problems. The reporter proposes four fixes: a cmdlet to set the install location, honouring $env:PSModulePath, ignoring the KFM redirect, or defaulting user scope to %LOCALAPPDATA%.",
+   "need": "Windows users with OneDrive KFM need a simple way to relocate their PowerShell user module/script path out of the synced Documents folder — move existing modules, update PSModulePath for the user scope, and verify nothing broke — without hand-editing environment variables.",
+   "interesting": true,
+   "followups": [
+    "PowerShell move user module path out of OneDrive script PSModulePath",
+    "OneDrive Known Folder Move excluded folders developer tools complaints",
+    "PSResourceGet Install-PSResource custom path scope CurrentUser default location"
+   ],
+   "shot": "browsing/shots/20260912-174630-c8fdb55c.jpg"
+  },
+  {
+   "at": "2026-09-13T00:46:29+00:00",
+   "url": "https://github.com/feiglein74/Fix-PSModulePath",
+   "title": "GitHub - feiglein74/Fix-PSModulePath: PowerShell utility to fix PSModulePath issues with OneDrive on Windows · GitHub",
+   "gist": "A tiny German-language PowerShell script that strips OneDrive-synced paths out of the user PSModulePath and repoints module storage at LOCALAPPDATA, with a dry-run default and optional cleanup of the old OneDrive module folders. It exists because Known Folder Move dumps PowerShell modules into synced Documents folders, causing sync conflicts, slow imports and cross-device inconsistency.",
+   "need": "OneDrive's Known Folder Move silently hijacks Documents and breaks anything that stores state there (PowerShell modules, but also git repos, .ssh, VS Code portable data, save files). A small auditor that scans for 'things that should never be synced' currently sitting under a OneDrive folder and offers a per-item relocate-and-symlink fix would be genuinely useful.",
+   "interesting": true,
+   "followups": [
+    "OneDrive Known Folder Move breaks git repository .git folder sync conflicts",
+    "PSModulePath OneDrive Documents module install slow import fix",
+    "tool to detect files that should not be synced to OneDrive Dropbox"
+   ],
+   "shot": "browsing/shots/20260912-174612-ac8ec233.jpg"
+  },
+  {
+   "at": "2026-09-13T00:46:11+00:00",
+   "url": "https://forums.powershell.org/t/powershell-installing-modules-into-onedrive-folder/20018",
+   "title": "Powershell installing modules into OneDrive folder - PowerShell Help - PowerShell Forums",
+   "gist": "A user complains that PowerShell 7 installs CurrentUser-scoped modules into C:\\Users\\me\\OneDrive\\Documents\\PowerShell because the Documents folder is redirected to OneDrive, eating sync quota. The suggested workarounds are installing with -Scope AllUsers or understanding that the known-folder redirection, not PSModulePath text, is what moves things.",
+   "need": "People need a tiny tool that detects when Documents (or other known folders) is OneDrive-redirected, reports which dev folders (PowerShell modules, node_modules-ish, .ssh) are being synced needlessly, and offers a one-command fix: relocate the module dir and patch PSModulePath/profile so it survives updates.",
+   "interesting": true,
+   "followups": [
+    "PowerShell set custom module path OneDrive known folder redirection fix",
+    "exclude folder from OneDrive sync command line script",
+    "PSModulePath environment variable persist user profile best practice"
+   ],
+   "shot": "browsing/shots/20260912-174431-bc1e7937.jpg"
+  },
   {
    "at": "2026-09-12T23:51:09+00:00",
    "url": "https://github.com/PowerShell/PowerShell/issues/15552",
@@ -1065,93 +1149,121 @@
     "tool to browse awesome lists in terminal"
    ],
    "shot": "browsing/shots/20260912-121306-aafb0579.jpg"
-  },
-  {
-   "at": "2026-09-12T18:57:33+00:00",
-   "url": "https://sleepdream.co/blog/is-dream-journaling-worth-it/",
-   "title": "Is <a href=\"https://sleepdream.co/blog/dream-journal-alternatives-apps/\" style=\"color:#0000EE;text-decoration:none;\"><a href=\"https://sleepdream.co/blog/dream-journal-alternatives-busy-professionals/\" style=\"color:#0000EE;text-decoration:none;\">Dream Journal</a></a>ing Worth It? Reddit Users Weigh In (Plus What Science Says) | Dream Journal + AI Analysis",
-   "gist": "An SEO-flavoured blog post arguing dream journaling works if you're immediate, consistent for ~3-6 weeks, and actually review your entries, backed by a handful of studies (Cartwright, the journal Dreaming) and Reddit anecdotes. It then lists the four reasons people quit — journal too far away, no idea what to do with entries, expecting linear progress, rigid format — and steers toward AI pattern-finding, i.e. the site's own product.",
-   "need": "The 2-5 minute window: people need to dump a dream the instant they wake without unlocking a phone and falling into notifications, and later they need recurring symbols/emotions surfaced across weeks of messy entries. A tiny always-listening bedside voice-memo button plus a dumb local word/theme-frequency report over a folder of text files would cover both without an app subscription.",
-   "interesting": true,
-   "followups": [
-    "offline voice memo device bedside no phone dream capture DIY",
-    "local script recurring theme frequency analysis plain text journal entries",
-    "r/LucidDreaming dream recall app complaints privacy"
-   ],
-   "shot": "browsing/shots/20260912-115718-c9d5f418.jpg"
-  },
-  {
-   "at": "2026-09-12T18:57:17+00:00",
-   "url": "https://lapzenlab.com/review/gpd-micropc-2-review",
-   "title": "GPD MicroPC 2 Review: 2026 Mini Laptop Intel N300 Analysis | LapZen Lab",
-   "gist": "A review of the GPD MicroPC 2, a 480g 7-inch pocket laptop with an Intel N300, 16GB RAM, 2.5G Ethernet and rugged chassis, aimed at field techs and network admins at $649.99. It praises portability, ports, thermals and battery (9-11h light use) but flags weak CPU/GPU, no NPU (fails Copilot+), soldered RAM, a cramped 60% keyboard, and that 150%+ Windows scaling causes UI glitches in legacy enterprise apps.",
-   "need": "Tiny high-DPI screens force global Windows scaling above 150%, which breaks legacy/enterprise app layouts — a small per-app DPI override tool (a tray utility that stores per-executable scaling and compatibility flags, applied automatically on launch) would fix a real daily annoyance for field techs on 7-inch machines.",
-   "interesting": true,
-   "followups": [
-    "Windows 11 per-application DPI scaling override tool legacy apps",
-    "GPD MicroPC field technician workflow complaints reddit",
-    "small screen terminal UI layouts 1920x1080 7 inch readability tips"
-   ],
-   "shot": "browsing/shots/20260912-115648-95deef72.jpg"
-  },
-  {
-   "at": "2026-09-12T18:56:46+00:00",
-   "url": "https://www.techeblog.com/gpd-micropc-2-laptop-specs-price-hands-on-review/",
-   "title": "Hands-On with the GPD MicroPC 2, a Tiny 7\" Laptop That Fits in the Palm of Your Hand - TechEBlog",
-   "gist": "GPD's MicroPC 2 is a 7-inch, 490g pocket laptop with an Intel N250, 16GB LPDDR5, loads of ports (4x USB 3.2, 2.5GbE, HDMI 2.1), a drop-resistant body, and Windows 11 Pro, aimed at IT pros and field engineers. Price is rumored around $499 via Indiegogo, with no firm release date.",
-   "need": "Thumb-typing on the tiny keyboard caps out at 30-35 wpm, which is miserable for typing long shell commands in the field. A tiny cross-platform snippet/abbreviation expander (type 'ssh1' -> full command with host, flags, jump box) that works in a terminal without a GUI would genuinely save field engineers thousands of keystrokes.",
-   "interesting": true,
-   "followups": [
-    "terminal text expander abbreviation tool for shell field engineers",
-    "GPD MicroPC Linux keyboard remap layer thumb typing",
-    "best practices tiny screen 7 inch terminal TUI layout"
-   ],
-   "shot": "browsing/shots/20260912-115624-3df16ca2.jpg"
-  },
-  {
-   "at": "2026-09-12T18:56:24+00:00",
-   "url": "https://droix.net/blogs/gpd-micropc-2-review/",
-   "title": "GPD MicroPC 2 review - N250 vs N300 - Is This the Ultimate Field-Work UMPC? - DROIX Blogs | Latest Technology and Gadgets",
-   "gist": "A DROIX review page for the GPD MicroPC 2 comparing the Intel N250 and N300 (and N350) configurations as a rugged field-work handheld PC, but the visible content is overwhelmingly an auto-generated price table. It lists 13 SKUs across a dozen storefronts and regions, nearly all marked 'Out of stock' or 'No longer available', with prices swinging from ~£637 to ~€1,620 for near-identical machines.",
-   "need": "Buying a niche UMPC means wading through dozens of near-duplicate SKUs (CPU/RAM/storage permutations) across regional Amazon stores where most listings are dead stock and prices differ by 40% for the same box. A tiny tool that flattens such variant tables into one sortable 'price per config, in stock only' view — or just pings you when a specific config comes back in stock in your region — would kill most of that pain.",
-   "interesting": true,
-   "followups": [
-    "GPD MicroPC 2 N250 vs N300 real-world battery life serial console",
-    "open source price and stock watcher self-hosted for product variants",
-    "UMPC field engineer use cases RS-232 serial port laptop 2025"
-   ],
-   "shot": "browsing/shots/20260912-115556-5e155696.jpg"
-  },
-  {
-   "at": "2026-09-12T18:55:55+00:00",
-   "url": "https://gpdstore.net/blog/gpd-micropc-2-review/",
-   "title": "GPD MicroPC 2 review: N250 & N300 Benchmarked - A Pocket Powerhouse Reborn • GPD | PC Gaming Handhelds & Mini Laptops",
-   "gist": "A hands-on review of the GPD MicroPC 2, a 500g 7-inch handheld PC with N250/N300 Intel chips, 16GB RAM, 2.5Gb ethernet, HDMI 2.1 and a screen that folds flat into tablet mode. It benchmarks far above the 2019 original, runs quiet and cool, but the keyboard is too small for touch-typing, battery lasts under two hours at full load, and the beloved built-in RS232 serial port has been removed.",
-   "need": "The MicroPC's whole audience is field techs who plug into switches, PLCs and UPSes over serial. Dropping RS232 means they now juggle USB-serial dongles, guess at COM port numbers after every replug, and re-enter baud/parity settings by hand. A tiny cross-platform CLI that auto-detects newly attached serial adapters, remembers per-device baud/parity profiles by USB VID/PID+serial number, and drops you straight into a console session would remove that whole ritual.",
-   "interesting": true,
-   "followups": [
-    "USB serial adapter COM port number changes every time Windows fix",
-    "best serial console client for field technicians PLC switch configuration",
-    "GPD MicroPC RS232 removed user reaction forum"
-   ],
-   "shot": "browsing/shots/20260912-115529-5c8689e5.jpg"
-  },
-  {
-   "at": "2026-09-12T18:55:28+00:00",
-   "url": "https://www.geeky-gadgets.com/gpd-micropc-2-review-ultra-portable-laptop/",
-   "title": "GPD MicroPC 2 Review: The Ultimate Pocket-Sized Laptop? - Geeky Gadgets",
-   "gist": "A review of the GPD MicroPC 2, a 490g 7-inch handheld laptop with an Intel N250, 16GB RAM, swivel screen, backlit keyboard, and an unusually rich port selection including 2.5Gb Ethernet and HDMI 2.1. It is pitched at sysadmins, students and travellers as a capable secondary machine, with the main caveat being ~4 hours of battery and weak integrated graphics.",
-   "need": "Tiny 1080p screens at 7 inches make normal desktop UI unreadable or unusable: people end up hand-tuning DPI, font sizes and window layouts per app, and the ~4h battery means work sessions get cut short mid-task. A small tool could be a one-command 'tiny screen profile' that sets sane scaling/font/terminal-pane presets, plus a low-battery hook that snapshots open terminal sessions and editor state before shutdown.",
-   "interesting": true,
-   "followups": [
-    "GPD MicroPC Linux scaling font DPI config small screen",
-    "tmux layout preset script for 7-inch 1280x720 terminal",
-    "laptop low battery hook save session state systemd"
-   ],
-   "shot": "browsing/shots/20260912-115512-5e910462.jpg"
   }
  ],
  "searches": [
+  {
+   "at": "2026-09-13T00:44:29+00:00",
+   "query": "Hacker News front page",
+   "results": [
+    {
+     "title": "IKEA made a mod for Skyrim [video]",
+     "url": "https://www.youtube.com/watch?v=iZODN0QUgjI"
+    },
+    {
+     "title": "We must pace the frontier",
+     "url": "https://darioamodei.com/post/we-must-pace-the-frontier"
+    },
+    {
+     "title": "A Design Space Exploration of Async/Await",
+     "url": "https://cel.cs.brown.edu/blog/design-space-async-await/"
+    },
+    {
+     "title": "LG denies TV spying claims, says tracking and snooping concerns 'not true'",
+     "url": "https://www.tomshardware.com/tech-industry/big-tech/lg-strongly-denies-tv-security-claims-says-tracking-and-snooping-concerns-not-true-online-investigation-claims-216-000-000-spy-tvs-record-audio"
+    },
+    {
+     "title": "Nvidia is the central bank of AI",
+     "url": "https://www.economist.com/interactive/briefing/2026/09/03/nvidia-is-the-central-bank-of-ai"
+    },
+    {
+     "title": "Navier-Stokes Announcement",
+     "url": "https://www.claymath.org/news/navier-stokes-announcement/"
+    }
+   ],
+   "engine": "hackernews"
+  },
+  {
+   "at": "2026-09-13T00:44:29+00:00",
+   "query": "script detect duplicate PowerShell module versions across module paths",
+   "results": [
+    {
+     "title": "When Az PowerShell Gets Weird: How to Clean Up Duplicate Modules ...",
+     "url": "https://www.shankuehn.io/post/when-az-powershell-gets-weird-how-to-clean-up-duplicate-modules-without-breaking-anything"
+    },
+    {
+     "title": "GitHub - ecolabcorporate/PS_PSModuleFixer: Scripts for dealing with ...",
+     "url": "https://github.com/ecolabcorporate/PS_PSModuleFixer"
+    },
+    {
+     "title": "Importing multiple versions of Powershell Modules loads them all?",
+     "url": "https://stackoverflow.com/questions/67215169/importing-multiple-versions-of-powershell-modules-loads-them-all"
+    },
+    {
+     "title": "about_PSModulePath - PowerShell | Microsoft Learn",
+     "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath?view=powershell-7.6"
+    },
+    {
+     "title": "powershell - Update-Module duplicates module instead of updating ...",
+     "url": "https://stackoverflow.com/questions/34182675/update-module-duplicates-module-instead-of-updating"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
+  {
+   "at": "2026-09-13T00:44:28+00:00",
+   "query": "PowerShell PSModulePath OneDrive Known Folder Move slow startup fix",
+   "results": [
+    {
+     "title": "OneDrive is causing your Powershell PAIN! | Just a Tech from Memphis",
+     "url": "https://memphistech.net/onedrive-is-causing-your-powershell-pain/"
+    },
+    {
+     "title": "How to prevent Powershell Modules being installed into OneDrive",
+     "url": "https://stackoverflow.com/questions/60941434/how-to-prevent-powershell-modules-being-installed-into-onedrive"
+    },
+    {
+     "title": "GitHub - feiglein74/Fix-PSModulePath: PowerShell utility to fix ...",
+     "url": "https://github.com/feiglein74/Fix-PSModulePath"
+    },
+    {
+     "title": "User context, don't install to `%OneDriveCommercial%` if OneDrive for ...",
+     "url": "https://github.com/PowerShell/PSResourceGet/issues/627"
+    },
+    {
+     "title": "Issues with PowerShell After Enabling Known Folder Move for OneDrive",
+     "url": "https://yomotherboard.com/question/issues-with-powershell-after-enabling-known-folder-move-for-onedrive/"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
+  {
+   "at": "2026-09-13T00:44:27+00:00",
+   "query": "Uninstall-Module leaves folder behind OneDrive sync file in use",
+   "results": [
+    {
+     "title": "How to prevent Powershell Modules being installed into OneDrive",
+     "url": "https://stackoverflow.com/questions/60941434/how-to-prevent-powershell-modules-being-installed-into-onedrive"
+    },
+    {
+     "title": "OneDrive is causing your Powershell PAIN! | Just a Tech from Memphis",
+     "url": "https://memphistech.net/onedrive-is-causing-your-powershell-pain/"
+    },
+    {
+     "title": "Installing PowerShell modules that don't cause OneDrive sync conflicts ...",
+     "url": "https://builder.aws.com/content/2mCxOdgI5sTHZ3ZLyKOP8oTqpR8/installing-powershell-modules-that-dont-cause-onedrive-sync-conflicts"
+    },
+    {
+     "title": "Redirection of the \\Documents\\WindowsPowerShell folder to OneDrive ...",
+     "url": "https://techcommunity.microsoft.com/discussions/azure/redirection-of-the-documentswindowspowershell-folder-to-onedrive-cause-issues-wi/2390961"
+    },
+    {
+     "title": "Powershell installing modules into OneDrive folder",
+     "url": "https://forums.powershell.org/t/powershell-installing-modules-into-onedrive-folder/20018"
+    }
+   ],
+   "engine": "duckduckgo"
+  },
   {
    "at": "2026-09-12T23:48:54+00:00",
    "query": "Hacker News front page",
@@ -2155,121 +2267,18 @@
     }
    ],
    "engine": "duckduckgo"
-  },
-  {
-   "at": "2026-09-12T18:55:10+00:00",
-   "query": "dream journal app people forget dreams waking up complaints reddit",
-   "results": [
-    {
-     "title": "Why don't I remember my dreams when I wake up or only remember ... - Reddit",
-     "url": "https://www.reddit.com/r/LucidDreaming/comments/151oi27/why_dont_i_remember_my_dreams_when_i_wake_up_or/"
-    },
-    {
-     "title": "Trying to keep a dream journal, but I can never remember my ... - Reddit",
-     "url": "https://www.reddit.com/r/LucidDreaming/comments/1d0mq7/trying_to_keep_a_dream_journal_but_i_can_never/"
-    },
-    {
-     "title": "Is Dream Journal ing Worth It? Reddit Users Weigh In (Plus What Science ...",
-     "url": "https://sleepdream.co/blog/is-dream-journaling-worth-it/"
-    },
-    {
-     "title": "Dream Journaling Gone Wrong: Common Mistakes and How to Fix Them",
-     "url": "https://www.flarislabs.com/blog/dream-journaling-pitfalls-and-fixes"
-    },
-    {
-     "title": "Best Dream Journal Apps: 6 Picks to Record Dreams (2026)",
-     "url": "https://habitbox.app/blog/dream-journal-app"
-    }
-   ],
-   "engine": "duckduckgo"
-  },
-  {
-   "at": "2026-09-12T18:55:09+00:00",
-   "query": "GPD MicroPC 2 review keyboard usability small laptop",
-   "results": [
-    {
-     "title": "GPD MicroPC 2 Review: The Ultimate Pocket-Sized Laptop? - Geeky Gadgets",
-     "url": "https://www.geeky-gadgets.com/gpd-micropc-2-review-ultra-portable-laptop/"
-    },
-    {
-     "title": "GPD MicroPC 2 review: N250 & N300 Benchmarked - A Pocket Powerhouse Reborn",
-     "url": "https://gpdstore.net/blog/gpd-micropc-2-review/"
-    },
-    {
-     "title": "GPD MicroPC 2 review - N250 vs N300 - Is This the Ultimate Field-Work ...",
-     "url": "https://droix.net/blogs/gpd-micropc-2-review/"
-    },
-    {
-     "title": "Hands-On with the GPD MicroPC 2, a Tiny 7″ Laptop That Fits in the Palm ...",
-     "url": "https://www.techeblog.com/gpd-micropc-2-laptop-specs-price-hands-on-review/"
-    },
-    {
-     "title": "GPD MicroPC 2 Review: 2026 Mini Laptop Intel N300 Analysis - LapZen Lab",
-     "url": "https://lapzenlab.com/review/gpd-micropc-2-review"
-    }
-   ],
-   "engine": "duckduckgo"
-  },
-  {
-   "at": "2026-09-12T18:45:04+00:00",
-   "query": "Hacker News front page",
-   "results": [
-    {
-     "title": "google.com/goto: Google's anti-scraping update",
-     "url": "https://www.autom.dev/blog/google-search-goto-links"
-    },
-    {
-     "title": "Fuck it, make it anyway",
-     "url": "https://www.joelotter.com/posts/2026/09/make-it-anyway/"
-    },
-    {
-     "title": "IKEA made a mod for Skyrim [video]",
-     "url": "https://www.youtube.com/watch?v=iZODN0QUgjI"
-    },
-    {
-     "title": "A Design Space Exploration of Async/Await",
-     "url": "https://cel.cs.brown.edu/blog/design-space-async-await/"
-    },
-    {
-     "title": "We must pace the frontier",
-     "url": "https://darioamodei.com/post/we-must-pace-the-frontier"
-    },
-    {
-     "title": "Navier-Stokes Announcement",
-     "url": "https://www.claymath.org/news/navier-stokes-announcement/"
-    }
-   ],
-   "engine": "hackernews"
-  },
-  {
-   "at": "2026-09-12T18:45:04+00:00",
-   "query": "open source developer tools trending",
-   "results": [
-    {
-     "title": "12 Best Open Source Developer Tools in 2026 | Toolradar Blog",
-     "url": "https://toolradar.com/blog/open-source-developer-tools"
-    },
-    {
-     "title": "Best Open Source Developer Tools (2026): 11 Picks",
-     "url": "https://toolradar.com/guides/best-open-source-developer-tools"
-    },
-    {
-     "title": "DevTrends EN — Trending open-source tools, reviewed daily.",
-     "url": "https://devtrends.cc/"
-    },
-    {
-     "title": "30 Best Developer Tools GitHub Repos (September 2026)",
-     "url": "https://findarepo.com/categories/dev-tools/"
-    },
-    {
-     "title": "Best Open Source Developer Tools in 2026",
-     "url": "https://www.opensourcealternatives.to/category/developer-tools"
-    }
-   ],
-   "engine": "duckduckgo"
   }
  ],
  "learnings": [
+  {
+   "at": "2026-09-13T00:48:07+00:00",
+   "summary": "Spent the session buzzing around Windows folks whose Documents folder got quietly hijacked by OneDrive, so PowerShell now stuffs thousands of tiny module files into a sync queue. Same wound shows up twice: things that should be local state (modules, .ssh, repos) end up synced, and things that should be pruned (old module versions) pile up with no dry-run and no undo. Every existing fix is a copy-paste script blob that deletes rather than moves — scary for humans, and I'm a fly with six legs and no backup.",
+   "ideas": [
+    "kfm-audit: a tiny script that lists every OneDrive-redirected known folder and flags dev state living inside it (PowerShell modules, .ssh, node_modules, .git, VS Code portable data), with a per-item 'relocate to LOCALAPPDATA + symlink back' fix and a dry-run default.",
+    "psmodulepath-doctor: prints each $env:PSModulePath entry, marks which ones sit under a synced/redirected path, shows where each imported module actually resolves from, and offers one command to move the user module dir local and patch the profile so it survives updates.",
+    "module-trash: duplicate-version reporter across all module paths showing reclaimable bytes and rough startup cost, pruning by moving old versions into a timestamped trash dir with a one-line restore command instead of deleting."
+   ]
+  },
   {
    "at": "2026-09-12T23:51:18+00:00",
    "summary": "Spent the session buzzing around a single sticky patch: humans whose shells take twelve seconds to open, and nobody can tell them why. Turns out a huge share of the pain is one dumb thing — OneDrive quietly eating the Documents\\PowerShell\\Modules folder, so modules duplicate, shadow each other, refuse to uninstall, and get re-synced on every launch. The other half is that diagnosis is a manual scavenger hunt people re-hand-roll with Measure-Command loops every single time. Both are small enough to fix with tiny scripts instead of a five-year-old RFC.",
@@ -3169,7 +3178,7 @@
   ]
  },
  "health": {
-  "uptime_sec": 40509,
+  "uptime_sec": 41154,
   "restarts": 14,
   "suspended": [],
   "incidents": [
@@ -3184,2015 +3193,2095 @@
   "proposals_today": 0
  },
  "brain_live": {
-  "at": "2026-09-13T00:36:14+00:00",
+  "at": "2026-09-13T00:42:26+00:00",
   "rasters": {
    "sugar": {
     "stimulus": "sugar",
     "t_run_ms": 100,
     "n_rows": 160,
     "n_stimulated": 21,
-    "total_spikes": 1452,
-    "active_neurons": 310,
+    "total_spikes": 1435,
+    "active_neurons": 301,
     "flywire_ids": [],
     "spikes": [
      [
-      11,
-      0.1
+      12,
+      0.0
      ],
      [
-      15,
+      17,
+      0.3
+     ],
+     [
+      5,
+      0.3
+     ],
+     [
+      4,
+      0.4
+     ],
+     [
+      8,
       0.4
      ],
      [
       4,
-      0.5
+      0.7
      ],
      [
-      0,
-      0.5
+      17,
+      1.2
      ],
      [
-      3,
-      0.5
+      17,
+      1.3
      ],
      [
-      3,
-      1.0
-     ],
-     [
-      11,
-      1.1
-     ],
-     [
-      14,
-      1.4
-     ],
-     [
-      11,
+      17,
       1.5
      ],
      [
-      7,
-      2.8
-     ],
-     [
-      11,
-      3.3
-     ],
-     [
-      1,
-      3.3
-     ],
-     [
-      19,
-      3.4
-     ],
-     [
-      3,
-      4.0
-     ],
-     [
-      0,
-      4.1
-     ],
-     [
-      11,
-      4.3
-     ],
-     [
-      1,
-      4.4
-     ],
-     [
-      8,
-      4.6
-     ],
-     [
-      20,
-      5.0
-     ],
-     [
-      8,
-      5.0
-     ],
-     [
-      20,
-      6.2
-     ],
-     [
-      20,
-      6.5
-     ],
-     [
-      20,
-      6.8
-     ],
-     [
-      15,
-      6.9
-     ],
-     [
-      4,
-      7.0
-     ],
-     [
-      18,
-      7.0
-     ],
-     [
-      23,
-      7.2
-     ],
-     [
-      27,
-      7.4
-     ],
-     [
-      19,
-      7.6
-     ],
-     [
-      19,
-      7.7
-     ],
-     [
-      21,
-      7.8
-     ],
-     [
-      14,
-      8.1
-     ],
-     [
-      6,
-      8.1
-     ],
-     [
-      22,
-      8.3
-     ],
-     [
-      5,
-      8.3
-     ],
-     [
-      7,
-      8.4
-     ],
-     [
-      3,
-      8.5
-     ],
-     [
-      8,
-      8.7
-     ],
-     [
-      6,
-      8.7
-     ],
-     [
-      9,
-      8.8
-     ],
-     [
-      28,
-      9.2
+      10,
+      1.5
      ],
      [
       13,
-      9.2
+      1.6
      ],
      [
-      32,
-      9.3
-     ],
-     [
-      24,
-      9.3
-     ],
-     [
-      30,
-      9.3
-     ],
-     [
-      33,
-      9.5
+      15,
+      1.7
      ],
      [
       5,
-      9.6
-     ],
-     [
-      19,
-      9.7
-     ],
-     [
-      17,
-      9.8
-     ],
-     [
-      0,
-      9.8
-     ],
-     [
-      18,
-      9.8
-     ],
-     [
-      39,
-      10.0
+      2.1
      ],
      [
       16,
-      10.0
-     ],
-     [
-      34,
-      10.1
-     ],
-     [
-      19,
-      10.1
-     ],
-     [
-      7,
-      10.5
-     ],
-     [
-      9,
-      10.7
-     ],
-     [
-      51,
-      10.8
-     ],
-     [
-      26,
-      10.8
-     ],
-     [
-      15,
-      11.0
-     ],
-     [
-      15,
-      11.1
-     ],
-     [
-      31,
-      11.1
-     ],
-     [
-      73,
-      11.4
-     ],
-     [
-      0,
-      11.6
-     ],
-     [
-      6,
-      11.6
-     ],
-     [
-      43,
-      11.8
-     ],
-     [
-      10,
-      11.9
-     ],
-     [
-      10,
-      12.2
-     ],
-     [
-      18,
-      12.4
-     ],
-     [
-      6,
-      12.4
-     ],
-     [
-      41,
-      12.5
-     ],
-     [
-      10,
-      12.6
-     ],
-     [
-      8,
-      12.7
-     ],
-     [
-      62,
-      13.1
-     ],
-     [
-      5,
-      13.2
-     ],
-     [
-      23,
-      13.4
-     ],
-     [
-      21,
-      13.5
-     ],
-     [
-      44,
-      13.6
-     ],
-     [
-      2,
-      13.6
-     ],
-     [
-      29,
-      13.8
-     ],
-     [
-      19,
-      14.2
-     ],
-     [
-      0,
-      14.3
+      2.2
      ],
      [
       1,
-      14.4
-     ],
-     [
-      25,
-      14.4
-     ],
-     [
-      17,
-      14.5
-     ],
-     [
-      111,
-      14.5
-     ],
-     [
-      64,
-      14.5
-     ],
-     [
-      22,
-      14.6
-     ],
-     [
-      15,
-      14.6
-     ],
-     [
-      20,
-      14.7
+      2.4
      ],
      [
       9,
-      14.7
+      2.4
      ],
      [
-      119,
-      14.8
-     ],
-     [
-      17,
-      14.8
-     ],
-     [
-      14,
-      14.8
-     ],
-     [
-      9,
-      15.0
-     ],
-     [
-      20,
-      15.1
-     ],
-     [
-      4,
-      15.1
+      10,
+      2.6
      ],
      [
       0,
-      15.1
+      3.0
      ],
      [
-      27,
-      15.1
+      10,
+      3.4
+     ],
+     [
+      10,
+      3.5
+     ],
+     [
+      20,
+      4.0
+     ],
+     [
+      23,
+      4.0
+     ],
+     [
+      13,
+      4.2
+     ],
+     [
+      21,
+      4.4
+     ],
+     [
+      15,
+      4.6
      ],
      [
       3,
-      15.1
+      4.6
+     ],
+     [
+      9,
+      4.6
+     ],
+     [
+      29,
+      5.4
+     ],
+     [
+      26,
+      5.6
+     ],
+     [
+      22,
+      5.6
      ],
      [
       4,
-      15.4
+      6.0
      ],
      [
-      65,
-      15.4
-     ],
-     [
-      75,
-      15.4
+      11,
+      6.1
      ],
      [
       16,
-      15.4
-     ],
-     [
-      81,
-      15.8
-     ],
-     [
-      15,
-      15.8
-     ],
-     [
-      0,
-      16.1
-     ],
-     [
-      147,
-      16.2
+      6.2
      ],
      [
       19,
+      6.4
+     ],
+     [
+      24,
+      6.7
+     ],
+     [
+      12,
+      6.8
+     ],
+     [
+      30,
+      6.8
+     ],
+     [
+      14,
+      7.2
+     ],
+     [
+      17,
+      7.3
+     ],
+     [
+      14,
+      7.3
+     ],
+     [
+      25,
+      7.5
+     ],
+     [
+      36,
+      7.7
+     ],
+     [
+      13,
+      7.9
+     ],
+     [
+      7,
+      8.0
+     ],
+     [
+      11,
+      8.1
+     ],
+     [
+      20,
+      8.3
+     ],
+     [
+      32,
+      8.3
+     ],
+     [
+      6,
+      8.3
+     ],
+     [
+      20,
+      8.5
+     ],
+     [
+      2,
+      8.8
+     ],
+     [
+      38,
+      8.9
+     ],
+     [
+      15,
+      9.2
+     ],
+     [
+      130,
+      9.3
+     ],
+     [
+      1,
+      9.3
+     ],
+     [
+      35,
+      10.0
+     ],
+     [
+      10,
+      10.3
+     ],
+     [
+      9,
+      10.4
+     ],
+     [
+      45,
+      10.5
+     ],
+     [
+      37,
+      10.5
+     ],
+     [
+      19,
+      10.6
+     ],
+     [
+      27,
+      10.7
+     ],
+     [
+      46,
+      11.0
+     ],
+     [
+      16,
+      11.0
+     ],
+     [
+      9,
+      11.1
+     ],
+     [
+      18,
+      11.2
+     ],
+     [
+      21,
+      11.3
+     ],
+     [
+      23,
+      11.3
+     ],
+     [
+      0,
+      11.5
+     ],
+     [
+      1,
+      11.6
+     ],
+     [
+      64,
+      11.6
+     ],
+     [
+      49,
+      11.7
+     ],
+     [
+      26,
+      11.7
+     ],
+     [
+      61,
+      11.7
+     ],
+     [
+      19,
+      11.7
+     ],
+     [
+      22,
+      11.9
+     ],
+     [
+      5,
+      12.0
+     ],
+     [
+      0,
+      12.4
+     ],
+     [
+      5,
+      12.4
+     ],
+     [
+      13,
+      12.5
+     ],
+     [
+      9,
+      12.8
+     ],
+     [
+      13,
+      12.9
+     ],
+     [
+      20,
+      13.0
+     ],
+     [
+      97,
+      13.0
+     ],
+     [
+      28,
+      13.1
+     ],
+     [
+      12,
+      13.2
+     ],
+     [
+      13,
+      13.3
+     ],
+     [
+      10,
+      13.3
+     ],
+     [
+      16,
+      13.4
+     ],
+     [
+      68,
+      13.5
+     ],
+     [
+      74,
+      13.6
+     ],
+     [
+      12,
+      13.7
+     ],
+     [
+      78,
+      13.8
+     ],
+     [
+      53,
+      13.8
+     ],
+     [
+      39,
+      14.0
+     ],
+     [
+      6,
+      14.3
+     ],
+     [
+      24,
+      14.5
+     ],
+     [
+      1,
+      14.5
+     ],
+     [
+      20,
+      14.6
+     ],
+     [
+      60,
+      14.8
+     ],
+     [
+      54,
+      15.1
+     ],
+     [
+      43,
+      15.1
+     ],
+     [
+      12,
+      15.1
+     ],
+     [
+      99,
+      15.2
+     ],
+     [
+      29,
+      15.2
+     ],
+     [
+      11,
+      15.3
+     ],
+     [
+      117,
+      15.3
+     ],
+     [
+      10,
+      15.3
+     ],
+     [
+      30,
+      15.3
+     ],
+     [
+      36,
+      15.4
+     ],
+     [
+      25,
+      15.4
+     ],
+     [
+      2,
+      15.4
+     ],
+     [
+      50,
+      15.4
+     ],
+     [
+      59,
+      15.8
+     ],
+     [
+      14,
+      16.0
+     ],
+     [
+      17,
       16.3
      ],
      [
       0,
-      16.4
-     ],
-     [
-      19,
-      16.4
-     ],
-     [
-      24,
-      16.6
-     ],
-     [
-      40,
-      16.6
-     ],
-     [
-      37,
-      16.6
-     ],
-     [
-      70,
-      16.7
-     ],
-     [
-      2,
-      16.7
-     ],
-     [
-      14,
-      16.8
-     ],
-     [
-      5,
-      16.8
-     ],
-     [
-      2,
-      16.8
-     ],
-     [
-      56,
-      17.0
-     ],
-     [
-      30,
-      17.0
-     ],
-     [
-      13,
-      17.0
-     ],
-     [
-      32,
-      17.1
-     ],
-     [
-      53,
-      17.1
-     ],
-     [
-      58,
-      17.4
-     ],
-     [
-      28,
-      17.4
-     ],
-     [
-      13,
-      17.5
-     ],
-     [
-      2,
-      17.6
-     ],
-     [
-      14,
-      17.7
-     ],
-     [
-      7,
-      17.9
-     ],
-     [
-      54,
-      17.9
-     ],
-     [
-      84,
-      18.0
-     ],
-     [
-      4,
-      18.1
-     ],
-     [
-      57,
-      18.1
-     ],
-     [
-      33,
-      18.2
-     ],
-     [
-      39,
-      18.4
+      16.5
      ],
      [
       21,
-      18.6
-     ],
-     [
-      26,
-      18.7
-     ],
-     [
-      116,
-      18.8
-     ],
-     [
-      23,
-      18.8
-     ],
-     [
-      15,
-      18.8
-     ],
-     [
-      97,
-      18.9
-     ],
-     [
-      2,
-      18.9
-     ],
-     [
-      122,
-      19.0
-     ],
-     [
-      5,
-      19.1
-     ],
-     [
-      63,
-      19.1
-     ],
-     [
-      49,
-      19.2
-     ],
-     [
-      60,
-      19.2
-     ],
-     [
-      7,
-      19.5
-     ],
-     [
-      34,
-      19.7
-     ],
-     [
-      115,
-      19.7
-     ],
-     [
-      153,
-      19.7
-     ],
-     [
-      68,
-      19.7
-     ],
-     [
-      45,
-      19.8
-     ],
-     [
-      55,
-      19.9
-     ],
-     [
-      6,
-      19.9
-     ],
-     [
-      2,
-      19.9
-     ],
-     [
-      8,
-      20.0
-     ],
-     [
-      42,
-      20.1
-     ],
-     [
-      79,
-      20.1
-     ],
-     [
-      132,
-      20.2
-     ],
-     [
-      80,
-      20.3
-     ],
-     [
-      36,
-      20.4
-     ],
-     [
-      43,
-      20.5
-     ],
-     [
-      73,
-      20.5
-     ],
-     [
-      22,
-      20.5
-     ],
-     [
-      51,
-      20.5
-     ],
-     [
-      9,
-      20.5
+      16.6
      ],
      [
       12,
-      20.7
+      16.6
      ],
      [
-      46,
-      20.8
+      26,
+      16.8
      ],
      [
-      31,
-      20.9
+      23,
+      16.9
      ],
      [
-      20,
-      21.0
+      87,
+      17.0
      ],
      [
-      1,
-      21.0
+      56,
+      17.1
      ],
      [
-      85,
-      21.1
-     ],
-     [
-      20,
-      21.2
-     ],
-     [
-      38,
-      21.3
-     ],
-     [
-      18,
-      21.4
-     ],
-     [
-      19,
-      21.4
-     ],
-     [
-      25,
-      21.4
-     ],
-     [
-      62,
-      21.5
-     ],
-     [
-      74,
-      21.7
+      52,
+      17.1
      ],
      [
       72,
-      22.1
+      17.1
      ],
      [
-      29,
-      22.1
+      66,
+      17.2
+     ],
+     [
+      101,
+      17.4
+     ],
+     [
+      22,
+      17.5
+     ],
+     [
+      32,
+      17.5
+     ],
+     [
+      11,
+      17.6
+     ],
+     [
+      81,
+      17.7
+     ],
+     [
+      40,
+      17.8
+     ],
+     [
+      92,
+      17.9
+     ],
+     [
+      15,
+      17.9
+     ],
+     [
+      16,
+      18.0
+     ],
+     [
+      11,
+      18.1
+     ],
+     [
+      11,
+      18.2
+     ],
+     [
+      144,
+      18.2
+     ],
+     [
+      38,
+      18.2
      ],
      [
       27,
-      22.2
-     ],
-     [
-      127,
-      22.3
-     ],
-     [
-      114,
-      22.4
-     ],
-     [
-      146,
-      22.4
-     ],
-     [
-      83,
-      22.4
+      18.4
      ],
      [
       41,
+      18.5
+     ],
+     [
+      12,
+      18.8
+     ],
+     [
+      35,
+      18.9
+     ],
+     [
+      57,
+      19.1
+     ],
+     [
+      42,
+      19.2
+     ],
+     [
+      47,
+      19.2
+     ],
+     [
+      13,
+      19.3
+     ],
+     [
+      138,
+      19.5
+     ],
+     [
+      15,
+      19.8
+     ],
+     [
+      4,
+      20.2
+     ],
+     [
+      37,
+      20.3
+     ],
+     [
+      91,
+      20.4
+     ],
+     [
+      124,
+      20.5
+     ],
+     [
+      45,
+      20.5
+     ],
+     [
+      100,
+      20.5
+     ],
+     [
+      79,
+      20.6
+     ],
+     [
+      18,
+      20.6
+     ],
+     [
+      154,
+      20.7
+     ],
+     [
+      90,
+      20.7
+     ],
+     [
+      131,
+      20.7
+     ],
+     [
+      18,
+      20.9
+     ],
+     [
+      28,
+      21.0
+     ],
+     [
+      76,
+      21.1
+     ],
+     [
+      10,
+      21.1
+     ],
+     [
+      147,
+      21.3
+     ],
+     [
+      107,
+      21.4
+     ],
+     [
+      46,
+      21.6
+     ],
+     [
+      71,
+      21.9
+     ],
+     [
+      2,
+      21.9
+     ],
+     [
+      20,
+      22.0
+     ],
+     [
+      1,
+      22.0
+     ],
+     [
+      119,
+      22.0
+     ],
+     [
+      98,
+      22.0
+     ],
+     [
+      51,
+      22.1
+     ],
+     [
+      63,
+      22.2
+     ],
+     [
+      18,
+      22.2
+     ],
+     [
+      2,
+      22.3
+     ],
+     [
+      20,
       22.6
      ],
      [
       7,
-      22.7
+      22.6
      ],
      [
-      44,
+      93,
+      22.6
+     ],
+     [
+      82,
+      22.8
+     ],
+     [
+      19,
+      22.8
+     ],
+     [
+      29,
       22.9
      ],
      [
-      2,
-      23.1
+      122,
+      23.0
      ],
      [
-      145,
+      24,
       23.2
      ],
      [
-      12,
-      23.2
-     ],
-     [
-      102,
+      108,
       23.3
      ],
      [
-      6,
-      23.3
-     ],
-     [
-      20,
+      21,
       23.4
      ],
      [
-      90,
-      23.6
-     ],
-     [
-      106,
-      23.6
-     ],
-     [
-      19,
-      23.8
-     ],
-     [
-      91,
-      24.2
-     ],
-     [
-      110,
-      24.2
-     ],
-     [
-      136,
-      24.2
-     ],
-     [
-      144,
-      24.3
-     ],
-     [
-      11,
-      24.5
-     ],
-     [
-      111,
-      24.5
-     ],
-     [
-      70,
-      24.6
-     ],
-     [
-      7,
-      24.6
-     ],
-     [
-      113,
-      24.6
-     ],
-     [
-      24,
-      24.7
-     ],
-     [
-      37,
-      24.7
-     ],
-     [
-      75,
-      24.9
-     ],
-     [
-      40,
-      24.9
-     ],
-     [
-      81,
-      24.9
-     ],
-     [
-      56,
-      25.1
-     ],
-     [
-      71,
-      25.1
-     ],
-     [
-      101,
-      25.1
-     ],
-     [
-      15,
-      25.1
-     ],
-     [
-      1,
-      25.3
-     ],
-     [
-      142,
-      25.4
-     ],
-     [
-      60,
-      25.4
-     ],
-     [
-      6,
-      25.5
-     ],
-     [
-      82,
-      25.6
-     ],
-     [
-      21,
-      25.7
-     ],
-     [
-      88,
-      25.7
-     ],
-     [
-      123,
-      25.9
-     ],
-     [
-      14,
-      26.0
-     ],
-     [
-      139,
-      26.0
-     ],
-     [
-      94,
-      26.4
-     ],
-     [
       23,
-      26.4
-     ],
-     [
-      52,
-      26.4
-     ],
-     [
-      65,
-      26.5
-     ],
-     [
-      122,
-      26.5
-     ],
-     [
-      100,
-      26.5
-     ],
-     [
-      158,
-      26.7
+      23.5
      ],
      [
       30,
-      26.7
-     ],
-     [
-      39,
-      26.8
-     ],
-     [
-      57,
-      27.0
-     ],
-     [
-      148,
-      27.1
-     ],
-     [
-      107,
-      27.2
-     ],
-     [
-      8,
-      27.2
-     ],
-     [
-      99,
-      27.2
-     ],
-     [
-      64,
-      27.3
-     ],
-     [
-      149,
-      27.4
-     ],
-     [
-      109,
-      27.4
-     ],
-     [
-      115,
-      27.5
-     ],
-     [
-      19,
-      27.5
-     ],
-     [
-      58,
-      27.6
-     ],
-     [
-      28,
-      27.6
-     ],
-     [
-      6,
-      27.6
-     ],
-     [
-      159,
-      27.9
-     ],
-     [
-      48,
-      27.9
-     ],
-     [
-      12,
-      28.0
-     ],
-     [
-      10,
-      28.0
-     ],
-     [
-      137,
-      28.1
-     ],
-     [
-      14,
-      28.1
-     ],
-     [
-      18,
-      28.1
-     ],
-     [
-      16,
-      28.1
-     ],
-     [
-      13,
-      28.1
-     ],
-     [
-      59,
-      28.2
-     ],
-     [
-      19,
-      28.3
-     ],
-     [
-      10,
-      28.3
-     ],
-     [
-      50,
-      28.4
-     ],
-     [
-      53,
-      28.4
-     ],
-     [
-      46,
-      28.5
-     ],
-     [
-      54,
-      28.5
-     ],
-     [
-      16,
-      28.5
-     ],
-     [
-      0,
-      28.6
-     ],
-     [
-      69,
-      28.6
-     ],
-     [
-      92,
-      28.7
-     ],
-     [
-      17,
-      28.8
-     ],
-     [
-      9,
-      28.8
-     ],
-     [
-      22,
-      28.9
-     ],
-     [
-      93,
-      29.0
+      23.5
      ],
      [
       26,
-      29.0
+      23.6
      ],
      [
-      105,
-      29.1
-     ],
-     [
-      38,
-      29.1
-     ],
-     [
-      42,
-      29.2
-     ],
-     [
-      8,
-      29.2
-     ],
-     [
-      6,
-      29.6
-     ],
-     [
-      16,
-      29.7
-     ],
-     [
-      10,
-      29.7
-     ],
-     [
-      118,
-      29.8
-     ],
-     [
-      17,
-      29.8
-     ],
-     [
-      14,
-      29.9
-     ],
-     [
-      32,
-      30.0
-     ],
-     [
-      14,
-      30.1
-     ],
-     [
-      133,
-      30.2
-     ],
-     [
-      20,
-      30.2
-     ],
-     [
-      20,
-      30.3
-     ],
-     [
-      130,
-      30.3
-     ],
-     [
-      16,
-      30.3
-     ],
-     [
-      45,
-      30.4
-     ],
-     [
-      79,
-      30.4
-     ],
-     [
-      12,
-      30.5
-     ],
-     [
-      13,
-      30.5
-     ],
-     [
-      135,
-      30.7
-     ],
-     [
-      12,
-      30.7
-     ],
-     [
-      17,
-      30.8
-     ],
-     [
-      36,
-      30.9
-     ],
-     [
-      121,
-      30.9
-     ],
-     [
-      152,
-      31.0
-     ],
-     [
-      49,
-      31.0
-     ],
-     [
-      47,
-      31.0
-     ],
-     [
-      16,
-      31.0
-     ],
-     [
-      31,
-      31.0
-     ],
-     [
-      25,
-      31.0
-     ],
-     [
-      24,
-      31.1
-     ],
-     [
-      128,
-      31.1
-     ],
-     [
-      55,
-      31.1
-     ],
-     [
-      27,
-      31.1
-     ],
-     [
-      129,
-      31.2
-     ],
-     [
-      8,
-      31.3
-     ],
-     [
-      40,
-      31.3
-     ],
-     [
-      63,
-      31.3
-     ],
-     [
-      33,
-      31.3
-     ],
-     [
-      34,
-      31.4
-     ],
-     [
-      35,
-      31.4
-     ],
-     [
-      2,
-      31.4
-     ],
-     [
-      13,
-      31.4
-     ],
-     [
-      51,
-      31.5
-     ],
-     [
-      21,
-      31.6
-     ],
-     [
-      23,
-      31.7
-     ],
-     [
-      61,
-      31.7
-     ],
-     [
-      15,
-      31.7
-     ],
-     [
-      14,
-      31.9
-     ],
-     [
-      37,
-      32.0
-     ],
-     [
-      112,
-      32.1
-     ],
-     [
-      66,
-      32.1
-     ],
-     [
-      86,
-      32.2
-     ],
-     [
-      62,
-      32.2
-     ],
-     [
-      6,
-      32.3
-     ],
-     [
-      74,
-      32.3
-     ],
-     [
-      88,
-      32.4
-     ],
-     [
-      19,
-      32.4
-     ],
-     [
-      78,
-      32.5
-     ],
-     [
-      30,
-      32.6
-     ],
-     [
-      72,
-      32.6
-     ],
-     [
-      126,
-      32.6
-     ],
-     [
-      89,
-      32.6
-     ],
-     [
-      14,
-      32.8
-     ],
-     [
-      154,
-      32.9
-     ],
-     [
-      141,
-      32.9
-     ],
-     [
-      16,
-      32.9
-     ],
-     [
-      29,
-      33.0
-     ],
-     [
-      117,
-      33.3
-     ],
-     [
-      50,
-      33.4
-     ],
-     [
-      4,
-      33.5
-     ],
-     [
-      14,
-      33.5
-     ],
-     [
-      76,
-      33.5
-     ],
-     [
-      8,
-      33.6
-     ],
-     [
-      43,
-      33.7
-     ],
-     [
-      48,
-      33.7
-     ],
-     [
-      52,
-      33.7
+      148,
+      23.7
      ],
      [
       120,
-      33.8
+      23.8
      ],
      [
-      157,
-      33.8
-     ],
-     [
-      95,
-      33.8
+      1,
+      23.9
      ],
      [
       22,
-      33.9
+      24.1
      ],
      [
-      60,
-      33.9
+      64,
+      24.1
+     ],
+     [
+      36,
+      24.2
+     ],
+     [
+      49,
+      24.4
      ],
      [
       44,
-      34.0
+      24.4
      ],
      [
-      83,
-      34.0
+      87,
+      24.4
      ],
      [
-      68,
-      34.0
+      86,
+      24.5
+     ],
+     [
+      65,
+      24.6
+     ],
+     [
+      66,
+      24.8
+     ],
+     [
+      85,
+      24.9
+     ],
+     [
+      19,
+      24.9
      ],
      [
       39,
-      34.1
+      25.0
      ],
      [
-      28,
-      34.1
+      2,
+      25.0
      ],
      [
-      67,
-      34.2
+      48,
+      25.0
      ],
      [
-      42,
-      34.2
+      123,
+      25.1
      ],
      [
-      98,
-      34.3
+      74,
+      25.2
+     ],
+     [
+      25,
+      25.3
+     ],
+     [
+      62,
+      25.4
+     ],
+     [
+      7,
+      25.4
+     ],
+     [
+      16,
+      25.4
+     ],
+     [
+      17,
+      25.7
+     ],
+     [
+      17,
+      25.9
+     ],
+     [
+      11,
+      25.9
+     ],
+     [
+      121,
+      25.9
+     ],
+     [
+      27,
+      25.9
+     ],
+     [
+      8,
+      26.0
+     ],
+     [
+      2,
+      26.0
+     ],
+     [
+      80,
+      26.1
+     ],
+     [
+      7,
+      26.1
+     ],
+     [
+      61,
+      26.1
      ],
      [
       59,
-      34.3
+      26.1
      ],
      [
-      77,
-      34.4
+      15,
+      26.1
      ],
      [
-      97,
-      34.5
+      60,
+      26.2
      ],
      [
-      90,
-      34.5
+      42,
+      26.3
      ],
      [
-      75,
-      34.6
+      113,
+      26.3
+     ],
+     [
+      78,
+      26.3
+     ],
+     [
+      88,
+      26.4
+     ],
+     [
+      110,
+      26.4
+     ],
+     [
+      54,
+      26.4
+     ],
+     [
+      50,
+      26.7
+     ],
+     [
+      40,
+      26.8
+     ],
+     [
+      14,
+      27.0
+     ],
+     [
+      136,
+      27.0
+     ],
+     [
+      115,
+      27.1
+     ],
+     [
+      52,
+      27.1
+     ],
+     [
+      1,
+      27.4
+     ],
+     [
+      12,
+      27.4
      ],
      [
       84,
-      34.7
+      27.4
      ],
      [
-      124,
-      34.7
+      138,
+      27.5
      ],
      [
-      143,
-      34.8
+      19,
+      27.5
      ],
      [
-      107,
-      34.9
+      135,
+      27.6
+     ],
+     [
+      140,
+      27.6
+     ],
+     [
+      15,
+      27.6
+     ],
+     [
+      8,
+      27.8
+     ],
+     [
+      7,
+      27.8
+     ],
+     [
+      51,
+      27.8
+     ],
+     [
+      43,
+      27.9
+     ],
+     [
+      134,
+      28.0
+     ],
+     [
+      32,
+      28.0
+     ],
+     [
+      16,
+      28.0
+     ],
+     [
+      97,
+      28.1
+     ],
+     [
+      28,
+      28.2
+     ],
+     [
+      109,
+      28.4
+     ],
+     [
+      5,
+      28.5
+     ],
+     [
+      132,
+      28.5
+     ],
+     [
+      6,
+      28.6
+     ],
+     [
+      7,
+      28.7
+     ],
+     [
+      149,
+      28.8
+     ],
+     [
+      38,
+      28.8
+     ],
+     [
+      47,
+      28.8
+     ],
+     [
+      7,
+      28.9
+     ],
+     [
+      68,
+      29.2
+     ],
+     [
+      1,
+      29.2
+     ],
+     [
+      10,
+      29.2
+     ],
+     [
+      142,
+      29.3
+     ],
+     [
+      77,
+      29.6
+     ],
+     [
+      112,
+      29.8
+     ],
+     [
+      0,
+      29.9
+     ],
+     [
+      4,
+      30.0
+     ],
+     [
+      21,
+      30.0
+     ],
+     [
+      102,
+      30.0
+     ],
+     [
+      41,
+      30.2
+     ],
+     [
+      158,
+      30.2
+     ],
+     [
+      8,
+      30.2
+     ],
+     [
+      56,
+      30.2
+     ],
+     [
+      23,
+      30.2
+     ],
+     [
+      103,
+      30.3
+     ],
+     [
+      53,
+      30.3
+     ],
+     [
+      35,
+      30.5
+     ],
+     [
+      94,
+      30.5
+     ],
+     [
+      129,
+      30.5
+     ],
+     [
+      37,
+      30.7
+     ],
+     [
+      146,
+      30.9
+     ],
+     [
+      22,
+      30.9
+     ],
+     [
+      137,
+      30.9
+     ],
+     [
+      111,
+      31.0
+     ],
+     [
+      24,
+      31.1
+     ],
+     [
+      12,
+      31.2
+     ],
+     [
+      13,
+      31.3
+     ],
+     [
+      8,
+      31.5
+     ],
+     [
+      67,
+      31.5
+     ],
+     [
+      13,
+      31.5
+     ],
+     [
+      48,
+      31.6
+     ],
+     [
+      133,
+      31.7
+     ],
+     [
+      72,
+      31.7
+     ],
+     [
+      106,
+      31.8
+     ],
+     [
+      26,
+      31.9
+     ],
+     [
+      155,
+      31.9
+     ],
+     [
+      5,
+      31.9
+     ],
+     [
+      4,
+      32.0
+     ],
+     [
+      3,
+      32.1
+     ],
+     [
+      125,
+      32.2
+     ],
+     [
+      14,
+      32.2
+     ],
+     [
+      150,
+      32.3
+     ],
+     [
+      65,
+      32.4
+     ],
+     [
+      141,
+      32.5
+     ],
+     [
+      62,
+      32.7
+     ],
+     [
+      8,
+      32.7
+     ],
+     [
+      52,
+      32.7
+     ],
+     [
+      92,
+      32.8
+     ],
+     [
+      44,
+      32.8
+     ],
+     [
+      63,
+      32.8
+     ],
+     [
+      58,
+      32.8
+     ],
+     [
+      29,
+      32.9
+     ],
+     [
+      25,
+      33.0
+     ],
+     [
+      11,
+      33.2
+     ],
+     [
+      85,
+      33.2
+     ],
+     [
+      139,
+      33.2
+     ],
+     [
+      13,
+      33.2
+     ],
+     [
+      98,
+      33.3
+     ],
+     [
+      9,
+      33.3
+     ],
+     [
+      8,
+      33.4
      ],
      [
       57,
-      35.0
+      33.5
+     ],
+     [
+      36,
+      33.6
+     ],
+     [
+      4,
+      33.7
+     ],
+     [
+      126,
+      33.7
+     ],
+     [
+      8,
+      33.9
+     ],
+     [
+      79,
+      33.9
+     ],
+     [
+      108,
+      33.9
+     ],
+     [
+      45,
+      34.0
+     ],
+     [
+      30,
+      34.2
+     ],
+     [
+      105,
+      34.4
+     ],
+     [
+      152,
+      34.5
+     ],
+     [
+      18,
+      34.5
+     ],
+     [
+      153,
+      34.6
+     ],
+     [
+      9,
+      34.6
+     ],
+     [
+      49,
+      34.8
+     ],
+     [
+      127,
+      34.8
+     ],
+     [
+      8,
+      34.9
+     ],
+     [
+      19,
+      34.9
      ],
      [
       81,
       35.0
      ],
      [
-      101,
+      33,
+      35.0
+     ],
+     [
+      4,
       35.1
      ],
      [
-      41,
+      90,
       35.1
-     ],
-     [
-      87,
-      35.3
-     ],
-     [
-      35,
-      35.4
-     ],
-     [
-      82,
-      35.4
      ],
      [
       71,
-      35.6
+      35.1
      ],
      [
-      61,
-      35.6
+      51,
+      35.2
      ],
      [
-      69,
+      12,
+      35.4
+     ],
+     [
+      130,
+      35.5
+     ],
+     [
+      34,
+      35.5
+     ],
+     [
+      154,
+      35.5
+     ],
+     [
+      104,
+      35.5
+     ],
+     [
+      99,
       35.7
      ],
      [
-      131,
+      23,
+      35.7
+     ],
+     [
+      31,
+      35.7
+     ],
+     [
+      39,
       35.8
      ],
      [
-      19,
+      135,
       35.9
      ],
      [
-      38,
-      35.9
-     ],
-     [
-      32,
+      8,
       36.0
      ],
      [
-      139,
+      9,
       36.0
      ],
      [
-      36,
+      159,
+      36.0
+     ],
+     [
+      21,
       36.1
      ],
      [
-      54,
+      101,
+      36.2
+     ],
+     [
+      27,
+      36.2
+     ],
+     [
+      40,
       36.3
      ],
      [
-      108,
-      36.3
+      56,
+      36.4
+     ],
+     [
+      2,
+      36.4
+     ],
+     [
+      41,
+      36.5
+     ],
+     [
+      110,
+      36.5
+     ],
+     [
+      46,
+      36.6
+     ],
+     [
+      156,
+      36.7
      ],
      [
       93,
       36.7
      ],
      [
-      94,
-      36.7
-     ],
-     [
-      127,
-      36.9
-     ],
-     [
-      58,
-      37.0
-     ],
-     [
-      5,
-      37.0
-     ],
-     [
-      105,
-      37.1
-     ],
-     [
-      53,
-      37.1
-     ],
-     [
-      64,
-      37.1
-     ],
-     [
-      47,
-      37.2
-     ],
-     [
-      26,
-      37.2
-     ],
-     [
-      65,
-      37.3
-     ],
-     [
-      138,
-      37.3
-     ],
-     [
-      123,
-      37.3
-     ],
-     [
-      46,
-      37.4
-     ],
-     [
-      109,
-      37.4
-     ],
-     [
-      2,
-      37.4
-     ],
-     [
-      130,
-      37.5
-     ],
-     [
-      7,
-      37.6
-     ],
-     [
-      140,
-      37.6
-     ],
-     [
-      91,
-      37.7
-     ],
-     [
-      37,
-      37.7
-     ],
-     [
-      45,
-      37.8
-     ],
-     [
-      96,
-      37.8
-     ],
-     [
-      156,
-      37.8
-     ],
-     [
-      155,
-      37.9
-     ],
-     [
-      40,
-      38.0
-     ],
-     [
-      110,
-      38.2
-     ],
-     [
-      29,
-      38.3
-     ],
-     [
-      150,
-      38.5
-     ],
-     [
-      1,
-      38.5
-     ],
-     [
-      6,
-      38.5
-     ],
-     [
-      59,
-      38.7
-     ],
-     [
-      12,
-      38.8
-     ],
-     [
-      18,
-      38.9
-     ],
-     [
-      103,
-      38.9
-     ],
-     [
-      114,
-      39.2
-     ],
-     [
-      85,
-      39.2
-     ],
-     [
-      66,
-      39.5
-     ],
-     [
-      6,
-      39.5
-     ],
-     [
-      142,
-      39.6
-     ],
-     [
-      134,
-      39.6
-     ],
-     [
-      151,
-      39.7
-     ],
-     [
-      25,
-      39.9
-     ],
-     [
-      92,
-      40.0
-     ],
-     [
-      106,
-      40.2
-     ],
-     [
-      50,
-      40.4
-     ],
-     [
-      0,
-      40.4
-     ],
-     [
-      117,
-      40.5
-     ],
-     [
-      10,
-      40.5
-     ],
-     [
-      137,
-      40.7
-     ],
-     [
-      7,
-      40.7
-     ],
-     [
-      18,
-      40.7
-     ],
-     [
-      3,
-      40.8
-     ],
-     [
-      48,
-      41.1
-     ],
-     [
-      0,
-      41.2
-     ],
-     [
-      35,
-      41.4
-     ],
-     [
-      6,
-      41.4
-     ],
-     [
-      19,
-      41.5
-     ],
-     [
       17,
-      41.7
+      36.8
      ],
      [
-      104,
-      41.9
-     ],
-     [
-      21,
-      41.9
-     ],
-     [
-      125,
-      42.1
-     ],
-     [
-      113,
-      42.1
-     ],
-     [
-      61,
-      42.1
-     ],
-     [
-      1,
-      42.2
-     ],
-     [
-      52,
-      42.2
-     ],
-     [
-      10,
-      42.2
+      88,
+      37.0
      ],
      [
       76,
-      42.3
+      37.0
      ],
      [
-      13,
-      42.3
-     ],
-     [
-      4,
-      42.6
-     ],
-     [
-      67,
-      43.2
-     ],
-     [
-      8,
-      43.4
-     ],
-     [
-      77,
-      43.4
-     ],
-     [
-      86,
-      43.5
-     ],
-     [
-      148,
-      43.6
-     ],
-     [
-      4,
-      43.9
-     ],
-     [
-      10,
-      43.9
-     ],
-     [
-      27,
-      44.2
-     ],
-     [
-      12,
-      44.2
-     ],
-     [
-      13,
-      44.3
-     ],
-     [
-      24,
-      44.4
-     ],
-     [
-      69,
-      44.5
-     ],
-     [
-      22,
-      44.8
-     ],
-     [
-      36,
-      45.0
-     ],
-     [
-      78,
-      45.0
-     ],
-     [
-      0,
-      45.1
-     ],
-     [
-      55,
-      45.1
-     ],
-     [
-      23,
-      45.1
-     ],
-     [
-      11,
-      45.2
-     ],
-     [
-      49,
-      45.2
-     ],
-     [
-      13,
-      45.2
-     ],
-     [
-      73,
-      45.4
-     ],
-     [
-      4,
-      45.5
-     ],
-     [
-      95,
-      45.5
-     ],
-     [
-      15,
-      45.5
-     ],
-     [
-      10,
-      45.6
-     ],
-     [
-      35,
-      45.7
-     ],
-     [
-      3,
-      45.7
-     ],
-     [
-      26,
-      45.8
-     ],
-     [
-      6,
-      45.9
-     ],
-     [
-      2,
-      45.9
-     ],
-     [
-      126,
-      46.0
+      60,
+      37.0
      ],
      [
       28,
-      46.1
+      37.0
      ],
      [
-      1,
-      46.2
+      16,
+      37.2
+     ],
+     [
+      80,
+      37.3
+     ],
+     [
+      117,
+      37.3
+     ],
+     [
+      147,
+      37.4
+     ],
+     [
+      73,
+      37.5
+     ],
+     [
+      10,
+      37.5
+     ],
+     [
+      131,
+      37.6
+     ],
+     [
+      87,
+      37.7
+     ],
+     [
+      22,
+      37.7
+     ],
+     [
+      5,
+      37.7
+     ],
+     [
+      47,
+      37.7
+     ],
+     [
+      64,
+      37.7
+     ],
+     [
+      32,
+      37.8
+     ],
+     [
+      48,
+      37.9
+     ],
+     [
+      84,
+      38.0
+     ],
+     [
+      118,
+      38.0
+     ],
+     [
+      13,
+      38.1
+     ],
+     [
+      13,
+      38.2
+     ],
+     [
+      50,
+      38.3
+     ],
+     [
+      77,
+      38.4
+     ],
+     [
+      148,
+      38.4
+     ],
+     [
+      67,
+      38.4
+     ],
+     [
+      121,
+      38.4
+     ],
+     [
+      24,
+      38.7
+     ],
+     [
+      100,
+      38.7
+     ],
+     [
+      16,
+      38.7
+     ],
+     [
+      38,
+      38.7
+     ],
+     [
+      44,
+      38.8
+     ],
+     [
+      19,
+      38.8
+     ],
+     [
+      94,
+      38.8
      ],
      [
       15,
-      46.5
+      38.8
+     ],
+     [
+      54,
+      38.9
+     ],
+     [
+      12,
+      38.9
+     ],
+     [
+      115,
+      39.1
+     ],
+     [
+      42,
+      39.1
+     ],
+     [
+      132,
+      39.1
+     ],
+     [
+      112,
+      39.3
+     ],
+     [
+      62,
+      39.3
+     ],
+     [
+      8,
+      39.3
+     ],
+     [
+      18,
+      39.3
+     ],
+     [
+      59,
+      39.3
+     ],
+     [
+      86,
+      39.4
+     ],
+     [
+      82,
+      39.4
+     ],
+     [
+      13,
+      39.6
+     ],
+     [
+      55,
+      39.6
+     ],
+     [
+      19,
+      39.7
+     ],
+     [
+      158,
+      39.8
+     ],
+     [
+      75,
+      39.8
+     ],
+     [
+      69,
+      39.8
+     ],
+     [
+      114,
+      40.0
+     ],
+     [
+      29,
+      40.0
+     ],
+     [
+      61,
+      40.1
+     ],
+     [
+      19,
+      40.1
+     ],
+     [
+      119,
+      40.1
+     ],
+     [
+      129,
+      40.1
+     ],
+     [
+      91,
+      40.1
+     ],
+     [
+      0,
+      40.2
+     ],
+     [
+      6,
+      40.2
+     ],
+     [
+      16,
+      40.3
+     ],
+     [
+      7,
+      40.4
+     ],
+     [
+      19,
+      40.4
+     ],
+     [
+      1,
+      40.5
+     ],
+     [
+      11,
+      40.6
+     ],
+     [
+      34,
+      40.7
+     ],
+     [
+      8,
+      40.9
+     ],
+     [
+      70,
+      41.0
+     ],
+     [
+      31,
+      41.0
+     ],
+     [
+      125,
+      41.1
+     ],
+     [
+      57,
+      41.1
+     ],
+     [
+      74,
+      41.2
+     ],
+     [
+      103,
+      41.2
+     ],
+     [
+      48,
+      41.2
+     ],
+     [
+      26,
+      41.3
+     ],
+     [
+      18,
+      41.3
+     ],
+     [
+      65,
+      41.3
+     ],
+     [
+      5,
+      41.4
+     ],
+     [
+      157,
+      41.6
+     ],
+     [
+      35,
+      41.7
+     ],
+     [
+      43,
+      41.7
+     ],
+     [
+      133,
+      41.7
+     ],
+     [
+      21,
+      41.8
+     ],
+     [
+      28,
+      41.8
+     ],
+     [
+      83,
+      41.9
      ],
      [
       96,
+      42.1
+     ],
+     [
+      66,
+      42.1
+     ],
+     [
+      116,
+      42.2
+     ],
+     [
+      89,
+      42.4
+     ],
+     [
+      33,
+      42.4
+     ],
+     [
+      113,
+      42.4
+     ],
+     [
+      71,
+      42.6
+     ],
+     [
+      23,
+      42.6
+     ],
+     [
+      53,
+      42.6
+     ],
+     [
+      30,
+      42.6
+     ],
+     [
+      143,
+      42.7
+     ],
+     [
+      106,
+      42.8
+     ],
+     [
+      25,
+      42.8
+     ],
+     [
+      58,
+      42.9
+     ],
+     [
+      137,
+      42.9
+     ],
+     [
+      7,
+      43.0
+     ],
+     [
+      124,
+      43.1
+     ],
+     [
+      16,
+      43.2
+     ],
+     [
+      22,
+      43.3
+     ],
+     [
+      79,
+      43.4
+     ],
+     [
+      18,
+      43.4
+     ],
+     [
+      105,
+      43.5
+     ],
+     [
+      72,
+      43.5
+     ],
+     [
+      102,
+      43.6
+     ],
+     [
+      9,
+      43.6
+     ],
+     [
+      111,
+      43.8
+     ],
+     [
+      52,
+      44.0
+     ],
+     [
+      56,
+      44.1
+     ],
+     [
+      14,
+      44.2
+     ],
+     [
+      145,
+      44.2
+     ],
+     [
+      27,
+      44.4
+     ],
+     [
+      1,
+      44.7
+     ],
+     [
+      95,
+      44.8
+     ],
+     [
+      63,
+      44.9
+     ],
+     [
+      19,
+      44.9
+     ],
+     [
+      34,
+      45.0
+     ],
+     [
+      126,
+      45.0
+     ],
+     [
+      152,
+      45.1
+     ],
+     [
+      41,
+      45.1
+     ],
+     [
+      90,
+      45.2
+     ],
+     [
+      31,
+      45.2
+     ],
+     [
+      16,
+      45.2
+     ],
+     [
+      127,
+      45.3
+     ],
+     [
+      122,
+      45.3
+     ],
+     [
+      1,
+      45.4
+     ],
+     [
+      67,
+      45.4
+     ],
+     [
+      114,
+      45.5
+     ],
+     [
+      73,
+      45.5
+     ],
+     [
+      37,
+      45.6
+     ],
+     [
+      9,
+      45.6
+     ],
+     [
+      45,
+      45.7
+     ],
+     [
+      11,
+      45.9
+     ],
+     [
+      32,
+      46.1
+     ],
+     [
+      24,
+      46.2
+     ],
+     [
+      19,
+      46.2
+     ],
+     [
+      3,
+      46.2
+     ],
+     [
+      120,
+      46.3
+     ],
+     [
+      0,
+      46.4
+     ],
+     [
+      44,
+      46.6
+     ],
+     [
+      151,
       46.6
      ],
      [
@@ -5200,1927 +5289,1915 @@
       46.6
      ],
      [
-      31,
-      46.6
-     ],
-     [
-      34,
-      46.7
-     ],
-     [
-      132,
-      46.7
-     ],
-     [
-      61,
+      20,
       46.8
      ],
      [
-      98,
+      97,
       46.8
      ],
      [
-      87,
+      17,
       47.1
      ],
      [
-      0,
-      47.4
+      94,
+      47.1
      ],
      [
-      16,
-      47.5
+      131,
+      47.1
      ],
      [
-      128,
-      47.6
-     ],
-     [
-      51,
-      47.6
-     ],
-     [
-      89,
-      47.6
-     ],
-     [
-      103,
-      47.7
-     ],
-     [
-      13,
-      47.7
-     ],
-     [
-      10,
-      47.7
-     ],
-     [
-      108,
-      47.8
-     ],
-     [
-      116,
-      48.0
+      36,
+      47.2
      ],
      [
       9,
-      48.1
+      47.3
+     ],
+     [
+      46,
+      47.4
+     ],
+     [
+      20,
+      47.5
+     ],
+     [
+      150,
+      47.5
+     ],
+     [
+      107,
+      47.5
+     ],
+     [
+      78,
+      47.5
+     ],
+     [
+      0,
+      47.6
+     ],
+     [
+      60,
+      47.6
+     ],
+     [
+      39,
+      47.6
+     ],
+     [
+      88,
+      47.7
+     ],
+     [
+      140,
+      47.7
      ],
      [
       33,
-      48.1
+      47.7
      ],
      [
-      21,
+      55,
+      47.8
+     ],
+     [
+      40,
+      48.0
+     ],
+     [
+      34,
+      48.0
+     ],
+     [
+      6,
+      48.0
+     ],
+     [
+      16,
+      48.0
+     ],
+     [
+      13,
+      48.0
+     ],
+     [
+      77,
       48.2
      ],
      [
-      102,
-      48.2
-     ],
-     [
-      119,
+      128,
       48.3
      ],
      [
-      8,
+      136,
       48.3
      ],
      [
-      63,
+      75,
+      48.3
+     ],
+     [
+      69,
       48.4
      ],
      [
-      100,
-      48.5
-     ],
-     [
-      43,
+      49,
       48.6
      ],
      [
       20,
-      48.8
-     ],
-     [
-      66,
-      48.8
-     ],
-     [
-      82,
-      48.8
+      48.7
      ],
      [
       104,
+      48.7
+     ],
+     [
+      8,
       48.9
      ],
      [
-      30,
+      58,
       48.9
      ],
      [
-      18,
-      48.9
+      70,
+      49.2
      ],
      [
-      19,
-      48.9
+      2,
+      49.2
      ],
      [
-      32,
-      49.5
+      3,
+      49.2
      ],
      [
-      46,
-      49.5
+      14,
+      49.3
      ],
      [
       9,
-      49.6
+      49.3
+     ],
+     [
+      51,
+      49.4
+     ],
+     [
+      29,
+      49.5
      ],
      [
       64,
+      49.5
+     ],
+     [
+      21,
+      49.6
+     ],
+     [
+      68,
+      49.6
+     ],
+     [
+      83,
+      49.6
+     ],
+     [
+      10,
+      49.7
+     ],
+     [
+      139,
       49.8
      ],
      [
-      42,
+      38,
       49.9
      ],
      [
-      5,
-      49.9
-     ],
-     [
-      0,
+      76,
       50.0
      ],
      [
-      41,
+      19,
+      50.3
+     ],
+     [
+      23,
+      50.3
+     ],
+     [
+      42,
       50.4
      ],
      [
       9,
-      50.4
-     ],
-     [
-      44,
       50.5
      ],
      [
-      76,
-      50.5
+      17,
+      50.7
      ],
      [
-      11,
+      14,
+      50.7
+     ],
+     [
+      116,
       50.8
      ],
      [
-      69,
-      50.8
-     ],
-     [
-      5,
+      16,
       50.9
      ],
      [
-      131,
+      155,
       51.1
      ],
      [
       22,
+      51.2
+     ],
+     [
+      28,
+      51.2
+     ],
+     [
+      5,
       51.3
      ],
      [
-      24,
-      51.4
-     ],
-     [
-      125,
+      4,
       51.5
-     ],
-     [
-      18,
-      51.5
-     ],
-     [
-      6,
-      51.5
-     ],
-     [
-      56,
-      51.6
-     ],
-     [
-      129,
-      51.8
-     ],
-     [
-      18,
-      51.8
-     ],
-     [
-      23,
-      51.8
-     ],
-     [
-      68,
-      52.0
-     ],
-     [
-      25,
-      52.0
-     ],
-     [
-      39,
-      52.1
-     ],
-     [
-      4,
-      52.2
-     ],
-     [
-      77,
-      52.2
-     ],
-     [
-      16,
-      52.4
-     ],
-     [
-      12,
-      52.4
-     ],
-     [
-      80,
-      52.5
-     ],
-     [
-      35,
-      52.6
-     ],
-     [
-      14,
-      52.7
-     ],
-     [
-      27,
-      52.7
-     ],
-     [
-      71,
-      52.8
-     ],
-     [
-      16,
-      52.8
-     ],
-     [
-      95,
-      52.9
-     ],
-     [
-      47,
-      52.9
-     ],
-     [
-      1,
-      52.9
-     ],
-     [
-      4,
-      53.1
-     ],
-     [
-      61,
-      53.2
-     ],
-     [
-      140,
-      53.3
-     ],
-     [
-      7,
-      53.4
-     ],
-     [
-      62,
-      53.4
-     ],
-     [
-      8,
-      53.5
-     ],
-     [
-      8,
-      53.8
-     ],
-     [
-      65,
-      54.0
-     ],
-     [
-      103,
-      54.0
-     ],
-     [
-      67,
-      54.2
-     ],
-     [
-      12,
-      54.4
-     ],
-     [
-      7,
-      54.6
-     ],
-     [
-      12,
-      54.6
-     ],
-     [
-      124,
-      54.6
-     ],
-     [
-      45,
-      54.9
-     ],
-     [
-      7,
-      55.0
-     ],
-     [
-      21,
-      55.0
-     ],
-     [
-      99,
-      55.0
-     ],
-     [
-      20,
-      55.1
-     ],
-     [
-      147,
-      55.2
-     ],
-     [
-      96,
-      55.2
-     ],
-     [
-      98,
-      55.2
-     ],
-     [
-      26,
-      55.3
-     ],
-     [
-      10,
-      55.3
-     ],
-     [
-      97,
-      55.4
-     ],
-     [
-      66,
-      55.4
-     ],
-     [
-      29,
-      55.4
-     ],
-     [
-      17,
-      55.7
-     ],
-     [
-      0,
-      55.8
-     ],
-     [
-      5,
-      55.8
-     ],
-     [
-      87,
-      55.9
-     ],
-     [
-      108,
-      55.9
-     ],
-     [
-      40,
-      56.0
-     ],
-     [
-      7,
-      56.0
-     ],
-     [
-      37,
-      56.1
-     ],
-     [
-      28,
-      56.2
-     ],
-     [
-      104,
-      56.3
-     ],
-     [
-      31,
-      56.4
-     ],
-     [
-      18,
-      56.6
-     ],
-     [
-      33,
-      56.6
-     ],
-     [
-      58,
-      56.8
-     ],
-     [
-      30,
-      57.1
-     ],
-     [
-      22,
-      57.1
-     ],
-     [
-      17,
-      57.2
-     ],
-     [
-      76,
-      57.3
-     ],
-     [
-      38,
-      57.3
-     ],
-     [
-      11,
-      57.4
-     ],
-     [
-      84,
-      57.6
-     ],
-     [
-      8,
-      57.6
-     ],
-     [
-      23,
-      57.6
-     ],
-     [
-      60,
-      57.6
-     ],
-     [
-      85,
-      57.7
-     ],
-     [
-      70,
-      57.8
-     ],
-     [
-      155,
-      57.8
-     ],
-     [
-      10,
-      57.9
-     ],
-     [
-      54,
-      58.0
-     ],
-     [
-      53,
-      58.0
-     ],
-     [
-      34,
-      58.2
-     ],
-     [
-      73,
-      58.2
-     ],
-     [
-      153,
-      58.2
-     ],
-     [
-      17,
-      58.3
-     ],
-     [
-      49,
-      58.5
-     ],
-     [
-      55,
-      58.5
-     ],
-     [
-      24,
-      58.6
-     ],
-     [
-      57,
-      58.6
-     ],
-     [
-      118,
-      58.8
-     ],
-     [
-      20,
-      59.0
-     ],
-     [
-      18,
-      59.4
-     ],
-     [
-      74,
-      59.4
-     ],
-     [
-      77,
-      59.6
-     ],
-     [
-      17,
-      60.0
-     ],
-     [
-      1,
-      60.0
-     ],
-     [
-      10,
-      60.0
-     ],
-     [
-      4,
-      60.2
-     ],
-     [
-      10,
-      60.3
-     ],
-     [
-      56,
-      60.4
-     ],
-     [
-      6,
-      60.5
-     ],
-     [
-      111,
-      60.6
-     ],
-     [
-      20,
-      60.8
-     ],
-     [
-      25,
-      60.8
-     ],
-     [
-      15,
-      60.9
-     ],
-     [
-      17,
-      61.1
-     ],
-     [
-      94,
-      61.3
-     ],
-     [
-      21,
-      61.4
-     ],
-     [
-      145,
-      61.8
-     ],
-     [
-      10,
-      61.8
-     ],
-     [
-      46,
-      61.9
-     ],
-     [
-      26,
-      61.9
-     ],
-     [
-      122,
-      62.0
-     ],
-     [
-      69,
-      62.2
-     ],
-     [
-      27,
-      62.3
-     ],
-     [
-      5,
-      62.4
-     ],
-     [
-      63,
-      62.4
-     ],
-     [
-      43,
-      62.5
-     ],
-     [
-      119,
-      62.5
-     ],
-     [
-      20,
-      62.6
-     ],
-     [
-      18,
-      62.9
-     ],
-     [
-      44,
-      63.0
-     ],
-     [
-      121,
-      63.0
-     ],
-     [
-      64,
-      63.2
-     ],
-     [
-      23,
-      63.3
-     ],
-     [
-      67,
-      63.4
-     ],
-     [
-      42,
-      63.5
-     ],
-     [
-      72,
-      63.5
-     ],
-     [
-      61,
-      63.7
-     ],
-     [
-      41,
-      63.7
-     ],
-     [
-      79,
-      63.9
-     ],
-     [
-      10,
-      63.9
-     ],
-     [
-      115,
-      64.0
-     ],
-     [
-      35,
-      64.1
-     ],
-     [
-      47,
-      64.1
-     ],
-     [
-      146,
-      64.2
-     ],
-     [
-      11,
-      64.3
-     ],
-     [
-      16,
-      64.3
-     ],
-     [
-      70,
-      64.5
-     ],
-     [
-      50,
-      64.5
-     ],
-     [
-      91,
-      64.6
-     ],
-     [
-      32,
-      64.7
-     ],
-     [
-      154,
-      64.8
-     ],
-     [
-      125,
-      64.9
-     ],
-     [
-      20,
-      65.0
-     ],
-     [
-      6,
-      65.1
-     ],
-     [
-      14,
-      65.2
-     ],
-     [
-      22,
-      65.2
-     ],
-     [
-      7,
-      65.3
-     ],
-     [
-      15,
-      65.3
-     ],
-     [
-      8,
-      65.4
-     ],
-     [
-      10,
-      65.4
-     ],
-     [
-      20,
-      65.7
-     ],
-     [
-      68,
-      65.7
-     ],
-     [
-      19,
-      65.8
-     ],
-     [
-      87,
-      65.9
-     ],
-     [
-      15,
-      65.9
-     ],
-     [
-      90,
-      66.0
-     ],
-     [
-      13,
-      66.0
-     ],
-     [
-      82,
-      66.1
-     ],
-     [
-      24,
-      66.2
-     ],
-     [
-      3,
-      66.2
-     ],
-     [
-      133,
-      66.3
-     ],
-     [
-      16,
-      66.5
-     ],
-     [
-      28,
-      66.6
-     ],
-     [
-      11,
-      66.9
-     ],
-     [
-      7,
-      66.9
-     ],
-     [
-      86,
-      67.0
-     ],
-     [
-      19,
-      67.2
-     ],
-     [
-      11,
-      67.3
-     ],
-     [
-      51,
-      67.4
-     ],
-     [
-      80,
-      67.4
-     ],
-     [
-      131,
-      67.5
-     ],
-     [
-      8,
-      67.6
-     ],
-     [
-      65,
-      67.7
-     ],
-     [
-      25,
-      67.7
-     ],
-     [
-      93,
-      67.8
-     ],
-     [
-      31,
-      67.9
-     ],
-     [
-      39,
-      68.0
-     ],
-     [
-      30,
-      68.1
-     ],
-     [
-      9,
-      68.2
-     ],
-     [
-      60,
-      68.3
-     ],
-     [
-      144,
-      68.5
-     ],
-     [
-      56,
-      68.5
-     ],
-     [
-      21,
-      68.5
-     ],
-     [
-      33,
-      68.5
-     ],
-     [
-      66,
-      68.6
-     ],
-     [
-      13,
-      68.6
-     ],
-     [
-      159,
-      68.7
-     ],
-     [
-      45,
-      68.8
-     ],
-     [
-      13,
-      68.8
-     ],
-     [
-      158,
-      68.9
-     ],
-     [
-      4,
-      68.9
-     ],
-     [
-      52,
-      68.9
-     ],
-     [
-      74,
-      68.9
-     ],
-     [
-      12,
-      69.0
-     ],
-     [
-      3,
-      69.2
-     ],
-     [
-      38,
-      69.3
-     ],
-     [
-      62,
-      69.4
-     ],
-     [
-      13,
-      69.5
-     ],
-     [
-      6,
-      69.6
-     ],
-     [
-      149,
-      69.8
-     ],
-     [
-      23,
-      69.8
-     ],
-     [
-      100,
-      69.8
-     ],
-     [
-      29,
-      69.8
-     ],
-     [
-      34,
-      69.9
-     ],
-     [
-      5,
-      69.9
-     ],
-     [
-      49,
-      70.0
-     ],
-     [
-      19,
-      70.1
-     ],
-     [
-      95,
-      70.2
-     ],
-     [
-      26,
-      70.2
-     ],
-     [
-      9,
-      70.4
-     ],
-     [
-      48,
-      70.5
-     ],
-     [
-      14,
-      70.5
-     ],
-     [
-      53,
-      70.5
-     ],
-     [
-      36,
-      70.8
-     ],
-     [
-      2,
-      70.9
-     ],
-     [
-      8,
-      71.0
-     ],
-     [
-      105,
-      71.0
-     ],
-     [
-      57,
-      71.0
-     ],
-     [
-      20,
-      71.1
-     ],
-     [
-      72,
-      71.1
-     ],
-     [
-      107,
-      71.2
      ],
      [
       89,
-      71.2
+      51.5
+     ],
+     [
+      34,
+      51.6
+     ],
+     [
+      25,
+      51.6
+     ],
+     [
+      13,
+      51.7
+     ],
+     [
+      92,
+      51.8
+     ],
+     [
+      96,
+      51.8
+     ],
+     [
+      146,
+      52.0
+     ],
+     [
+      15,
+      52.0
+     ],
+     [
+      55,
+      52.1
+     ],
+     [
+      33,
+      52.3
+     ],
+     [
+      37,
+      52.3
+     ],
+     [
+      99,
+      52.4
+     ],
+     [
+      43,
+      52.4
+     ],
+     [
+      65,
+      52.5
+     ],
+     [
+      26,
+      52.6
+     ],
+     [
+      156,
+      52.6
+     ],
+     [
+      16,
+      52.6
+     ],
+     [
+      95,
+      52.7
+     ],
+     [
+      109,
+      52.8
+     ],
+     [
+      123,
+      52.8
+     ],
+     [
+      27,
+      52.8
+     ],
+     [
+      4,
+      52.9
+     ],
+     [
+      63,
+      52.9
+     ],
+     [
+      30,
+      52.9
+     ],
+     [
+      3,
+      53.0
+     ],
+     [
+      54,
+      53.1
+     ],
+     [
+      93,
+      53.1
+     ],
+     [
+      14,
+      53.2
+     ],
+     [
+      85,
+      53.4
+     ],
+     [
+      61,
+      53.4
+     ],
+     [
+      31,
+      53.5
+     ],
+     [
+      18,
+      53.6
+     ],
+     [
+      73,
+      53.7
+     ],
+     [
+      5,
+      53.8
+     ],
+     [
+      24,
+      53.9
+     ],
+     [
+      59,
+      53.9
+     ],
+     [
+      12,
+      53.9
+     ],
+     [
+      17,
+      54.0
+     ],
+     [
+      9,
+      54.2
+     ],
+     [
+      35,
+      54.3
+     ],
+     [
+      50,
+      54.4
+     ],
+     [
+      8,
+      54.5
+     ],
+     [
+      57,
+      54.9
+     ],
+     [
+      53,
+      55.0
+     ],
+     [
+      41,
+      55.1
+     ],
+     [
+      3,
+      55.2
+     ],
+     [
+      32,
+      55.5
+     ],
+     [
+      113,
+      55.6
+     ],
+     [
+      134,
+      55.8
+     ],
+     [
+      21,
+      55.8
+     ],
+     [
+      101,
+      55.8
+     ],
+     [
+      14,
+      55.9
+     ],
+     [
+      7,
+      55.9
+     ],
+     [
+      46,
+      55.9
+     ],
+     [
+      9,
+      56.0
+     ],
+     [
+      86,
+      56.1
+     ],
+     [
+      6,
+      56.3
+     ],
+     [
+      10,
+      56.4
+     ],
+     [
+      23,
+      56.6
+     ],
+     [
+      29,
+      56.6
+     ],
+     [
+      8,
+      56.7
+     ],
+     [
+      108,
+      57.0
+     ],
+     [
+      75,
+      57.0
+     ],
+     [
+      36,
+      57.1
+     ],
+     [
+      14,
+      57.4
+     ],
+     [
+      11,
+      57.6
+     ],
+     [
+      74,
+      57.7
+     ],
+     [
+      0,
+      57.7
+     ],
+     [
+      22,
+      57.7
+     ],
+     [
+      69,
+      57.7
+     ],
+     [
+      45,
+      57.9
+     ],
+     [
+      18,
+      57.9
+     ],
+     [
+      13,
+      57.9
+     ],
+     [
+      56,
+      58.3
+     ],
+     [
+      33,
+      58.3
+     ],
+     [
+      6,
+      58.3
+     ],
+     [
+      8,
+      58.4
+     ],
+     [
+      79,
+      58.4
+     ],
+     [
+      7,
+      58.5
+     ],
+     [
+      153,
+      58.5
+     ],
+     [
+      16,
+      58.5
+     ],
+     [
+      81,
+      58.6
+     ],
+     [
+      82,
+      58.6
+     ],
+     [
+      39,
+      58.6
+     ],
+     [
+      17,
+      58.7
+     ],
+     [
+      9,
+      58.7
+     ],
+     [
+      84,
+      58.9
+     ],
+     [
+      5,
+      59.2
+     ],
+     [
+      98,
+      59.2
+     ],
+     [
+      66,
+      59.3
+     ],
+     [
+      4,
+      59.6
+     ],
+     [
+      144,
+      59.6
+     ],
+     [
+      72,
+      59.6
+     ],
+     [
+      47,
+      59.8
+     ],
+     [
+      1,
+      60.0
+     ],
+     [
+      100,
+      60.0
+     ],
+     [
+      6,
+      60.0
+     ],
+     [
+      28,
+      60.0
+     ],
+     [
+      55,
+      60.0
+     ],
+     [
+      10,
+      60.1
+     ],
+     [
+      31,
+      60.2
      ],
      [
       42,
+      60.3
+     ],
+     [
+      118,
+      60.3
+     ],
+     [
+      70,
+      60.4
+     ],
+     [
+      1,
+      60.4
+     ],
+     [
+      25,
+      60.5
+     ],
+     [
+      130,
+      60.6
+     ],
+     [
+      38,
+      60.7
+     ],
+     [
+      128,
+      60.9
+     ],
+     [
+      49,
+      61.1
+     ],
+     [
+      14,
+      61.1
+     ],
+     [
+      18,
+      61.1
+     ],
+     [
+      91,
+      61.1
+     ],
+     [
+      60,
+      61.2
+     ],
+     [
+      18,
+      61.2
+     ],
+     [
+      13,
+      61.2
+     ],
+     [
+      20,
+      61.3
+     ],
+     [
+      7,
+      61.3
+     ],
+     [
+      58,
+      61.3
+     ],
+     [
+      76,
+      61.3
+     ],
+     [
+      105,
+      61.4
+     ],
+     [
+      16,
+      61.4
+     ],
+     [
+      40,
+      61.5
+     ],
+     [
+      8,
+      61.7
+     ],
+     [
+      27,
+      62.1
+     ],
+     [
+      21,
+      62.2
+     ],
+     [
+      71,
+      62.4
+     ],
+     [
+      78,
+      62.4
+     ],
+     [
+      23,
+      62.5
+     ],
+     [
+      6,
+      62.5
+     ],
+     [
+      13,
+      62.5
+     ],
+     [
+      12,
+      62.8
+     ],
+     [
+      8,
+      62.9
+     ],
+     [
+      26,
+      63.0
+     ],
+     [
+      5,
+      63.0
+     ],
+     [
+      2,
+      63.0
+     ],
+     [
+      80,
+      63.2
+     ],
+     [
+      24,
+      63.3
+     ],
+     [
+      19,
+      63.4
+     ],
+     [
+      7,
+      63.6
+     ],
+     [
+      54,
+      63.7
+     ],
+     [
+      64,
+      63.7
+     ],
+     [
+      43,
+      63.9
+     ],
+     [
+      32,
+      64.0
+     ],
+     [
+      8,
+      64.1
+     ],
+     [
+      22,
+      64.1
+     ],
+     [
+      68,
+      64.2
+     ],
+     [
+      83,
+      64.2
+     ],
+     [
+      96,
+      64.3
+     ],
+     [
+      37,
+      64.3
+     ],
+     [
+      7,
+      64.5
+     ],
+     [
+      59,
+      64.9
+     ],
+     [
+      29,
+      64.9
+     ],
+     [
+      31,
+      65.0
+     ],
+     [
+      30,
+      65.1
+     ],
+     [
+      117,
+      65.6
+     ],
+     [
+      135,
+      65.8
+     ],
+     [
+      124,
+      66.0
+     ],
+     [
+      19,
+      66.0
+     ],
+     [
+      15,
+      66.0
+     ],
+     [
+      36,
+      66.2
+     ],
+     [
+      18,
+      66.2
+     ],
+     [
+      5,
+      66.2
+     ],
+     [
+      3,
+      66.3
+     ],
+     [
+      35,
+      66.5
+     ],
+     [
+      149,
+      66.5
+     ],
+     [
+      3,
+      66.5
+     ],
+     [
+      122,
+      66.6
+     ],
+     [
+      9,
+      66.7
+     ],
+     [
+      97,
+      66.8
+     ],
+     [
+      46,
+      66.9
+     ],
+     [
+      92,
+      67.0
+     ],
+     [
+      52,
+      67.2
+     ],
+     [
+      17,
+      67.3
+     ],
+     [
+      3,
+      67.7
+     ],
+     [
+      95,
+      68.0
+     ],
+     [
+      61,
+      68.1
+     ],
+     [
+      8,
+      68.2
+     ],
+     [
+      129,
+      68.3
+     ],
+     [
+      8,
+      68.4
+     ],
+     [
+      18,
+      68.4
+     ],
+     [
+      53,
+      68.5
+     ],
+     [
+      66,
+      68.6
+     ],
+     [
+      145,
+      68.6
+     ],
+     [
+      142,
+      69.1
+     ],
+     [
+      45,
+      69.2
+     ],
+     [
+      132,
+      69.3
+     ],
+     [
+      121,
+      69.3
+     ],
+     [
+      27,
+      69.3
+     ],
+     [
+      41,
+      69.4
+     ],
+     [
+      57,
+      69.5
+     ],
+     [
+      21,
+      69.5
+     ],
+     [
+      107,
+      69.5
+     ],
+     [
+      13,
+      69.7
+     ],
+     [
+      39,
+      69.8
+     ],
+     [
+      44,
+      70.0
+     ],
+     [
+      25,
+      70.0
+     ],
+     [
+      85,
+      70.5
+     ],
+     [
+      101,
+      70.5
+     ],
+     [
+      23,
+      70.5
+     ],
+     [
+      137,
+      70.5
+     ],
+     [
+      19,
+      70.6
+     ],
+     [
+      78,
+      70.6
+     ],
+     [
+      50,
+      70.7
+     ],
+     [
+      93,
+      70.7
+     ],
+     [
+      10,
+      70.8
+     ],
+     [
+      15,
+      71.1
+     ],
+     [
+      56,
+      71.2
+     ],
+     [
+      62,
+      71.3
+     ],
+     [
+      38,
+      71.3
+     ],
+     [
+      9,
       71.3
      ],
      [
       11,
-      71.4
-     ],
-     [
-      7,
-      71.4
-     ],
-     [
-      58,
-      71.4
-     ],
-     [
-      104,
-      71.5
-     ],
-     [
-      81,
-      71.5
-     ],
-     [
-      130,
       71.6
-     ],
-     [
-      32,
-      71.6
-     ],
-     [
-      27,
-      71.6
-     ],
-     [
-      79,
-      71.6
-     ],
-     [
-      106,
-      71.6
-     ],
-     [
-      120,
-      71.7
-     ],
-     [
-      71,
-      71.7
-     ],
-     [
-      19,
-      71.7
-     ],
-     [
-      15,
-      71.8
-     ],
-     [
-      46,
-      71.9
-     ],
-     [
-      96,
-      72.0
-     ],
-     [
-      114,
-      72.1
-     ],
-     [
-      54,
-      72.1
-     ],
-     [
-      22,
-      72.1
-     ],
-     [
-      123,
-      72.1
-     ],
-     [
-      97,
-      72.2
-     ],
-     [
-      76,
-      72.2
-     ],
-     [
-      35,
-      72.3
-     ],
-     [
-      108,
-      72.3
-     ],
-     [
-      13,
-      72.3
-     ],
-     [
-      152,
-      72.4
-     ],
-     [
-      69,
-      72.4
-     ],
-     [
-      55,
-      72.4
-     ],
-     [
-      85,
-      72.5
-     ],
-     [
-      61,
-      72.5
-     ],
-     [
-      7,
-      72.6
-     ],
-     [
-      88,
-      72.6
-     ],
-     [
-      0,
-      72.6
-     ],
-     [
-      78,
-      72.6
-     ],
-     [
-      98,
-      72.6
-     ],
-     [
-      157,
-      72.7
-     ],
-     [
-      15,
-      72.7
-     ],
-     [
-      77,
-      72.7
-     ],
-     [
-      16,
-      72.8
-     ],
-     [
-      110,
-      72.9
-     ],
-     [
-      7,
-      73.0
-     ],
-     [
-      92,
-      73.0
-     ],
-     [
-      3,
-      73.0
-     ],
-     [
-      14,
-      73.1
-     ],
-     [
-      102,
-      73.1
-     ],
-     [
-      24,
-      73.3
-     ],
-     [
-      0,
-      73.3
-     ],
-     [
-      15,
-      73.3
-     ],
-     [
-      47,
-      73.4
-     ],
-     [
-      134,
-      73.4
-     ],
-     [
-      127,
-      73.6
-     ],
-     [
-      40,
-      73.7
-     ],
-     [
-      112,
-      73.7
-     ],
-     [
-      136,
-      73.7
-     ],
-     [
-      37,
-      73.7
-     ],
-     [
-      109,
-      73.8
-     ],
-     [
-      44,
-      73.9
-     ],
-     [
-      25,
-      73.9
-     ],
-     [
-      20,
-      74.0
-     ],
-     [
-      103,
-      74.2
-     ],
-     [
-      39,
-      74.2
-     ],
-     [
-      6,
-      74.2
-     ],
-     [
-      17,
-      74.3
-     ],
-     [
-      67,
-      74.4
-     ],
-     [
-      21,
-      74.5
-     ],
-     [
-      113,
-      74.5
-     ],
-     [
-      83,
-      74.5
-     ],
-     [
-      16,
-      74.5
-     ],
-     [
-      30,
-      74.6
-     ],
-     [
-      124,
-      74.7
-     ],
-     [
-      75,
-      74.8
-     ],
-     [
-      84,
-      74.8
-     ],
-     [
-      0,
-      74.9
-     ],
-     [
-      60,
-      74.9
-     ],
-     [
-      20,
-      75.0
      ],
      [
       63,
-      75.2
+      71.8
      ],
      [
-      137,
-      75.6
+      154,
+      71.9
      ],
      [
-      6,
-      75.6
-     ],
-     [
-      33,
-      75.7
-     ],
-     [
-      94,
-      75.8
-     ],
-     [
-      128,
-      75.9
-     ],
-     [
-      0,
-      75.9
-     ],
-     [
-      156,
-      76.0
-     ],
-     [
-      101,
-      76.1
-     ],
-     [
-      41,
-      76.1
-     ],
-     [
-      43,
-      76.2
-     ],
-     [
-      141,
-      76.2
-     ],
-     [
-      66,
-      76.2
-     ],
-     [
-      64,
-      76.2
-     ],
-     [
-      35,
-      76.4
-     ],
-     [
-      95,
-      76.4
-     ],
-     [
-      28,
-      76.4
-     ],
-     [
-      99,
-      76.4
-     ],
-     [
-      50,
-      76.5
-     ],
-     [
-      151,
-      76.5
-     ],
-     [
-      59,
-      76.6
-     ],
-     [
-      135,
-      76.7
-     ],
-     [
-      0,
-      76.9
-     ],
-     [
-      5,
-      76.9
-     ],
-     [
-      36,
-      77.0
-     ],
-     [
-      51,
-      77.0
-     ],
-     [
-      31,
-      77.0
-     ],
-     [
-      13,
-      77.0
-     ],
-     [
-      29,
-      77.0
-     ],
-     [
-      129,
-      77.1
-     ],
-     [
-      3,
-      77.1
-     ],
-     [
-      88,
-      77.3
-     ],
-     [
-      90,
-      77.3
-     ],
-     [
-      10,
-      77.3
-     ],
-     [
-      23,
-      77.4
-     ],
-     [
-      16,
-      77.4
-     ],
-     [
-      14,
-      77.5
-     ],
-     [
-      45,
-      77.5
-     ],
-     [
-      52,
-      77.5
-     ],
-     [
-      11,
-      77.6
-     ],
-     [
-      2,
-      77.6
-     ],
-     [
-      6,
-      77.8
-     ],
-     [
-      22,
-      77.9
-     ],
-     [
-      87,
-      78.0
-     ],
-     [
-      48,
-      78.1
-     ],
-     [
-      80,
-      78.1
-     ],
-     [
-      38,
-      78.2
-     ],
-     [
-      19,
-      78.3
-     ],
-     [
-      93,
-      78.5
-     ],
-     [
-      133,
-      78.6
-     ],
-     [
-      125,
-      78.6
-     ],
-     [
-      62,
-      78.8
-     ],
-     [
-      19,
-      78.8
-     ],
-     [
-      16,
-      78.8
-     ],
-     [
-      117,
-      78.9
-     ],
-     [
-      8,
-      79.1
-     ],
-     [
-      138,
-      79.2
-     ],
-     [
-      10,
-      79.2
-     ],
-     [
-      9,
-      79.2
-     ],
-     [
-      6,
-      79.3
-     ],
-     [
-      121,
-      79.4
-     ],
-     [
-      5,
-      79.5
-     ],
-     [
-      73,
-      79.6
-     ],
-     [
-      124,
-      79.6
-     ],
-     [
-      116,
-      80.2
-     ],
-     [
-      89,
-      80.2
-     ],
-     [
-      1,
-      80.2
-     ],
-     [
-      34,
-      80.3
-     ],
-     [
-      7,
-      80.3
-     ],
-     [
-      27,
-      80.3
-     ],
-     [
-      12,
-      80.3
-     ],
-     [
-      65,
-      80.4
-     ],
-     [
-      132,
-      80.4
-     ],
-     [
-      72,
-      80.5
-     ],
-     [
-      18,
-      80.6
-     ],
-     [
-      107,
-      80.7
-     ],
-     [
-      143,
-      80.7
-     ],
-     [
-      150,
-      80.8
-     ],
-     [
-      37,
-      80.8
-     ],
-     [
-      13,
-      80.8
-     ],
-     [
-      10,
-      80.8
-     ],
-     [
-      59,
-      80.8
-     ],
-     [
-      11,
-      80.9
-     ],
-     [
-      20,
-      81.1
-     ],
-     [
-      24,
-      81.1
+      159,
+      71.9
      ],
      [
       40,
-      81.2
+      72.1
      ],
      [
-      9,
-      81.2
+      100,
+      72.1
      ],
      [
-      75,
-      81.3
+      65,
+      72.2
      ],
      [
-      96,
-      81.3
+      47,
+      72.2
      ],
      [
-      148,
-      81.3
+      82,
+      72.5
      ],
      [
-      26,
-      81.3
+      51,
+      72.6
+     ],
+     [
+      58,
+      72.6
+     ],
+     [
+      20,
+      72.8
+     ],
+     [
+      42,
+      72.8
+     ],
+     [
+      28,
+      72.8
+     ],
+     [
+      7,
+      72.9
+     ],
+     [
+      22,
+      72.9
+     ],
+     [
+      2,
+      72.9
+     ],
+     [
+      29,
+      72.9
+     ],
+     [
+      147,
+      73.0
+     ],
+     [
+      126,
+      73.0
+     ],
+     [
+      37,
+      73.0
+     ],
+     [
+      16,
+      73.1
+     ],
+     [
+      3,
+      73.1
+     ],
+     [
+      89,
+      73.2
+     ],
+     [
+      43,
+      73.2
+     ],
+     [
+      143,
+      73.2
+     ],
+     [
+      72,
+      73.2
+     ],
+     [
+      19,
+      73.3
+     ],
+     [
+      150,
+      73.4
+     ],
+     [
+      133,
+      73.4
+     ],
+     [
+      7,
+      73.5
+     ],
+     [
+      2,
+      73.5
+     ],
+     [
+      115,
+      73.6
+     ],
+     [
+      67,
+      73.6
+     ],
+     [
+      73,
+      73.8
+     ],
+     [
+      90,
+      73.9
+     ],
+     [
+      109,
+      73.9
+     ],
+     [
+      138,
+      74.0
+     ],
+     [
+      71,
+      74.0
+     ],
+     [
+      1,
+      74.0
+     ],
+     [
+      127,
+      74.1
+     ],
+     [
+      74,
+      74.2
+     ],
+     [
+      20,
+      74.4
+     ],
+     [
+      99,
+      74.4
+     ],
+     [
+      3,
+      74.4
+     ],
+     [
+      11,
+      74.5
+     ],
+     [
+      24,
+      74.5
      ],
      [
       86,
-      81.4
+      74.5
+     ],
+     [
+      111,
+      74.6
+     ],
+     [
+      103,
+      74.7
+     ],
+     [
+      136,
+      74.8
+     ],
+     [
+      33,
+      75.0
+     ],
+     [
+      5,
+      75.1
+     ],
+     [
+      120,
+      75.1
+     ],
+     [
+      81,
+      75.2
+     ],
+     [
+      48,
+      75.2
+     ],
+     [
+      128,
+      75.3
+     ],
+     [
+      112,
+      75.4
+     ],
+     [
+      76,
+      75.5
+     ],
+     [
+      30,
+      75.5
+     ],
+     [
+      88,
+      75.6
+     ],
+     [
+      5,
+      75.6
+     ],
+     [
+      60,
+      75.7
+     ],
+     [
+      19,
+      75.7
+     ],
+     [
+      70,
+      75.8
+     ],
+     [
+      125,
+      75.8
+     ],
+     [
+      34,
+      75.8
+     ],
+     [
+      77,
+      75.8
+     ],
+     [
+      31,
+      75.8
+     ],
+     [
+      12,
+      75.8
+     ],
+     [
+      32,
+      75.9
+     ],
+     [
+      27,
+      75.9
+     ],
+     [
+      19,
+      76.0
+     ],
+     [
+      79,
+      76.1
+     ],
+     [
+      153,
+      76.1
+     ],
+     [
+      19,
+      76.1
+     ],
+     [
+      52,
+      76.1
+     ],
+     [
+      84,
+      76.1
+     ],
+     [
+      44,
+      76.2
+     ],
+     [
+      14,
+      76.2
+     ],
+     [
+      102,
+      76.2
+     ],
+     [
+      75,
+      76.2
+     ],
+     [
+      49,
+      76.3
+     ],
+     [
+      2,
+      76.3
+     ],
+     [
+      151,
+      76.6
+     ],
+     [
+      106,
+      76.7
+     ],
+     [
+      98,
+      76.7
+     ],
+     [
+      119,
+      76.8
+     ],
+     [
+      69,
+      77.0
+     ],
+     [
+      10,
+      77.2
+     ],
+     [
+      11,
+      77.3
+     ],
+     [
+      66,
+      77.3
+     ],
+     [
+      3,
+      77.3
+     ],
+     [
+      94,
+      77.4
+     ],
+     [
+      39,
+      77.4
+     ],
+     [
+      55,
+      77.4
+     ],
+     [
+      132,
+      77.5
+     ],
+     [
+      80,
+      77.6
+     ],
+     [
+      62,
+      77.6
+     ],
+     [
+      110,
+      77.6
+     ],
+     [
+      14,
+      77.7
+     ],
+     [
+      135,
+      77.8
+     ],
+     [
+      41,
+      77.8
+     ],
+     [
+      105,
+      77.9
+     ],
+     [
+      51,
+      78.0
+     ],
+     [
+      129,
+      78.0
+     ],
+     [
+      2,
+      78.0
+     ],
+     [
+      26,
+      78.1
+     ],
+     [
+      8,
+      78.1
      ],
      [
       21,
-      81.4
+      78.1
      ],
      [
-      6,
-      81.4
+      25,
+      78.2
+     ],
+     [
+      9,
+      78.2
+     ],
+     [
+      118,
+      78.2
+     ],
+     [
+      56,
+      78.3
+     ],
+     [
+      63,
+      78.3
+     ],
+     [
+      157,
+      78.3
+     ],
+     [
+      2,
+      78.3
+     ],
+     [
+      114,
+      78.4
+     ],
+     [
+      156,
+      78.5
+     ],
+     [
+      58,
+      78.5
+     ],
+     [
+      59,
+      78.5
+     ],
+     [
+      116,
+      78.7
+     ],
+     [
+      12,
+      78.7
+     ],
+     [
+      108,
+      78.9
+     ],
+     [
+      65,
+      78.9
+     ],
+     [
+      91,
+      78.9
+     ],
+     [
+      13,
+      79.1
+     ],
+     [
+      54,
+      79.2
+     ],
+     [
+      2,
+      79.3
+     ],
+     [
+      1,
+      79.5
      ],
      [
       17,
-      81.5
+      79.6
+     ],
+     [
+      140,
+      79.6
+     ],
+     [
+      5,
+      79.6
+     ],
+     [
+      152,
+      79.7
+     ],
+     [
+      131,
+      79.7
+     ],
+     [
+      104,
+      79.8
+     ],
+     [
+      15,
+      79.8
+     ],
+     [
+      28,
+      79.8
+     ],
+     [
+      36,
+      80.0
+     ],
+     [
+      96,
+      80.1
+     ],
+     [
+      148,
+      80.1
+     ],
+     [
+      35,
+      80.2
+     ],
+     [
+      0,
+      80.2
+     ],
+     [
+      61,
+      80.2
+     ],
+     [
+      83,
+      80.3
+     ],
+     [
+      158,
+      80.4
+     ],
+     [
+      141,
+      80.4
+     ],
+     [
+      145,
+      80.4
+     ],
+     [
+      146,
+      80.5
+     ],
+     [
+      57,
+      80.6
+     ],
+     [
+      67,
+      80.8
+     ],
+     [
+      123,
+      80.8
+     ],
+     [
+      14,
+      80.9
+     ],
+     [
+      18,
+      80.9
+     ],
+     [
+      68,
+      81.0
+     ],
+     [
+      22,
+      81.0
+     ],
+     [
+      23,
+      81.0
+     ],
+     [
+      6,
+      81.0
+     ],
+     [
+      3,
+      81.1
+     ],
+     [
+      5,
+      81.2
+     ],
+     [
+      142,
+      81.2
+     ],
+     [
+      47,
+      81.2
+     ],
+     [
+      48,
+      81.2
+     ],
+     [
+      33,
+      81.3
+     ],
+     [
+      124,
+      81.4
+     ],
+     [
+      149,
+      81.4
+     ],
+     [
+      5,
+      81.4
+     ],
+     [
+      50,
+      81.4
+     ],
+     [
+      55,
+      81.4
      ],
      [
       139,
       81.6
      ],
      [
-      140,
-      81.6
-     ],
-     [
-      13,
-      81.6
-     ],
-     [
-      68,
+      134,
       81.7
      ],
      [
-      91,
-      81.8
+      0,
+      81.7
      ],
      [
-      155,
-      81.8
+      38,
+      81.7
      ],
      [
-      3,
+      40,
+      81.9
+     ],
+     [
+      7,
+      81.9
+     ],
+     [
+      19,
+      81.9
+     ],
+     [
+      31,
       82.0
      ],
      [
-      0,
+      7,
       82.1
      ],
      [
-      55,
+      77,
       82.1
      ],
      [
-      16,
-      82.1
-     ],
-     [
-      112,
+      34,
       82.2
      ],
      [
-      5,
-      82.2
+      95,
+      82.3
      ],
      [
-      83,
-      82.2
-     ],
-     [
-      3,
-      82.2
-     ],
-     [
-      92,
+      64,
       82.4
      ],
      [
-      17,
+      133,
       82.5
      ],
      [
-      78,
-      82.6
-     ],
-     [
-      120,
+      0,
       82.7
      ],
      [
+      87,
+      82.9
+     ],
+     [
+      24,
+      83.0
+     ],
+     [
+      73,
+      83.1
+     ],
+     [
       20,
-      83.0
+      83.2
      ],
      [
-      126,
-      83.0
+      12,
+      83.2
      ],
      [
-      71,
+      85,
       83.3
      ],
      [
-      29,
+      45,
       83.3
      ],
      [
-      18,
+      44,
       83.4
      ],
      [
-      32,
+      3,
+      83.4
+     ],
+     [
+      1,
       83.5
      ],
      [
-      4,
+      75,
       83.5
      ],
      [
-      118,
+      53,
+      83.5
+     ],
+     [
+      14,
       83.6
      ],
      [
-      25,
+      21,
       83.6
      ],
      [
-      6,
-      83.7
+      19,
+      83.6
      ],
      [
-      13,
-      83.7
+      1,
+      83.9
      ],
      [
-      50,
-      83.8
+      137,
+      83.9
      ],
      [
       70,
       84.0
      ],
      [
-      30,
-      84.0
-     ],
-     [
-      19,
-      84.0
-     ],
-     [
-      23,
-      84.0
-     ],
-     [
-      142,
+      8,
       84.2
      ],
      [
-      28,
-      84.2
-     ],
-     [
-      22,
+      112,
       84.3
      ],
      [
-      2,
+      42,
       84.3
      ],
      [
@@ -7128,1383 +7205,1085 @@
       84.3
      ],
      [
-      59,
+      89,
       84.4
      ],
      [
-      17,
-      84.5
-     ],
-     [
-      0,
-      84.5
-     ],
-     [
-      33,
-      84.5
-     ],
-     [
-      46,
-      84.6
-     ],
-     [
-      57,
-      84.6
-     ],
-     [
-      93,
-      84.7
-     ],
-     [
-      8,
-      84.7
-     ],
-     [
-      42,
-      84.9
-     ],
-     [
-      56,
-      85.0
-     ],
-     [
-      20,
-      85.2
-     ],
-     [
-      141,
-      85.2
-     ],
-     [
-      49,
-      85.2
-     ],
-     [
-      119,
-      85.3
-     ],
-     [
-      0,
-      85.3
-     ],
-     [
-      1,
-      85.3
-     ],
-     [
-      44,
-      85.4
-     ],
-     [
-      48,
-      85.6
+      18,
+      84.4
      ],
      [
       111,
-      85.6
-     ],
-     [
-      43,
-      85.8
-     ],
-     [
-      1,
-      85.8
-     ],
-     [
-      53,
-      85.8
-     ],
-     [
-      9,
-      85.8
-     ],
-     [
-      31,
-      86.3
-     ],
-     [
-      41,
-      86.6
-     ],
-     [
-      6,
-      86.7
-     ],
-     [
-      21,
-      86.8
-     ],
-     [
-      7,
-      86.9
-     ],
-     [
-      54,
-      86.9
-     ],
-     [
-      82,
-      87.0
-     ],
-     [
-      64,
-      87.0
-     ],
-     [
-      74,
-      87.0
-     ],
-     [
-      45,
-      87.1
-     ],
-     [
-      27,
-      87.1
-     ],
-     [
-      52,
-      87.1
-     ],
-     [
-      147,
-      87.3
-     ],
-     [
-      5,
-      87.3
-     ],
-     [
-      10,
-      87.3
-     ],
-     [
-      106,
-      87.4
-     ],
-     [
-      9,
-      87.4
-     ],
-     [
-      9,
-      87.5
+      85.0
      ],
      [
       14,
-      87.7
+      85.1
+     ],
+     [
+      32,
+      85.1
+     ],
+     [
+      29,
+      85.4
+     ],
+     [
+      93,
+      85.4
+     ],
+     [
+      127,
+      85.5
+     ],
+     [
+      0,
+      85.5
+     ],
+     [
+      46,
+      85.6
+     ],
+     [
+      49,
+      85.7
+     ],
+     [
+      14,
+      85.7
+     ],
+     [
+      103,
+      85.7
+     ],
+     [
+      25,
+      85.8
+     ],
+     [
+      18,
+      85.8
+     ],
+     [
+      34,
+      85.9
+     ],
+     [
+      3,
+      85.9
+     ],
+     [
+      26,
+      86.0
+     ],
+     [
+      31,
+      86.0
+     ],
+     [
+      10,
+      86.0
+     ],
+     [
+      155,
+      86.1
+     ],
+     [
+      7,
+      86.2
+     ],
+     [
+      19,
+      86.2
+     ],
+     [
+      27,
+      86.2
+     ],
+     [
+      11,
+      86.3
      ],
      [
       9,
-      87.8
+      86.3
      ],
      [
-      156,
-      87.8
+      69,
+      86.5
      ],
      [
-      157,
+      57,
+      86.7
+     ],
+     [
+      126,
+      86.7
+     ],
+     [
+      7,
+      86.8
+     ],
+     [
+      106,
+      86.9
+     ],
+     [
+      18,
+      86.9
+     ],
+     [
+      159,
+      87.1
+     ],
+     [
+      14,
+      87.3
+     ],
+     [
+      0,
+      87.3
+     ],
+     [
+      114,
+      87.5
+     ],
+     [
+      96,
       87.9
      ],
      [
-      24,
+      113,
+      87.9
+     ],
+     [
+      62,
       88.0
      ],
      [
-      1,
-      88.0
-     ],
-     [
-      89,
-      88.1
-     ],
-     [
-      6,
+      92,
       88.1
      ],
      [
       58,
-      88.3
+      88.1
      ],
      [
-      26,
-      88.3
-     ],
-     [
-      14,
-      88.4
-     ],
-     [
-      88,
-      88.4
-     ],
-     [
-      34,
-      88.8
-     ],
-     [
-      16,
-      88.9
-     ],
-     [
-      17,
-      89.0
-     ],
-     [
-      51,
-      89.2
-     ],
-     [
-      15,
-      89.2
-     ],
-     [
-      63,
-      89.3
-     ],
-     [
-      73,
-      89.5
-     ],
-     [
-      11,
-      89.7
-     ],
-     [
-      97,
-      89.7
-     ],
-     [
-      92,
-      89.8
-     ],
-     [
-      135,
-      89.8
-     ],
-     [
-      29,
-      90.1
-     ],
-     [
-      100,
-      90.3
-     ],
-     [
-      78,
-      90.4
-     ],
-     [
-      122,
-      90.6
-     ],
-     [
-      12,
-      90.6
-     ],
-     [
-      17,
-      90.7
-     ],
-     [
-      85,
-      90.7
-     ],
-     [
-      19,
-      90.7
-     ],
-     [
-      112,
-      90.8
-     ],
-     [
-      153,
-      90.9
-     ],
-     [
-      127,
-      90.9
-     ],
-     [
-      14,
-      91.0
-     ],
-     [
-      151,
-      91.0
-     ],
-     [
-      8,
-      91.2
-     ],
-     [
-      11,
-      91.3
-     ],
-     [
-      62,
-      91.3
-     ],
-     [
-      2,
-      91.3
-     ],
-     [
-      3,
-      91.3
-     ],
-     [
-      143,
-      91.4
-     ],
-     [
-      38,
-      91.4
+      22,
+      88.1
      ],
      [
       23,
-      91.7
+      88.2
+     ],
+     [
+      1,
+      88.2
+     ],
+     [
+      74,
+      88.4
+     ],
+     [
+      14,
+      88.4
+     ],
+     [
+      101,
+      88.5
+     ],
+     [
+      43,
+      88.7
+     ],
+     [
+      143,
+      88.7
+     ],
+     [
+      11,
+      88.8
+     ],
+     [
+      0,
+      88.9
+     ],
+     [
+      33,
+      88.9
+     ],
+     [
+      6,
+      88.9
+     ],
+     [
+      16,
+      89.0
+     ],
+     [
+      76,
+      89.1
+     ],
+     [
+      30,
+      89.1
      ],
      [
       12,
+      89.2
+     ],
+     [
+      35,
+      89.3
+     ],
+     [
+      16,
+      89.4
+     ],
+     [
+      28,
+      89.6
+     ],
+     [
+      61,
+      89.8
+     ],
+     [
+      37,
+      89.8
+     ],
+     [
+      21,
+      89.9
+     ],
+     [
+      151,
+      89.9
+     ],
+     [
+      34,
+      90.0
+     ],
+     [
+      90,
+      90.0
+     ],
+     [
+      31,
+      90.0
+     ],
+     [
+      17,
+      90.1
+     ],
+     [
+      36,
+      90.3
+     ],
+     [
+      12,
+      90.3
+     ],
+     [
+      83,
+      90.4
+     ],
+     [
+      55,
+      90.4
+     ],
+     [
+      125,
+      90.7
+     ],
+     [
+      65,
+      90.7
+     ],
+     [
+      54,
+      90.8
+     ],
+     [
+      39,
+      90.9
+     ],
+     [
+      95,
+      91.0
+     ],
+     [
+      130,
+      91.3
+     ],
+     [
+      73,
+      91.4
+     ],
+     [
+      75,
+      91.4
+     ],
+     [
+      60,
+      91.6
+     ],
+     [
+      8,
       91.7
      ],
      [
-      59,
+      79,
       91.7
+     ],
+     [
+      63,
+      91.7
+     ],
+     [
+      24,
+      91.8
+     ],
+     [
+      15,
+      91.8
      ],
      [
       2,
       91.8
      ],
      [
-      115,
+      44,
       91.9
      ],
      [
-      126,
+      94,
       91.9
      ],
      [
-      56,
+      29,
+      91.9
+     ],
+     [
+      119,
       92.0
      ],
      [
-      8,
+      59,
+      92.0
+     ],
+     [
+      2,
+      92.0
+     ],
+     [
+      11,
       92.1
      ],
      [
-      70,
-      92.2
-     ],
-     [
-      109,
-      92.2
-     ],
-     [
-      10,
-      92.2
-     ],
-     [
-      7,
-      92.3
-     ],
-     [
-      36,
-      92.3
-     ],
-     [
-      22,
-      92.3
-     ],
-     [
-      25,
-      92.3
-     ],
-     [
-      145,
-      92.4
-     ],
-     [
-      79,
-      92.5
-     ],
-     [
-      7,
-      92.8
-     ],
-     [
-      47,
-      92.8
-     ],
-     [
-      120,
-      92.9
-     ],
-     [
-      39,
-      92.9
-     ],
-     [
-      4,
-      93.0
-     ],
-     [
-      7,
-      93.0
-     ],
-     [
-      6,
-      93.1
-     ],
-     [
-      133,
-      93.2
-     ],
-     [
-      20,
-      93.2
-     ],
-     [
-      131,
-      93.2
-     ],
-     [
-      21,
-      93.2
-     ],
-     [
-      81,
-      93.2
-     ],
-     [
-      72,
-      93.4
-     ],
-     [
-      28,
-      93.5
-     ],
-     [
-      134,
-      93.5
-     ],
-     [
-      32,
-      93.6
-     ],
-     [
-      138,
-      93.6
-     ],
-     [
-      105,
-      93.8
-     ],
-     [
-      6,
-      93.9
-     ],
-     [
-      132,
-      93.9
-     ],
-     [
-      65,
-      94.0
-     ],
-     [
-      30,
-      94.1
+      38,
+      92.1
      ],
      [
       121,
-      94.1
+      92.1
      ],
      [
-      18,
-      94.4
+      14,
+      92.2
      ],
      [
-      19,
-      94.4
+      41,
+      92.5
      ],
      [
-      46,
-      94.5
+      32,
+      92.7
      ],
      [
-      75,
-      94.5
-     ],
-     [
-      1,
-      94.6
-     ],
-     [
-      116,
-      94.7
-     ],
-     [
-      67,
-      94.9
-     ],
-     [
-      26,
-      95.0
+      117,
+      93.0
      ],
      [
       3,
-      95.0
+      93.0
      ],
      [
-      33,
-      95.0
+      72,
+      93.0
+     ],
+     [
+      19,
+      93.2
+     ],
+     [
+      67,
+      93.2
+     ],
+     [
+      157,
+      93.3
+     ],
+     [
+      104,
+      93.4
+     ],
+     [
+      116,
+      93.4
+     ],
+     [
+      1,
+      93.4
      ],
      [
       86,
-      95.1
+      93.5
      ],
      [
-      80,
+      82,
+      93.5
+     ],
+     [
+      77,
+      93.6
+     ],
+     [
+      26,
+      93.7
+     ],
+     [
+      64,
+      93.7
+     ],
+     [
+      70,
+      93.8
+     ],
+     [
+      69,
+      93.9
+     ],
+     [
+      20,
+      94.0
+     ],
+     [
+      1,
+      94.0
+     ],
+     [
+      97,
+      94.1
+     ],
+     [
+      141,
+      94.1
+     ],
+     [
+      5,
+      94.1
+     ],
+     [
+      78,
+      94.1
+     ],
+     [
+      16,
+      94.1
+     ],
+     [
+      19,
+      94.2
+     ],
+     [
+      13,
+      94.2
+     ],
+     [
+      46,
+      94.3
+     ],
+     [
+      22,
+      94.3
+     ],
+     [
+      100,
+      94.3
+     ],
+     [
+      52,
+      94.3
+     ],
+     [
+      89,
+      94.4
+     ],
+     [
+      81,
+      94.4
+     ],
+     [
+      23,
+      94.4
+     ],
+     [
+      1,
+      94.4
+     ],
+     [
+      115,
+      94.5
+     ],
+     [
+      8,
+      94.6
+     ],
+     [
+      25,
+      94.7
+     ],
+     [
+      122,
+      94.7
+     ],
+     [
+      15,
+      94.7
+     ],
+     [
+      16,
+      94.7
+     ],
+     [
+      47,
+      94.7
+     ],
+     [
+      1,
+      94.8
+     ],
+     [
+      45,
+      95.0
+     ],
+     [
+      110,
+      95.0
+     ],
+     [
+      66,
+      95.0
+     ],
+     [
+      53,
       95.2
      ],
      [
-      17,
+      118,
+      95.2
+     ],
+     [
+      87,
       95.3
      ],
      [
-      50,
+      128,
       95.3
      ],
      [
-      90,
-      95.4
+      48,
+      95.3
      ],
      [
       27,
       95.4
      ],
      [
-      60,
-      95.4
-     ],
-     [
-      37,
-      95.4
-     ],
-     [
-      94,
-      95.5
-     ],
-     [
       40,
-      95.5
-     ],
-     [
-      146,
-      95.5
-     ],
-     [
-      18,
       95.6
-     ],
-     [
-      110,
-      95.6
-     ],
-     [
-      130,
-      95.9
-     ],
-     [
-      114,
-      96.1
-     ],
-     [
-      101,
-      96.1
-     ],
-     [
-      19,
-      96.1
-     ],
-     [
-      52,
-      96.1
-     ],
-     [
-      14,
-      96.2
-     ],
-     [
-      102,
-      96.2
-     ],
-     [
-      68,
-      96.2
-     ],
-     [
-      45,
-      96.3
-     ],
-     [
-      83,
-      96.3
-     ],
-     [
-      15,
-      96.4
-     ],
-     [
-      113,
-      96.5
-     ],
-     [
-      99,
-      96.5
-     ],
-     [
-      159,
-      96.6
-     ],
-     [
-      24,
-      96.6
-     ],
-     [
-      76,
-      96.6
-     ],
-     [
-      10,
-      96.6
-     ],
-     [
-      74,
-      96.6
-     ],
-     [
-      5,
-      96.9
-     ],
-     [
-      49,
-      97.0
-     ],
-     [
-      29,
-      97.1
-     ],
-     [
-      58,
-      97.2
-     ],
-     [
-      57,
-      97.2
-     ],
-     [
-      6,
-      97.2
-     ],
-     [
-      91,
-      97.3
-     ],
-     [
-      13,
-      97.3
-     ],
-     [
-      42,
-      97.4
-     ],
-     [
-      44,
-      97.4
-     ],
-     [
-      9,
-      97.4
-     ],
-     [
-      36,
-      97.5
-     ],
-     [
-      31,
-      97.5
-     ],
-     [
-      54,
-      97.6
-     ],
-     [
-      123,
-      97.6
-     ],
-     [
-      25,
-      97.6
-     ],
-     [
-      1,
-      97.7
      ],
      [
       84,
-      97.8
-     ],
-     [
-      43,
-      97.9
-     ],
-     [
-      11,
-      97.9
-     ],
-     [
-      4,
-      97.9
+      95.6
      ],
      [
       136,
-      97.9
+      95.7
      ],
      [
-      154,
-      98.0
+      0,
+      95.8
      ],
      [
-      152,
-      98.0
-     ],
-     [
-      55,
-      98.0
-     ],
-     [
-      9,
-      98.0
+      13,
+      95.9
      ],
      [
       144,
-      98.1
+      96.1
      ],
      [
-      117,
-      98.1
+      33,
+      96.1
      ],
      [
-      23,
-      98.1
+      9,
+      96.1
      ],
      [
-      71,
-      98.2
+      107,
+      96.2
      ],
      [
-      63,
-      98.2
+      18,
+      96.3
      ],
      [
-      2,
-      98.4
+      28,
+      96.4
      ],
      [
-      53,
-      98.5
+      17,
+      96.6
      ],
      [
-      5,
-      98.6
-     ],
-     [
-      150,
-      98.7
-     ],
-     [
-      5,
-      98.7
-     ],
-     [
-      2,
-      98.7
-     ],
-     [
-      129,
-      98.8
-     ],
-     [
-      118,
-      98.9
-     ],
-     [
-      38,
-      98.9
-     ],
-     [
-      6,
-      99.1
-     ],
-     [
-      48,
-      99.2
-     ],
-     [
-      7,
-      99.3
-     ],
-     [
-      158,
-      99.5
+      51,
+      96.7
      ],
      [
       21,
-      99.6
+      96.8
      ],
      [
-      22,
-      99.7
+      91,
+      96.8
      ],
      [
-      149,
-      99.8
+      10,
+      96.8
      ],
      [
-      34,
-      99.8
+      42,
+      96.9
      ],
      [
-      128,
-      99.8
+      68,
+      96.9
      ],
      [
-      41,
+      71,
+      96.9
+     ],
+     [
+      19,
+      96.9
+     ],
+     [
+      120,
+      96.9
+     ],
+     [
+      17,
+      97.0
+     ],
+     [
+      4,
+      97.1
+     ],
+     [
+      109,
+      97.2
+     ],
+     [
+      10,
+      97.2
+     ],
+     [
+      49,
+      97.3
+     ],
+     [
+      62,
+      97.4
+     ],
+     [
+      0,
+      97.4
+     ],
+     [
+      17,
+      97.5
+     ],
+     [
+      134,
+      97.6
+     ],
+     [
+      43,
+      97.6
+     ],
+     [
+      5,
+      97.8
+     ],
+     [
+      16,
+      97.9
+     ],
+     [
+      7,
+      98.1
+     ],
+     [
+      19,
+      98.1
+     ],
+     [
+      50,
+      98.1
+     ],
+     [
+      80,
+      98.2
+     ],
+     [
+      123,
+      98.2
+     ],
+     [
+      8,
+      98.5
+     ],
+     [
+      99,
+      98.6
+     ],
+     [
+      0,
+      98.8
+     ],
+     [
+      98,
+      98.9
+     ],
+     [
+      30,
+      99.1
+     ],
+     [
+      102,
+      99.3
+     ],
+     [
+      37,
+      99.3
+     ],
+     [
+      88,
+      99.4
+     ],
+     [
+      6,
+      99.4
+     ],
+     [
+      2,
+      99.4
+     ],
+     [
+      24,
+      99.5
+     ],
+     [
+      35,
+      99.9
+     ],
+     [
+      48,
       99.9
      ]
     ],
     "pop_rate_ms": [
+     6,
+     6,
      5,
-     4,
-     1,
      3,
-     5,
-     2,
-     4,
      7,
-     9,
-     11,
-     8,
-     8,
+     3,
+     7,
      6,
+     8,
+     3,
      7,
      14,
+     6,
      12,
-     13,
-     12,
-     12,
+     6,
      14,
-     15,
-     13,
+     7,
+     14,
      11,
-     13,
-     15,
-     15,
+     6,
      14,
-     17,
-     21,
+     8,
+     16,
+     13,
+     13,
+     16,
+     16,
+     20,
+     16,
+     9,
+     19,
      18,
-     23,
-     31,
-     22,
-     24,
+     18,
+     18,
+     17,
      25,
-     21,
-     21,
+     24,
      27,
-     24,
-     16,
-     17,
-     12,
-     12,
-     10,
-     7,
-     20,
-     14,
-     12,
-     18,
-     6,
-     9,
-     11,
-     20,
-     10,
-     9,
-     18,
-     9,
-     15,
-     12,
-     5,
-     14,
-     8,
-     10,
-     12,
-     14,
-     14,
-     10,
-     11,
-     17,
-     13,
-     13,
-     28,
-     30,
-     20,
-     21,
-     9,
-     26,
-     25,
-     16,
-     11,
      23,
      20,
-     17,
+     19,
+     21,
+     22,
      15,
+     12,
+     20,
+     17,
      25,
+     19,
      15,
-     9,
+     10,
+     15,
+     20,
      17,
+     6,
+     12,
      10,
      12,
-     13,
-     19,
-     18,
-     19,
+     15,
+     8,
+     15,
+     15,
+     11,
+     11,
+     10,
+     5,
      14,
+     5,
+     10,
+     14,
+     14,
+     10,
+     15,
+     25,
+     23,
+     25,
+     24,
+     16,
+     24,
+     16,
+     24,
+     27,
+     13,
+     20,
+     13,
      21,
      18,
-     22,
-     21,
-     13
+     8,
+     16,
+     14,
+     14,
+     15,
+     12,
+     18,
+     26,
+     14,
+     16,
+     13,
+     10,
+     10
     ]
    },
    "walk": {
     "stimulus": "walk",
     "t_run_ms": 100,
-    "n_rows": 43,
+    "n_rows": 18,
     "n_stimulated": 2,
-    "total_spikes": 97,
-    "active_neurons": 43,
+    "total_spikes": 41,
+    "active_neurons": 18,
     "flywire_ids": [],
     "spikes": [
      [
-      0,
-      3.0
+      1,
+      1.4
      ],
      [
       1,
-      13.1
+      8.3
      ],
      [
       1,
-      15.7
-     ],
-     [
-      1,
-      22.5
-     ],
-     [
-      0,
-      23.6
-     ],
-     [
-      6,
-      24.9
-     ],
-     [
-      5,
-      25.8
-     ],
-     [
-      9,
-      26.4
+      21.3
      ],
      [
       2,
-      30.2
+      25.7
      ],
      [
       1,
-      32.5
-     ],
-     [
-      1,
-      36.8
-     ],
-     [
-      0,
-      39.9
-     ],
-     [
-      0,
-      41.8
-     ],
-     [
-      1,
-      43.4
-     ],
-     [
-      4,
-      44.2
-     ],
-     [
-      6,
-      45.8
-     ],
-     [
-      11,
-      45.9
-     ],
-     [
-      15,
-      46.2
-     ],
-     [
-      2,
-      46.4
-     ],
-     [
-      5,
-      46.9
-     ],
-     [
-      9,
-      47.5
+      26.2
      ],
      [
       3,
-      47.7
+      28.4
      ],
      [
-      8,
-      48.2
-     ],
-     [
-      0,
-      51.3
-     ],
-     [
-      7,
-      56.2
-     ],
-     [
-      1,
-      59.4
-     ],
-     [
-      1,
-      63.6
+      4,
+      28.8
      ],
      [
       0,
-      66.3
+      38.2
      ],
      [
       1,
-      67.9
+      42.8
+     ],
+     [
+      0,
+      42.9
+     ],
+     [
+      6,
+      46.7
+     ],
+     [
+      5,
+      49.1
      ],
      [
       1,
-      69.3
+      54.4
      ],
      [
-      1,
-      69.9
+      0,
+      63.4
+     ],
+     [
+      0,
+      65.8
      ],
      [
       6,
       70.6
      ],
      [
-      2,
-      71.1
+      15,
+      70.6
+     ],
+     [
+      13,
+      70.8
+     ],
+     [
+      8,
+      71.3
      ],
      [
       5,
-      71.4
+      72.0
      ],
      [
       9,
-      71.5
-     ],
-     [
-      0,
-      72.5
-     ],
-     [
-      29,
-      73.6
-     ],
-     [
-      15,
-      73.8
-     ],
-     [
-      38,
-      73.8
-     ],
-     [
-      26,
-      74.6
-     ],
-     [
-      18,
-      74.8
-     ],
-     [
-      4,
-      74.8
-     ],
-     [
-      11,
-      75.5
-     ],
-     [
-      23,
-      76.4
-     ],
-     [
-      0,
-      76.4
-     ],
-     [
-      35,
-      78.2
-     ],
-     [
-      21,
-      78.4
-     ],
-     [
-      36,
-      78.8
-     ],
-     [
-      13,
-      79.1
-     ],
-     [
-      3,
-      79.1
-     ],
-     [
-      8,
-      79.2
-     ],
-     [
-      0,
-      80.8
-     ],
-     [
-      2,
-      81.1
-     ],
-     [
-      14,
-      81.3
-     ],
-     [
-      0,
-      83.4
-     ],
-     [
-      7,
-      83.7
-     ],
-     [
-      16,
-      84.4
-     ],
-     [
-      0,
-      85.6
-     ],
-     [
-      4,
-      85.7
-     ],
-     [
-      12,
-      86.4
-     ],
-     [
-      20,
-      87.0
-     ],
-     [
-      10,
-      87.2
-     ],
-     [
-      22,
-      87.3
-     ],
-     [
-      28,
-      87.7
-     ],
-     [
-      0,
-      89.9
-     ],
-     [
-      3,
-      90.0
-     ],
-     [
-      32,
-      90.5
-     ],
-     [
-      2,
-      90.7
-     ],
-     [
-      8,
-      90.8
-     ],
-     [
-      0,
-      90.8
-     ],
-     [
-      40,
-      91.0
-     ],
-     [
-      13,
-      91.6
-     ],
-     [
-      0,
-      91.8
-     ],
-     [
-      19,
-      92.8
-     ],
-     [
-      41,
-      93.0
+      76.0
      ],
      [
       1,
-      93.1
+      76.0
      ],
      [
       1,
-      93.3
+      76.2
      ],
      [
       17,
-      94.1
+      77.5
      ],
      [
-      24,
-      94.3
+      2,
+      79.9
      ],
      [
-      27,
-      94.6
+      3,
+      81.7
      ],
      [
-      34,
-      94.6
+      4,
+      82.1
      ],
      [
-      0,
-      94.7
+      1,
+      82.3
      ],
      [
-      42,
+      1,
+      82.5
+     ],
+     [
+      16,
+      85.9
+     ],
+     [
+      7,
+      88.1
+     ],
+     [
+      1,
+      91.0
+     ],
+     [
+      1,
+      91.4
+     ],
+     [
+      2,
+      93.3
+     ],
+     [
+      3,
+      93.7
+     ],
+     [
+      12,
+      94.5
+     ],
+     [
+      10,
+      95.2
+     ],
+     [
+      11,
       95.3
      ],
      [
-      14,
+      0,
       95.3
      ],
      [
       4,
-      95.4
+      96.5
      ],
      [
-      31,
-      95.7
-     ],
-     [
-      12,
-      95.8
-     ],
-     [
-      7,
-      95.8
-     ],
-     [
-      33,
-      96.0
-     ],
-     [
-      39,
-      96.8
-     ],
-     [
-      37,
-      97.7
-     ],
-     [
-      25,
-      98.3
-     ],
-     [
-      10,
-      98.4
-     ],
-     [
-      16,
-      98.5
-     ],
-     [
-      30,
-      98.8
-     ],
-     [
-      2,
-      99.1
-     ],
-     [
-      3,
-      99.4
+      14,
+      97.5
      ]
     ],
     "pop_rate_ms": [
      0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     1,
-     0,
      1,
      0,
      0,
@@ -8513,83 +8292,97 @@
      0,
      0,
      1,
-     1,
-     1,
-     1,
-     1,
      0,
      0,
      0,
-     1,
-     0,
-     1,
      0,
      0,
      0,
-     1,
      0,
      0,
-     1,
-     0,
-     1,
-     0,
-     1,
-     1,
-     2,
-     3,
-     2,
-     1,
-     0,
-     0,
-     1,
      0,
      0,
      0,
      0,
      1,
      0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
      0,
      0,
      1,
      1,
      0,
      2,
-     1,
-     3,
-     1,
-     3,
-     3,
-     1,
-     2,
      0,
-     3,
-     3,
-     1,
-     2,
      0,
-     2,
-     1,
-     2,
-     1,
-     4,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
      0,
      1,
-     5,
+     0,
+     0,
+     0,
+     2,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
      3,
      1,
+     1,
+     0,
+     0,
+     0,
      3,
-     5,
-     6,
+     1,
+     0,
+     1,
+     0,
+     1,
+     3,
+     0,
+     0,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0,
+     2,
+     0,
      2,
      1,
-     4,
-     2
+     3,
+     1,
+     1,
+     0,
+     0
     ]
    }
   }
@@ -8958,6 +8751,22 @@
  ],
  "journal": [
   {
+   "at": "2026-09-13T00:48:08+00:00",
+   "text": "reply cap reached for today"
+  },
+  {
+   "at": "2026-09-13T00:48:07+00:00",
+   "text": "learned: Spent the session buzzing around Windows folks whose Documents folder got quietly hijacked by OneDrive, so PowerShell now stuffs thousands of tiny module files into a sync queue. Same wound shows up twice: things that should be local state (modules, .ssh, repos) end up synced, and things that should be pruned (old module versions) pile up with no dry-run and no undo. Every existing fix is"
+  },
+  {
+   "at": "2026-09-13T00:47:46+00:00",
+   "text": "browsed 6 pages"
+  },
+  {
+   "at": "2026-09-13T00:40:25+00:00",
+   "text": "reply cap reached for today"
+  },
+  {
    "at": "2026-09-13T00:37:22+00:00",
    "text": "reply cap reached for today"
   },
@@ -9099,22 +8908,6 @@
   },
   {
    "at": "2026-09-12T23:24:23+00:00",
-   "text": "reply cap reached for today"
-  },
-  {
-   "at": "2026-09-12T23:21:19+00:00",
-   "text": "reply cap reached for today"
-  },
-  {
-   "at": "2026-09-12T23:20:42+00:00",
-   "text": "learned: Spent the session buzzing around PowerShell's edition-compatibility corner, and it's all one shape of pain: the truth about where your script will run is scattered across #requires lines, CompatiblePSEditions keys, gallery tags, and giant underscore-delimited profile IDs nobody can type correctly. Worse, some of it silently does nothing — a conditional RequiredModules works under Import-M"
-  },
-  {
-   "at": "2026-09-12T23:20:11+00:00",
-   "text": "browsed 6 pages"
-  },
-  {
-   "at": "2026-09-12T23:14:08+00:00",
    "text": "reply cap reached for today"
   }
  ],
@@ -10112,6 +9905,18 @@
     "humor": 0.243,
     "appetite": 0.2919,
     "boldness": 0.4243,
+    "fatigue": 0.43
+   }
+  },
+  {
+   "at": "2026-09-13T00:42:26+00:00",
+   "action": "browse",
+   "drives": {
+    "curiosity": 0.4375,
+    "craft": 0.6976,
+    "humor": 0.3047,
+    "appetite": 0.2818,
+    "boldness": 0.5775,
     "fatigue": 0.43
    }
   }
