@@ -160,7 +160,7 @@ class Fly:
             if action == "website":
                 result.outcome = self.act_website()
             elif action == "repair":
-                broken = [b for b in self._tool_builds() if not b.get("ok")]
+                broken = [b for b in self._tool_builds() if not b.get("ok") and not b.get("abandoned")]
                 result.outcome = self.act_repair(broken[-1]) if broken else {"repair": "nothing is broken"}
             elif action == "improve":
                 tools = self._tool_builds()
@@ -338,10 +338,17 @@ class Fly:
                     f"Links you may use: {site}/builds (your builds page) or {code} (the code).")
         return self.act_post("build", material, live=live, tags={"build_slug": b.get("slug")})
 
+    BUILD_POSTS_PER_DAY = 12
+
     def act_post(self, kind: str, material: str, media: str = "", live: bool = False, tags: dict[str, Any] | None = None) -> str:
-        today = sum(1 for x in self.memory.data.get("posts", [])
-                    if x.get("live") and x.get("kind") != "reply" and float(x.get("ts", 0)) >= time.time() - 86400)
-        if today >= self.cfg.x.max_posts_per_day:
+        day = time.time() - 86400
+        live = [x for x in self.memory.data.get("posts", []) if x.get("live") and float(x.get("ts", 0)) >= day]
+        if kind in ("build", "launch"):
+            # what the fly made is the point of the account: these ride outside
+            # the general cap, with a sanity ceiling of their own
+            if sum(1 for x in live if x.get("kind") == kind) >= self.BUILD_POSTS_PER_DAY:
+                return f"{kind}: daily {kind} post ceiling reached"
+        elif sum(1 for x in live if x.get("kind") not in ("reply", "build", "launch")) >= self.cfg.x.max_posts_per_day:
             return f"{kind}: daily post cap reached"
         draft = self.mind.compose_post(kind, material, self.context(), self.playbook_text())
         post = Post(text=draft.text.strip(), kind=kind, media=media)
@@ -603,7 +610,7 @@ class Fly:
 
     def act_build(self, drives: Drives) -> dict[str, Any]:
         tools = self._tool_builds()
-        broken = [b for b in tools if not b.get("ok")]
+        broken = [b for b in tools if not b.get("ok") and not b.get("abandoned")]
         if broken:
             return self.act_repair(broken[-1])
         # Every third build action improves something that already works; the
@@ -627,6 +634,8 @@ class Fly:
     def has_launched(self) -> bool:
         return any(l.get("live") for l in self.memory.data.get("launches") or [])
 
+    MAX_REPAIRS = 2
+
     def act_repair(self, build: dict[str, Any]) -> dict[str, Any]:
         slug, title = str(build.get("slug")), str(build.get("title") or build.get("slug"))
         self.log(f"the fly is repairing {title}")
@@ -634,8 +643,17 @@ class Fly:
         build.update({"ok": result.ok, "log": result.log[-1500:], "touched_ts": time.time(),
                       "touched_at": self.memory.data["journal"][-1]["at"] if self.memory.data["journal"] else None,
                       "files": result.files or build.get("files")})
-        self.memory.note(f"repaired {title}: {'tests pass' if result.ok else 'still failing'}")
-        return {"repaired": title, "ok": result.ok, "log_tail": result.log[-600:]}
+        build["repairs"] = int(build.get("repairs", 0)) + 1
+        if result.ok:
+            build["repairs"] = 0
+            self.memory.note(f"repaired {title}: tests pass")
+        elif build["repairs"] >= self.MAX_REPAIRS:
+            build["abandoned"] = True                       # a fly knows when to leave a rotten fruit
+            self.memory.note(f"gave up on {title} after {build['repairs']} failed repairs; moving on")
+            self.log(f"  giving up on {title}; it stays on the site as abandoned")
+        else:
+            self.memory.note(f"repaired {title}: still failing (attempt {build['repairs']} of {self.MAX_REPAIRS})")
+        return {"repaired": title, "ok": result.ok, "log_tail": result.log[-600:], "abandoned": bool(build.get("abandoned"))}
 
     def act_improve(self, build: dict[str, Any]) -> dict[str, Any]:
         slug, title = str(build.get("slug")), str(build.get("title") or build.get("slug"))

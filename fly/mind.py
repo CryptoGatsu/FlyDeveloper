@@ -190,7 +190,7 @@ class ClaudeMind:
         budget = max(self.MIN_TOKENS, max_tokens or self.cfg.max_tokens)
 
         def call(n: int):
-            return self.client.with_options(timeout=1200.0).beta.messages.parse(
+            return self.client.with_options(timeout=600.0).beta.messages.parse(
                 model=self.cfg.model,
                 max_tokens=n,
                 betas=["server-side-fallback-2026-07-01"],

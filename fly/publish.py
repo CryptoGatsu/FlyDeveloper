@@ -130,6 +130,7 @@ def build_state(cfg: FlyConfig, mem: Memory, extra: dict[str, Any] | None = None
             repo_path, kind = f"workshop/{slug}", "tool"
         builds.append({
             "at": b.get("at"), "slug": slug, "title": b.get("title"), "ok": b.get("ok"), "kind": kind,
+            "abandoned": bool(b.get("abandoned")),
             "files": b.get("files") or [], "repo_path": repo_path,
             "changes": [{"at": c.get("at"), "what": c.get("what")} for c in (b.get("changes") or [])][-5:],
             "url": f"{REPO_URL}/tree/{branch}/{repo_path}",

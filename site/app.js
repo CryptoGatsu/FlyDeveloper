@@ -201,7 +201,7 @@ function builds(s){
     var fs=arr(x.files),ls=[],ch=newest(x.changes);
     if(href(x.url))ls.push(link(x.url,"open in repo \u2192"));
     if(href(x.readme_url))ls.push(link(x.readme_url,"read the README"));
-    return '<article class="card"><p class="kicker">'+ts(x.at)+' \u00b7 '+(x.ok?'<span class="mood">ok</span>':'<span class="bad">broken</span>')+(x.kind?' \u00b7 '+e(x.kind):"")+'</p>'+
+    return '<article class="card"><p class="kicker">'+ts(x.at)+' \u00b7 '+(x.ok?'<span class="mood">ok</span>':x.abandoned?'<span class="bad">abandoned</span>':'<span class="bad">broken, repairing</span>')+(x.kind?' \u00b7 '+e(x.kind):"")+'</p>'+
       '<h3>'+link(x.url,x.title||x.slug||"build")+'</h3>'+
       (x.repo_path?'<p class="mono">'+e(x.repo_path)+'</p>':"")+
       (fs.length?'<ul class="chips">'+fs.map(function(n){return '<li>'+e(n)+'</li>';}).join("")+'</ul>':"")+

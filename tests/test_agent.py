@@ -285,10 +285,10 @@ def test_every_working_build_gets_announced_even_after_a_capped_day(tmp_path):
                               "for_whom": "maintainers", "path": "x", "files": ["main.py"], "log": ""})
     fly.memory.add("builds", {"slug": "broken-thing", "title": "Broken Thing", "ok": False, "path": "x", "files": [], "log": "fail"})
     assert [b["slug"] for b in fly.unannounced_builds()] == ["license-drift"]
-    fly.cfg.x.max_posts_per_day = 0
-    assert "cap" in fly.announce_builds()                       # capped today: stays pending, nothing lost
+    fly.BUILD_POSTS_PER_DAY = 0
+    assert "ceiling" in fly.announce_builds()                   # at the ceiling today: stays pending, nothing lost
     assert [b["slug"] for b in fly.unannounced_builds()] == ["license-drift"]
-    fly.cfg.x.max_posts_per_day = 12
+    fly.BUILD_POSTS_PER_DAY = 12
     out = fly.announce_builds()
     assert out.startswith("build:")
     post = [p for p in fly.memory.data["posts"] if p.get("kind") == "build"][-1]
@@ -361,3 +361,26 @@ def test_memory_keeps_market_history_and_counters_across_restarts(tmp_path):
     mem.save()
     again = Memory.load(tmp_path / "m.json")
     assert again.data["market"][-1]["mcap_usd"] == 5.0 and again.data["counters"]["build_actions"] == 4
+
+
+def test_build_and_launch_posts_ride_outside_the_general_cap(tmp_path):
+    fly = _fly(tmp_path)
+    fly.cfg.x.max_posts_per_day = 1
+    fly.memory.add("posts", {"kind": "hype", "text": "x", "live": True})
+    assert "cap" in fly.act_post("meme", "a meme")
+    assert "cap" not in fly.act_post("build", "a new tool")
+    assert "cap" not in fly.act_post("launch", "a coin")
+
+
+def test_a_build_is_abandoned_after_two_failed_repairs(tmp_path):
+    from types import SimpleNamespace
+
+    fly = _fly(tmp_path)
+    (tmp_path / "workshop" / "doomed").mkdir(parents=True)
+    fly.memory.add("builds", {"slug": "doomed", "title": "Doomed", "ok": False, "path": "x", "files": [], "log": "fail"})
+    fly.workshop.repair = lambda slug, title, mind, log_fn=None: SimpleNamespace(ok=False, log="still broken", files=[])
+    build = fly.memory.data["builds"][-1]
+    assert fly.act_repair(build)["abandoned"] is False
+    assert fly.act_repair(build)["abandoned"] is True
+    assert build["abandoned"] and build["repairs"] == 2
+    assert not [b for b in fly._tool_builds() if not b.get("ok") and not b.get("abandoned")]   # act_build moves on

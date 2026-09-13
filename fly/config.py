@@ -175,7 +175,7 @@ class XConfig:
     access_secret: str = ""      # X_ACCESS_SECRET
     post: bool = False           # FLY_X_POST=1 sends posts; otherwise dry runs
     max_posts_per_day: int = 30      # own posts (hype/build/meme/launch/learning); replies do not count
-    max_replies_per_day: int = 30
+    max_replies_per_day: int = 60
     max_replies_per_account_per_day: int = 2   # a bot that keeps mentioning you gets nothing after this
     hype_every_hours: float = 2.0   # at most one unprompted $FLYDEV post per this many hours
     metrics_every_hours: float = 3.0
@@ -326,7 +326,7 @@ class FlyConfig:
         xc.access_secret = _env("X_ACCESS_SECRET", "")
         xc.post = _env_bool("FLY_X_POST", False)
         xc.max_posts_per_day = _env_int("FLY_X_MAX_POSTS_PER_DAY", 30)
-        xc.max_replies_per_day = _env_int("FLY_X_MAX_REPLIES_PER_DAY", 30)
+        xc.max_replies_per_day = _env_int("FLY_X_MAX_REPLIES_PER_DAY", 60)
         xc.max_replies_per_account_per_day = _env_int("FLY_X_MAX_REPLIES_PER_ACCOUNT_PER_DAY", 2)
         xc.hype_every_hours = _env_float("FLY_X_HYPE_EVERY_HOURS", 2.0)
         xc.mentions_every_sec = max(60, _env_int("FLY_X_MENTIONS_EVERY_SEC", 180))
